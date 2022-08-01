@@ -1,0 +1,34 @@
+echo ">>> run-add-field START"
+
+add_field_exe=$add_field_exe
+datapoint_logs_dir=$datapoint_logs_dir
+datapoint_output_dir=$datapoint_output_dir
+psp_process_log_file="$$(find $$datapoint_logs_dir -maxdepth 1 -name '*.out')"
+
+model_size="$$( grep "model size" $$psp_process_log_file | awk '{print $$6}' )"
+data_item_size=4 # number of bytes per data item (float)
+trans_flat_file="$$(find $$datapoint_output_dir -type f -name 'pressure_transpose')"
+trans_flat_file_size="$$(ls -l $$trans_flat_file | awk '{printf $$5}')"
+trans_flat_file_number_frames="$$(expr $$trans_flat_file_size '/' '(' $$model_size '*' $$data_item_size ')')"
+
+trans_h5_file="$$(\
+    find $$datapoint_output_dir \
+    -type f -name 'pressure_transpose.h5')"
+
+echo ">>> inspected psp_process log file: '$$psp_process_log_file'"
+echo ">>> number of model nodes: $$model_size"
+echo ">>> data item size: $$data_item_size"
+echo ">>> pressure-transpose time history flat file: '$$trans_flat_file'"
+echo ">>> pressure-transpose time history flat file size: $$trans_flat_file_size"
+echo ">>> pressure-transpose time history flat file number of frames: $$trans_flat_file_number_frames"
+echo ">>> adding flat-file data to '$$trans_h5_file'"
+
+ex="$$add_field_exe $$trans_h5_file frames $$trans_flat_file $$trans_flat_file_number_frames"
+echo ">>> running: '$$ex'"
+t_start="$$(date +%s.%N)"
+echo ">>> started at: $$(date)"
+$$ex
+t_end="$$(date +%s.%N)"
+echo ">>> elapsed time: $$(python -c "print('%4.1f' % ($$t_end - $$t_start))") seconds"
+
+echo ">>> run-add-field DONE."

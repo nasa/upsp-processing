@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+import argparse
+import logging
+import os
+import sys
+
+sys.path.append(
+    os.path.realpath(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "python")
+    )
+)
+
+import upsp.processing.context  # noqa
+import upsp.processing.miniwall  # noqa
+import upsp.processing.io  # noqa
+
+
+def generate_miniwall(args):
+    cfg = upsp.processing.io.json_load_or_die(args.config)
+    upsp.processing.miniwall.run_miniwall_generation(cfg)
+
+
+def render_images(args):
+    cfg = upsp.processing.io.json_load_or_die(args.config)
+    ctx = upsp.processing.context.Pipeline(cfg["runtime"]["root_dir"])
+    upsp.processing.miniwall.run_render_images(ctx, cfg, args.datapoints)
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    ap = argparse.ArgumentParser(
+        prog="upsp-plotting", description="run data product plotting operations"
+    )
+    sp = ap.add_subparsers(title="Available subcommands")
+    render_images_sp = sp.add_parser("render-images")
+    render_images_sp.add_argument("config", help="JSON configuration file")
+    render_images_sp.add_argument(
+        "datapoints", nargs='+',
+        help="Datapoints (default if none: all available)"
+    )
+    render_images_sp.set_defaults(func=render_images)
+    generate_miniwall_sp = sp.add_parser("generate-miniwall")
+    generate_miniwall_sp.add_argument("config", help="JSON configuration file")
+    generate_miniwall_sp.set_defaults(func=generate_miniwall)
+    args = ap.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

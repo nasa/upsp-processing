@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+import os
+
+# TODO consider using real python setup.py utilities
+# For now, this allows importing upsp.* from both the
+# source-tree and the install tree.
+import site
+
+site.addsitedir(os.path.join(os.path.dirname(__file__), "..", "python"))
+
+if __name__ == "__main__":
+    import argparse
+    import logging
+    import upsp.processing.tree
+
+    logging.basicConfig(level=logging.INFO)
+    ap = argparse.ArgumentParser(
+        description="Create directory and scripts for processing UPSP data"
+    )
+    default_output_dir = os.path.realpath(os.path.curdir)
+    ap.add_argument(
+        "--outdir", help="output directory (default = current working directory)",
+        default=default_output_dir
+    )
+    ap.add_argument("--data", help="raw data filesystem paths json file")
+    ap.add_argument("--user", help="user settings json file")
+    ap.add_argument("--proc", help="upsp processing parameters json file")
+    ap.add_argument("--plot", help="upsp plotting parameters json file")
+    args = ap.parse_args()
+    upsp.processing.tree.create(
+        args.outdir, args.data, args.user, args.proc, args.plot
+    )

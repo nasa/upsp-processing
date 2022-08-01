@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+import argparse
+import cv2
+import json
+import logging
+import os
+import sys
+
+import matplotlib
+matplotlib.use("Agg")
+
+sys.path.append(
+    os.path.realpath(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "python")
+    )
+)
+
+import warnings  # noqa
+
+warnings.filterwarnings("ignore")
+import upsp.cam_cal_utils.parsers as parsers  # noqa
+import upsp.cam_cal_utils.visibility as visibility  # noqa
+import upsp.cam_cal_utils.external_calibrate as external_calibrate  # noqa
+import upsp.cam_cal_utils.photogrammetry as photogrammetry # noqa
+
+warnings.filterwarnings("default")
+
+
+DEFAULT_OUTPUT_FILENAME = "external_calibration.json"
+
+log = logging.getLogger(__name__)
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    ap = argparse.ArgumentParser(
+        prog="upsp-external-calibration",
+        description="Run uPSP external camera calibration for a datapoint",
+    )
+    ap.add_argument("--tgts", required=True, help="Model targets filename (*.tgts)")
+    ap.add_argument("--grd", required=True, help="Model grid filename (*.x)")
+    ap.add_argument("--wtd", required=True, help="Wind Tunnel Data filename (*.wtd)")
+    ap.add_argument("--cfg", required=True, help="Algorithm params filename (*.json)")
+    ap.add_argument(
+        "--cal_dir", required=True, help="Camera intrinsic calibrations directory"
+    )
+    ap.add_argument(
+        "--img",
+        required=True,
+        action="append",
+        dest="img_filenames",
+        help="\n".join(
+            [
+                "Camera image filename. For datapoints with multiple",
+                " cameras, this argument can be repeated multiple times",
+                " (e.g., '--img cam01.00001.png --img cam02.00001.png, ...).",
+                " If multiple files are specified, then their order is used to infer"
+                " the camera index (1, 2, ...) -- to lookup the intrinsic calibration",
+                " file and to name the output external calibration file.",
+            ]
+        ),
+    )
+    ap.add_argument(
+        "--out_dir",
+        required=True,
+        help="output directory, will write one file per camera",
+    )
+    args = ap.parse_args()
+
+    tgts = parsers.read_tgts(args.tgts)
+    wtd = parsers.read_wind_tunnel_data(args.wtd)
+    cfg = parsers.read_test_config(args.cfg)
+
+    if not tgts:
+        raise ValueError("No calibration targets parsed from %s" % (args.tgts))
+
+    imgs = [
+        (n, f, cv2.imread(f, cv2.IMREAD_GRAYSCALE))
+        for n, f in enumerate(args.img_filenames, 1)
+    ]
+
+    log.debug("Initializing model raycasting for %s ...", args.grd)
+    vis_checker = visibility.VisibilityChecker(
+        args.grd, cfg["oblique_angle"], epsilon=1e-4, debug=True
+    )
+    log.debug("Initialized model raycasting for %s", args.grd)
+
+    # all debug images are written to cwd. Expand any relative
+    # paths provided in input args, then chdir.
+    args.out_dir = os.path.realpath(args.out_dir)
+    args.cal_dir = os.path.realpath(args.cal_dir)
+    os.chdir(args.out_dir)
+
+    for camera_number, img_filename, img in imgs:
+        log.info("Calibrating camera %02d based on %s", camera_number, img_filename)
+        camera_cal = parsers.read_camera_params(
+            camera_number, args.cal_dir, img.shape
+        )
+
+        try:
+            rmat, tvec = external_calibrate.external_calibrate_two_stage_from_wtd(
+                img, wtd, camera_cal, tgts, cfg, vis_checker, camera_number
+            )
+
+            output_filename = os.path.join(
+                args.out_dir, "cam%02d-to-model.json" % camera_number
+            )
+
+            with open(output_filename, "w") as fp:
+                json.dump(
+                    {
+                        "cameraMatrix": camera_cal[0].squeeze().tolist(),
+                        "distCoeffs": camera_cal[1].squeeze().tolist(),
+                        "rmat": rmat.squeeze().tolist(),
+                        "tvec": tvec.squeeze().tolist(),
+                        "imageSize": [img.shape[1], img.shape[0]]
+                    },
+                    fp,
+                    indent=2,
+                )
+
+            log.info(
+                "Finished external calibration for camera %02d (%s)",
+                camera_number,
+                img_filename,
+            )
+        
+        except Exception as e:            
+            log.info(
+                "External calibration failed for camera %02d (%s) due to %s",
+                camera_number,
+                img_filename,
+                e
+            )
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    main()

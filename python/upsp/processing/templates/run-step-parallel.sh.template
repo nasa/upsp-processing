@@ -1,0 +1,40 @@
+#!/bin/bash
+# Launcher for uPSP data pipeline step that can be
+# parallelized over multiple datapoints using GNU parallel.
+$__pbs_sh__
+
+NAME=$__pipeline_step_name__
+R=$__pipeline_root_dir__
+D=$$R/04_processing/01_exec/$$NAME
+
+ALL_DATAPOINTS=($$(ls -1 $$D))
+INP_DATAPOINTS=("$$@")
+
+SEL_DATAPOINTS=()
+if (( $${#INP_DATAPOINTS[@]} )); then
+    SEL_DATAPOINTS+=( "$${INP_DATAPOINTS[@]}" )
+else
+    SEL_DATAPOINTS+=( "$${ALL_DATAPOINTS[@]}" )
+fi
+
+# If this is running as a NAS job, then
+# PBS_NODEFILE will be populated with a list
+# of cluster nodes over which to distribute tasks
+OPTS="-j 4 -u"
+if [ -n "$$PBS_NODEFILE" ]; then
+    OPTS="$$OPTS --sshloginfile $$PBS_NODEFILE"
+fi
+
+echo "---"
+echo "Running step $$NAME using GNU parallel"
+echo "Datapoints: $${SEL_DATAPOINTS[@]}"
+echo "Started at: $$(date)"
+echo "..."
+
+# For GNU parallel usage, ref:
+# https://www.nas.nasa.gov/hecc/support/kb/Using-GNU-Parallel-to-Package-Multiple-Jobs-in-a-Single-PBS-Job_303.html
+printf "%s\n" "$${SEL_DATAPOINTS[@]}" | parallel $$OPTS "$$D/{}/$__pipeline_step_exe_name__ && echo {}"
+
+echo "..."
+echo "Ended at: $$(date)"
+echo "Finished."

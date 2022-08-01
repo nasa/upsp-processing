@@ -1,0 +1,372 @@
+#!/usr/bin/env python
+#
+# Parse raw wind tunnel test data and export resources
+# used by the Unity3D visualization tool.
+import argparse
+import logging
+import os
+import sys
+import glob
+import pprint
+import numpy as np
+import math
+
+sys.path.append(
+    os.path.realpath(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "python")
+    )
+)
+
+import warnings  # noqa
+
+warnings.filterwarnings("ignore")
+import upsp.processing.context as context  # noqa
+
+# todo-mshawlec: importing "tree" to access helper methods
+# for resolving paths in the processing pipeline directory.
+# These should be migrated into the context.Pipeline interface.
+import upsp.processing.io as io  # noqa
+import upsp.processing.tree as tree  # noqa
+import upsp.processing.kulite_processing as kulite_processing  # noqa
+import upsp.processing.kulite_utilities as kulite_utilities  # noqa
+import upsp.processing.unity_conversions as unity_conversions  # noqa
+import upsp.processing.unity_stats as unity_stats  # noqa
+
+warnings.filterwarnings("default")
+
+log = logging.getLogger(__name__)
+
+
+# Variable declarations
+unity_tree = {}
+UNITY_GRID_ASSETS_SUBDIR = "Assets/Grids"
+UNITY_STREAMING_ASSETS_SUBDIR = "Assets/StreamingAssets"
+UNITY_TEXT_ASSETS_SUBDIR = "Assets/Text"
+
+
+def model_config_name(datapoint):
+    config_ranges = {"config54": [3142, 3173], "config55": [3003, 3141]}
+    run_number = int(datapoint[:4])
+    for config, v in config_ranges.items():
+        if run_number >= v[0] and run_number <= v[1]:
+            return config
+    log.warning(
+        "%s: no model config. Expected mapping: %s"
+        % (datapoint, pprint.pformat(config_ranges))
+    )
+
+
+def check_unity_tree(cfg_name, datapoint):
+    dp_idx = np.nan
+    cfg_idx = np.nan
+    for i, sub_dict in enumerate(unity_tree["Configs"]):
+        if cfg_name in sub_dict.values():
+            cfg_idx = i
+            for j, sub_dp_dict in enumerate(sub_dict["Datapoints"]):
+                if datapoint in sub_dp_dict.values():
+                    dp_idx = j
+
+    return cfg_idx, dp_idx
+
+
+def write_empty_config_entry(cfg_name):
+    return {
+        "Name": cfg_name,
+        "FileList": [],
+        "Datapoints": []
+    }
+
+
+def add_config_entry_to_unity_tree(cfg_name, cfg_entry):
+    # Check for config and append entry
+    for sub_dict in unity_tree["Configs"]:
+        if cfg_name in sub_dict.values():
+            sub_dict["FileList"].append(cfg_entry)
+            cfg_flag = True
+
+    # If config not found, write config entry
+    if not cfg_flag:
+        config_contents = {
+            "Name": cfg_name,
+            "FileList": [cfg_entry],
+            "Datapoints": []
+        }
+        unity_tree["Configs"].append(config_contents)
+
+
+def add_dp_entry_to_unity_tree(cfg_name, dp_name, dp_entry):
+    # Check for config and datapoint
+    cfg_idx, dp_idx = check_unity_tree(cfg_name, dp_name)
+
+    # If datapoint not found, write datapoint entry
+    if math.isnan(dp_idx):
+        dp_contents = {
+            "Name": dp_name,
+            "FileList": [dp_entry]
+        }
+
+        # If config not found, write config entry
+        if math.isnan(cfg_idx):
+            config_contents = write_empty_config_entry(cfg_name)
+            config_contents["Datapoints"].append(dp_contents)
+            unity_tree["Configs"].append(config_contents)
+        # Otherwise enter config entry
+        else:
+            unity_tree["Configs"][cfg_idx]["Datapoints"].append(dp_contents)
+
+    # Otherwise enter datapoint entry
+    else:
+        unity_tree["Configs"][cfg_idx]["Datapoints"][dp_idx]["FileList"].append(
+            dp_entry
+        )
+
+
+def _create_data_and_stats_files(ctx: context.Pipeline, output_dir):
+    """Visualization: calculate data and stats files from binary data"""
+
+    for dp_ctx in ctx.datapoints:
+        datapoint = dp_ctx.name
+        cfg_name = model_config_name(datapoint)
+
+        dp_output_dir = os.path.join(
+            output_dir, UNITY_STREAMING_ASSETS_SUBDIR, datapoint
+        )
+        tree._create_dir_and_log(dp_output_dir)
+        os.chmod(dp_output_dir, io._CHMOD_URWXGR_XO__)
+
+        # Retrieve stable output flat file to provide vertex number info
+        x_vertex_file = os.path.join(
+            os.path.dirname(output_dir), "psp_process", datapoint, "X"
+        )
+
+        # Set up to search the different folders for the Unity src files
+        dp_psp_dir = os.path.join(
+            os.path.dirname(output_dir), "*", datapoint
+        )
+
+        # Iterate through and check unity source files
+        unity_files = ctx.ctx["processing"]["defaults"]["unity_export"]
+        for el in unity_files["datasets"]:
+            dp_psp_search = os.path.join(dp_psp_dir, el["src"])
+            unity_dst_file = os.path.join(dp_output_dir, el["dst"])
+            log.info("searching bytes and stats for %s", dp_psp_search)
+            for unity_src_file in glob.glob(dp_psp_search, recursive=True):
+                unity_stats.write_unity_dataset_with_stats(
+                    x_vertex_file, unity_src_file, unity_dst_file
+                )
+
+            # Populate files for the unity output tree
+            file_data_entry = {
+                "Name": os.path.join(
+                    UNITY_STREAMING_ASSETS_SUBDIR,
+                    dp_ctx.name,
+                    el["dst"] + ".bytes"
+                ),
+                "Size": os.path.getsize(
+                    unity_dst_file + ".bytes"
+                ),
+            }
+            file_stats_entry = {
+                "Name": os.path.join(
+                    UNITY_STREAMING_ASSETS_SUBDIR,
+                    dp_ctx.name,
+                    el["dst"] + "_stats.txt"
+                ),
+                "Size": os.path.getsize(
+                    unity_dst_file + "_stats.txt"
+                ),
+            }
+
+            # Fill out the unity output tree
+            add_dp_entry_to_unity_tree(cfg_name, datapoint, file_data_entry)
+            add_dp_entry_to_unity_tree(cfg_name, datapoint, file_stats_entry)
+
+
+def _create_wtd_text_files(ctx: context.Pipeline, output_dir):
+    """Visualization: create wind tunnel data text file from .wtd file"""
+
+    for dp_ctx in ctx.datapoints:
+        datapoint = dp_ctx.name
+        cfg_name = model_config_name(datapoint)
+
+        dp_output_dir = os.path.join(output_dir, UNITY_TEXT_ASSETS_SUBDIR, datapoint)
+        tree._create_dir_and_log(dp_output_dir)
+        wtd_filename = dp_ctx.inputs["wtd_file"]
+        wtd_basename = os.path.basename(wtd_filename).split(".")[0]
+        wtd_text_filename = os.path.join(
+            dp_output_dir, "%s_wtd.txt" % wtd_basename
+        )
+        wtd_text_str = "\nExperimental Data\n\nRUN NUMBER:\t"
+        with open(wtd_filename, "r") as fp:
+            # Parse first line
+            line1 = fp.readline().split()
+            if len(line1[2]) < 2:
+                wtd_text_str += "%s0" % (line1[1])
+                wtd_text_str += "%s\n" % (line1[2])
+            else:
+                wtd_text_str += "%s" % (line1[1])
+                wtd_text_str += "%s\n" % (line1[2])
+
+            # Parse second and third lines
+            line2 = fp.readline().split()
+            line3 = fp.readline().split()
+            if len(line3) + 1 != len(line2):
+                log.error(
+                    '"%s": 2nd and 3rd lines do not have same number of columns',
+                    wtd_filename,
+                )
+            idx = 1
+            for element in line3:
+                wtd_text_str += "%s:\t" % (line2[idx].replace("_", " "))
+                wtd_text_str += "%s\n" % (element)
+                idx += 1
+
+        # Write wind tunnel output file
+        with open(wtd_text_filename, "w") as fp:
+            fp.write(wtd_text_str)
+        os.chmod(wtd_text_filename, io._CHMOD_URW_GR__O__)
+
+        # Populate files for the unity output tree
+        file_data_entry = {
+            "Name": os.path.join(
+                UNITY_TEXT_ASSETS_SUBDIR,
+                datapoint,
+                wtd_basename + "_wtd.txt"
+            ),
+            "Size": os.path.getsize(
+                wtd_text_filename
+            )
+        }
+
+        # Fill out the unity output tree
+        add_dp_entry_to_unity_tree(cfg_name, datapoint, file_data_entry)
+
+
+def _create_kulite_location_files(ctx: context.Pipeline, output_dir: str):
+    """Visualization: create kulite labels text file from targets files."""
+
+    k_output_dir = os.path.join(output_dir, UNITY_TEXT_ASSETS_SUBDIR)
+    tree._create_dir_and_log(k_output_dir)
+
+    targets_files = set([dp.inputs["targets_file"] for dp in ctx.datapoints])
+    for src_filename in targets_files:
+        cfg_name = os.path.basename(src_filename).split(".")[0]
+        kulite_labels_file = os.path.join(
+            k_output_dir, "%s-kulites-left-handed-coordinates.txt" % cfg_name
+        )
+
+        # Process the targets information to get kulite information
+        kul_mat = kulite_utilities.read_targets_matrix(src_filename, kul_strs="all")
+
+        if kul_mat.size == 0:
+            break
+
+        # Convert the kulite locations into Unity locations
+        unity_kul_mat = unity_conversions.convert_kulite_locations(kul_mat)
+
+        # Write the kulite label information
+        test_num = ctx.ctx["__meta__"]["datapoints"]["test_name"]
+        kulite_processing.write_matrix_txt(kulite_labels_file, unity_kul_mat, test_num)
+        os.chmod(kulite_labels_file, io._CHMOD_URW_GR__O__)
+
+        # Populate files for the unity output tree
+        file_entry = {
+            "Name": os.path.join(
+                UNITY_TEXT_ASSETS_SUBDIR,
+                cfg_name + "-kulites-left-handed-coordinates.txt"
+            ),
+            "Size": os.path.getsize(
+                kulite_labels_file
+            ),
+        }
+
+        # Fill out the unity output tree
+        add_config_entry_to_unity_tree(cfg_name, file_entry)
+
+
+def _create_grid_obj_files(ctx: context.Pipeline, output_dir: str):
+    """Visualization: create mesh + vertex mapping files for Unity consumption:
+    - obj file converted from the plot3d grid file
+    - vertex-to-zones mapping binary file from plot3D zones
+    """
+
+    obj_output_dir = os.path.join(output_dir, UNITY_GRID_ASSETS_SUBDIR)
+    tree._create_dir_and_log(obj_output_dir)
+    zone_output_dir = os.path.join(output_dir, UNITY_STREAMING_ASSETS_SUBDIR)
+    tree._create_dir_and_log(zone_output_dir)
+
+    # Iterate through the grid p3d files
+    grid_files = set([dp.inputs["grid_file"] for dp in ctx.datapoints])
+    for src_filename in grid_files:
+
+        # Build the obj destination file
+        cfg_name = os.path.basename(src_filename).split(".")[0]
+        obj_filename = os.path.join(
+            obj_output_dir, "%s-left-handed-coordinates.obj" % cfg_name
+        )
+        zones_map_filename = os.path.join(
+            zone_output_dir, "%s-zones.bytes" % cfg_name
+        )
+
+        # Call conversion function to write obj file, and zones and patches
+        # mapping files
+        log.info("Writing %s, %s ...", obj_filename, zones_map_filename)
+        unity_conversions.convert_to_unity_obj(
+            src_filename,
+            obj_filename,
+            zones_map_filename,
+        )
+
+        # Populate files for the unity output tree
+        file_obj_entry = {
+            "Name": os.path.join(
+                UNITY_GRID_ASSETS_SUBDIR,
+                cfg_name + "-left-handed-coordinates.obj"
+            ),
+            "Size": os.path.getsize(
+                obj_filename
+            )
+        }
+        file_zones_entry = {
+            "Name": os.path.join(
+                UNITY_STREAMING_ASSETS_SUBDIR,
+                cfg_name + "-zones.bytes"
+            ),
+            "Size": os.path.getsize(
+                zones_map_filename
+            )
+        }
+
+        # Fill out the unity output tree
+        add_config_entry_to_unity_tree(cfg_name, file_obj_entry)
+        add_config_entry_to_unity_tree(cfg_name, file_zones_entry)
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    ap = argparse.ArgumentParser(
+        prog="upsp-unity-export",
+        description="Export resources for Unity3D visualization application",
+    )
+    ap.add_argument("--pipeline_dir", required=True, help="Pipeline directory")
+    ap.add_argument("--output_dir", required=True, help="Output directory")
+    args = ap.parse_args()
+    ctx = context.Pipeline(args.pipeline_dir)
+
+    # Start the build of unity tree
+    unity_tree["NasLocation"] = args.output_dir,
+    unity_tree["Configs"] = []
+
+    _create_data_and_stats_files(ctx, args.output_dir)
+    _create_wtd_text_files(ctx, args.output_dir)
+    _create_grid_obj_files(ctx, args.output_dir)
+    _create_kulite_location_files(ctx, args.output_dir)
+
+    # Write unity tree
+    json_output = os.path.join(args.output_dir, "unity-tree.json")
+    io.json_write_or_die(unity_tree, json_output, indent=2)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    main()

@@ -1,0 +1,29 @@
+#!/bin/bash
+# Launcher for uPSP data pipeline step that should be
+# run in serial, using entire PBS session resources for
+# each datapoint.
+$__pbs_sh__
+
+NAME=$__pipeline_step_name__
+R=$__pipeline_root_dir__
+D=$$R/04_processing/01_exec/$$NAME
+
+ALL_DATAPOINTS=($$(ls -1 $$D))
+INP_DATAPOINTS=("$$@")
+
+SEL_DATAPOINTS=()
+if (( $${#INP_DATAPOINTS[@]} )); then
+    SEL_DATAPOINTS+=( "$${INP_DATAPOINTS[@]}" )
+else
+    SEL_DATAPOINTS+=( "$${ALL_DATAPOINTS[@]}" )
+fi
+
+echo "---"
+date
+echo "Running step $$NAME in serial."
+echo "Datapoints: $${SEL_DATAPOINTS[@]}"
+echo "..."
+
+for dp in "$${SEL_DATAPOINTS[@]}"; do
+    $$D/$$dp/$__pipeline_step_exe_name__  && echo $$dp
+done

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - glTF loader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+
+	<body>
+		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - GLTFLoader<br />
+		</div>
+
+		<script type="module">
+
+			import * as THREE from 'https://unpkg.com/three@0.119.1/build/three.module.js';
+			import { OrbitControls } from 'https://unpkg.com/three@0.119.1/examples/jsm/controls/OrbitControls.js';
+			import { GLTFLoader } from 'https://unpkg.com/three@0.119.1/examples/jsm/loaders/GLTFLoader.js';
+			import { RGBELoader } from 'https://unpkg.com/three@0.119.1/examples/jsm/loaders/RGBELoader.js';
+			
+			var container, controls;
+			var camera, scene, renderer;
+
+			init();
+			render();
+			animate();
+
+			function init() {
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 0.01, 1000 );
+				camera.position.set( 500, 500, 500 );
+//				camera.lookAt(new THREE.Vector3(0,0,0));
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.physicallyCorrectLights = true;
+				renderer.setClearColor( 0xcccccc );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMappingExposure = 1;
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				container.appendChild( renderer.domElement );
+
+				var loader = new GLTFLoader().setPath( '../.cache/' );
+				loader.load( '$gltf_file', function ( gltf ) {
+					var object = gltf.scene;
+	                                gltf.scene.scale.set( 2, 2, 2 );
+
+	                                const box = new THREE.Box3().setFromObject(object);
+        	                        const size = box.getSize(new THREE.Vector3()).length();
+                	                const center = box.getCenter(new THREE.Vector3());
+
+					object.position.x += (object.position.x - center.x);
+					object.position.y += (object.position.y - center.y);
+                                	object.position.z += (object.position.z - center.z);
+
+					scene.add( gltf.scene );
+
+				},
+
+	                        // called while loading is progressing
+        	                function ( xhr ) {
+                	                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                        	},
+	                        // called when loading has errors
+				function ( error ) {
+                                	console.log( 'An error happened' );
+                        	} );
+
+				var pmremGenerator = new THREE.PMREMGenerator( renderer );
+				pmremGenerator.compileEquirectangularShader();
+
+				var ambientLight = new THREE.AmbientLight( 0xcccccc );
+	                        scene.add( ambientLight );
+
+	                        var directionalLight = new THREE.DirectionalLight( 0xffffff );
+        	                directionalLight.position.set( 0, 1, 1 ).normalize();
+                	        scene.add( directionalLight );
+
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.autoRotate = false;
+				controls.autoRotateSpeed = -10;
+				controls.screenSpacePanning = true;
+				controls.addEventListener( 'change', render ); // use if there is no animation loop
+				controls.minDistance = 2;
+				controls.maxDistance = 500;
+				controls.target.set( 0, 0, 0 );
+				controls.update();
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			render();
+			animate();
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function animate() {
+                                render();
+                                requestAnimationFrame( animate );
+                        }
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>

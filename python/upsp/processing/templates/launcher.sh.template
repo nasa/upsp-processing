@@ -1,0 +1,7 @@
+#!/bin/bash
+# General-purpose launcher template for uPSP applications
+# Handles setup of environment for particular version of
+# uPSP processing code.
+$__pbs_sh__
+$__env_sh__
+$__exe_sh__
