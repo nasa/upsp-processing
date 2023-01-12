@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.target_localization.blob_detector_methods &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.target_localization.blob_detector_methods</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">upsp.cam_cal_utils</span> <span class="kn">import</span> <span class="n">img_utils</span>
+
+
+<span class="c1">#---------------------------------------------------------------------------------------</span>
+<span class="c1"># Generic Blob Detector Parameters</span>
+
+
+<span class="c1"># Define the parameters for the Simple Blob Detectors for the target detection</span>
+<span class="c1"># These need to be manually tuned per test</span>
+<span class="c1"># Currently set up to have decent performance on both dots and kulites</span>
+<span class="n">params_all</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">SimpleBlobDetector_Params</span><span class="p">()</span>
+
+<span class="n">params_all</span><span class="o">.</span><span class="n">minThreshold</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">maxThreshold</span> <span class="o">=</span> <span class="mi">225</span>
+
+<span class="c1"># Cannot filter by these criteria</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">filterByCircularity</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">filterByInertia</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Filtering by area is tough, even for the larger dots since the aspect</span>
+<span class="c1">#   ratio can be very low. The smallest dot is only ~3px in area</span>
+<span class="c1"># Additionally, the size parameter for blob detection seems to be screwy</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">filterByArea</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># We should be able to filter by convexity well, but this may be an artifact</span>
+<span class="c1">#   of the assumption that the targets are perfect ellispes</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">filterByConvexity</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">minConvexity</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+<span class="c1"># We should be able to filter by color, but at this time it is not implemented</span>
+<span class="n">params_all</span><span class="o">.</span><span class="n">filterByColor</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Create the detector</span>
+<span class="n">detector_all</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">SimpleBlobDetector_create</span><span class="p">(</span><span class="n">params_all</span><span class="p">)</span>
+
+<span class="c1"># Create the detectors</span>
+<span class="n">target_detectors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;detector_all&#39;</span><span class="p">:</span> <span class="n">detector_all</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="blob_func"><a class="viewcode-back" href="../../../_apidoc/upsp.target_localization.blob_detector_methods.html#upsp.target_localization.blob_detector_methods.blob_func">[docs]</a><span class="k">def</span> <span class="nf">blob_func</span><span class="p">(</span><span class="n">detection_method</span><span class="p">,</span> <span class="n">decide_method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a function that acts as a wrapper around openCV&#39;s blob detection function</span>
+<span class="sd">    to act as a target center localizer</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    detection_method : string</span>
+<span class="sd">        String must be a key in the global dict target_detectors. The key selects the</span>
+<span class="sd">        blob detection parameters to use</span>
+<span class="sd">    decide_method : {&#39;biggest&#39;, &#39;smallest&#39;, &#39;first&#39;, &#39;last&#39;, &#39;random&#39;, None}, optional</span>
+<span class="sd">        decision method if more than 1 blob is detected in the image. Biggest and</span>
+<span class="sd">        smallest selects the largest and smallest (respectfully) based on the keypoint</span>
+<span class="sd">        size parameter. First and last select the first and last (respectfully) based on</span>
+<span class="sd">        the order returned by the blob detector. Random selects a random blob. None uses</span>
+<span class="sd">        the default method, which is last</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    callable</span>
+<span class="sd">        Blob detector localization function - Wrapper around a blob detector to act as a</span>
+<span class="sd">        localization function. The function has the signature::</span>
+
+<span class="sd">            func(img, target_type=None, return_keypoint=False) -&gt; keypoint</span>
+
+<span class="sd">        where ``img`` is a 2D image array containing one target, ``target_type`` does</span>
+<span class="sd">        nothing, and ``return_keypoint`` specifies whether the keypoint itself is</span>
+<span class="sd">        returned (``True``) or just the center position (x, y).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">detection_method</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">target_detectors</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+        <span class="n">detector</span> <span class="o">=</span> <span class="n">target_detectors</span><span class="p">[</span><span class="n">detection_method</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Specified detector does not exist.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;detector must be one of the following:&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">target_detectors</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">quit</span><span class="p">()</span>
+
+    <span class="c1"># If no method was given, use &#39;last&#39; method</span>
+    <span class="k">if</span> <span class="n">decide_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">decide_method</span> <span class="o">=</span> <span class="s1">&#39;last&#39;</span>
+
+    <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;biggest&#39;</span><span class="p">,</span> <span class="s1">&#39;smallest&#39;</span><span class="p">,</span> <span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">,</span> <span class="s1">&#39;random&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Decide method must be in the valid_methods list</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">decide_method</span> <span class="ow">in</span> <span class="n">valid_methods</span><span class="p">),</span> <span class="s2">&quot;Error in blob_func. Input &#39;decide_method </span><span class="se">\</span>
+<span class="s2">must be one of the following: &#39;biggest&#39;, &#39;smallest&#39;, &#39;first&#39;, &#39;last&#39;, </span><span class="se">\</span>
+<span class="s2">or &#39;random&#39;&quot;</span>
+
+    <span class="c1"># Blob Localization Function</span>
+    <span class="c1"># return_keypoint is a flag to return the entire keypoint, and no confidence value</span>
+    <span class="k">def</span> <span class="nf">fit_blob</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_keypoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper around a blob detector to act as a localization function</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            img : np.ndarray, 2D, uint8 or uint16</span>
+<span class="sd">                Image containing one target</span>
+<span class="sd">            target_type : optional, default=None</span>
+<span class="sd">                This input does nothing. Localizer functions need this input due to</span>
+<span class="sd">                stanardization of how localizer functions should be implemented for</span>
+<span class="sd">                uPSP to make them modular. However, the blob detector function does not</span>
+<span class="sd">                need this input to function.</span>
+<span class="sd">            return_keypoint : optional, boolean.</span>
+<span class="sd">                If True returns openCV keypoint object. If False, returns only estimated</span>
+<span class="sd">                target center location</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Tuple if return_keypoint is False, and keypoint is return_keypoint is True</span>
+<span class="sd">            Tuple&#39;s first index is the center. The center is a length 2 tuple of floats.</span>
+<span class="sd">            The first item of the center is the x coordiante and the second item is the</span>
+<span class="sd">            y coordinate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If it is not an 8 bit image, convert it to an 8 bit image to use</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">):</span>
+            <span class="n">img_8bit</span> <span class="o">=</span> <span class="n">img_utils</span><span class="o">.</span><span class="n">scale_image_max_inlier</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">img_8bit</span> <span class="o">=</span> <span class="n">img</span>
+
+        <span class="c1"># Detect the keypoints in the image</span>
+        <span class="n">keypoints</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">img_8bit</span><span class="p">)</span>
+        
+        <span class="c1"># If there is exactly one blob found, make best_keypoint as the only keypoint</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keypoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">keypoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># If there were multiple found, use the decider method to get the best one</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keypoints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Select the biggest keypoint based on keypoint.size</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">decide_method</span> <span class="o">==</span> <span class="s1">&#39;biggest&#39;</span><span class="p">):</span>
+                <span class="n">biggest_size</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                <span class="n">biggest_keypoint</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">keypoint</span> <span class="ow">in</span> <span class="n">keypoints</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">keypoint</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">biggest_size</span><span class="p">):</span>
+                        <span class="n">biggest_size</span><span class="p">,</span> <span class="n">biggest_keypoint</span> <span class="o">=</span> <span class="n">keypoint</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">keypoint</span>
+                <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">biggest_keypoint</span>
+
+            <span class="c1"># Select the smallest keypoint based on keypoint.size</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">decide_method</span> <span class="o">==</span> <span class="s1">&#39;smallest&#39;</span><span class="p">):</span>
+                <span class="n">smallest_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                <span class="n">smallest_keypoint</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">keypoint</span> <span class="ow">in</span> <span class="n">keypoints</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">keypoint</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">smallest_size</span><span class="p">):</span>
+                        <span class="n">smallest_size</span><span class="p">,</span> <span class="n">smallest_keypoint</span> <span class="o">=</span> <span class="n">keypoint</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">keypoint</span>
+                <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">smallest_keypoint</span>
+
+            <span class="c1"># For first, chose the first keypoint in the list</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">decide_method</span> <span class="o">==</span> <span class="s1">&#39;first&#39;</span><span class="p">):</span>
+                <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">keypoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># For last, chose the last keypoint in the list</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">decide_method</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">):</span>
+                <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">keypoints</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Pick a random keypoint in the list</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">decide_method</span> <span class="o">==</span> <span class="s1">&#39;random&#39;</span><span class="p">):</span>
+                <span class="n">best_keypoint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">keypoints</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># If there is no Keypoint, it will return None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">best_keypoint</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># If the return_keypoint flag is on, only return the keypoint, and</span>
+        <span class="c1">#   return the whole keypoint</span>
+        <span class="k">if</span> <span class="n">return_keypoint</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">best_keypoint</span>
+
+        <span class="c1"># If a keypoint was not found, return (-1, -1) as the center</span>
+        <span class="c1"># Otherwise return the keypoint location</span>
+        <span class="k">if</span> <span class="n">best_keypoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="n">best_keypoint</span><span class="o">.</span><span class="n">pt</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">best_keypoint</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">center</span><span class="p">,)</span>
+
+    <span class="k">return</span> <span class="n">fit_blob</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

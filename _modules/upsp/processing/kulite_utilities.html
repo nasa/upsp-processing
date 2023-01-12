@@ -1,0 +1,733 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.processing.kulite_utilities &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.processing.kulite_utilities</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Kulites class and helpers&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">p3d_utilities</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Kulites"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.Kulites">[docs]</a><span class="k">class</span> <span class="nc">Kulites</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Load and manage kulite data</span>
+
+<span class="sd">    Data is in PSI unless optional psf argument is True</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_dir : str</span>
+<span class="sd">        directory with ``*.info``, ``*.slow``, ``*.fast`` files</span>
+<span class="sd">    run : int</span>
+<span class="sd">        run number</span>
+<span class="sd">    seq : int</span>
+<span class="sd">        sequence number</span>
+<span class="sd">    kulites : list</span>
+<span class="sd">        kulites to load</span>
+<span class="sd">    data_type : numpy.dtype</span>
+<span class="sd">        data type of array elements</span>
+<span class="sd">    f_type : str</span>
+<span class="sd">        &#39;slow&#39; or &#39;fast&#39;</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict</span>
+<span class="sd">        Dictionary with Kulite names as keys and numnpy arrays with pressure time</span>
+<span class="sd">        histoires as values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">kulites</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+                 <span class="n">data_type</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">psf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">f_type</span><span class="o">=</span><span class="s1">&#39;slow&#39;</span><span class="p">):</span>
+        <span class="c1"># Create dictionary to hold data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw</span><span class="p">,</span> <span class="n">raw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native</span><span class="p">,</span> <span class="n">native</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="c1"># Get a list of all info files. There are a couple variations,</span>
+        <span class="c1"># auto-detect using regexes.</span>
+        <span class="n">info_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__autodetect_info_files</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Autodetected info files: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">info_files</span><span class="p">))</span>
+
+        <span class="c1"># Check each info file for the kulites of interest</span>
+        <span class="k">for</span> <span class="n">info_file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">info_files</span><span class="p">):</span>
+
+            <span class="c1"># Load the header information</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_info</span><span class="p">(</span><span class="n">info_file</span><span class="p">)</span>
+
+            <span class="c1"># Search for kulites of interest, or grab them all</span>
+            <span class="n">idcs</span><span class="p">,</span> <span class="n">kuls</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">kul</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">chanconfig</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">kulites</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span> <span class="ow">and</span> <span class="s1">&#39;K&#39;</span> <span class="ow">in</span> <span class="n">kul</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">kul</span> <span class="ow">in</span> <span class="n">kulites</span><span class="p">):</span>
+                    <span class="n">idcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                    <span class="n">kuls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kul</span><span class="p">)</span>
+
+            <span class="c1"># If there is data of interest in this file, load it</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idcs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">vraw</span><span class="p">,</span> <span class="n">vnative</span><span class="p">,</span> <span class="n">vpsi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_data</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">idcs</span><span class="p">,</span> <span class="n">f_type</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">idcs</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">psf</span><span class="p">:</span>
+                        <span class="n">vpsi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vpsi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mi">144</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">kuls</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vpsi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data_type</span><span class="p">)</span>
+                    <span class="n">raw</span><span class="p">[</span><span class="n">kuls</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vraw</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data_type</span><span class="p">)</span>
+                    <span class="n">native</span><span class="p">[</span><span class="n">kuls</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vnative</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data_type</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">native</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">native</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+            <span class="c1"># Get frequency information</span>
+            <span class="k">if</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span><span class="p">:</span>
+                <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;slow&#39;</span><span class="p">:</span>
+                <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;Sampling Rate&#39;</span><span class="p">][</span><span class="n">row_idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__autodetect_info_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">run</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">seq</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Find all *.info files corresponding to this datapoint (run, seq).</span>
+        <span class="c1"># Searches based on filenames in the Kulite data folder.</span>
+        <span class="c1">#</span>
+        <span class="c1"># (If there are more Kulites than there are channels for a single PXI</span>
+        <span class="c1"># unit, than there may be more than one *.info file).</span>
+        <span class="n">fnames</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;*.info&quot;</span><span class="p">))</span>
+        <span class="n">prefixes</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fn</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">]</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">r</span><span class="s1">&#39;T(?P&lt;run&gt;\d+)p(?P&lt;seq&gt;\d+)t\d+$&#39;</span><span class="p">,</span>
+            <span class="sa">r</span><span class="s1">&#39;r(?P&lt;run&gt;\d</span><span class="si">{4}</span><span class="s1">)s(?P&lt;seq&gt;\d</span><span class="si">{3}</span><span class="s1">)t\d+_S\dC\d$&#39;</span>
+        <span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">match_run_seq</span><span class="p">(</span><span class="n">_p</span><span class="p">,</span> <span class="n">_prefix</span><span class="p">):</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">_p</span><span class="p">,</span> <span class="n">_prefix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;run&#39;</span><span class="p">),</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;seq&#39;</span><span class="p">),</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Assume if the first info filename matches the pattern, then ALL of them will.</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+            <span class="n">first_prefix_match</span> <span class="o">=</span> <span class="n">match_run_seq</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">prefixes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">first_prefix_match</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="n">fn</span> <span class="k">for</span> <span class="n">fn</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fnames</span><span class="p">,</span> <span class="n">prefixes</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">match_run_seq</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pf</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">seq</span><span class="p">)</span>
+                <span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__read_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read the info file and load in the header information</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            info_file (str): unitary info filename</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (namedtuple) with the full header information</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: unexpected file format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Read all of the data into a list</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">info_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fheader</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fheader</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+
+        <span class="c1"># Split the header file into its four parts:</span>
+        <span class="c1"># filepaths, statistics, daqconfig, channelconfig</span>
+
+        <span class="c1"># 1st line, 2nd column is the number of lines in the block (zero indexed)</span>
+        <span class="n">n_filepaths</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># pop all lines one at a time, don&#39;t keep the line numbers at the beginning</span>
+        <span class="n">group_filepaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_filepaths</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="n">n_statistics</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">group_statistics</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_statistics</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="n">n_daqconfig</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">group_daqconfig</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_daqconfig</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="n">n_channelconfig</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">group_channelconfig</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_channelconfig</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="c1"># Set up the output named tuple of dataframes</span>
+        <span class="n">filepaths_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">group_filepaths</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">group_filepaths</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+        <span class="n">statistics_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">group_statistics</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">group_statistics</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">statistics_df</span> <span class="o">=</span> <span class="n">statistics_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+
+        <span class="n">daqconfig_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">group_daqconfig</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">group_daqconfig</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">daqconfig_df</span> <span class="o">=</span> <span class="n">daqconfig_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+
+        <span class="n">chanconfig_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">group_channelconfig</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">group_channelconfig</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># TODO discuss with Nate about this convention. We&#39;re trying to</span>
+        <span class="c1"># bypass having to manually tell our processing code what Kulites</span>
+        <span class="c1"># were plugged into what channel, and instead infer it from the</span>
+        <span class="c1"># raw data.</span>
+        <span class="c1">#</span>
+        <span class="c1"># - Ideally, the &quot;User Name&quot; column is present, and contains the</span>
+        <span class="c1">#   name of the Kulite that was plugged into that channel. (As is the</span>
+        <span class="c1">#   case in the UPWT SLS data.)</span>
+        <span class="c1">#</span>
+        <span class="c1"># - In practice (e.g., in the TC3 2022-02 output data), the &quot;User Name&quot;</span>
+        <span class="c1">#   column may not be present. In this case, we need some other way to</span>
+        <span class="c1">#   find the Kulite/channel mapping.</span>
+        <span class="c1">#</span>
+        <span class="c1"># - For now, we assume that Kulites are named &#39;K01&#39;, &#39;K02&#39;, ..., where</span>
+        <span class="c1">#   the numbering corresponds to what channel they are plugged into.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="s1">&#39;User Name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">chanconfig_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                <span class="s1">&#39;&quot;User Name&quot; column not found in </span><span class="si">%s</span><span class="s1">. &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Will infer Kulite-to-channel mapping: &#39;</span><span class="p">,</span>
+                <span class="s1">&#39;K01 -&gt; Channel 1, K02 -&gt; Channel 2, etc.&#39;</span><span class="p">,</span>
+            <span class="p">]),</span> <span class="n">info_file</span><span class="p">)</span>
+            <span class="n">chanconfig_df</span><span class="p">[</span><span class="s1">&#39;User Name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;K</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">chanconfig_df</span><span class="p">[</span><span class="s1">&#39;User Channel&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
+
+        <span class="n">chanconfig_df</span> <span class="o">=</span> <span class="n">chanconfig_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;User Name&#39;</span><span class="p">)</span>
+        <span class="n">chanconfig_df</span> <span class="o">=</span> <span class="n">chanconfig_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+
+        <span class="c1"># There are several iterations on the content contained in the</span>
+        <span class="c1"># *.info file channel info block. In general, the number of</span>
+        <span class="c1"># columns in the block indicates the &quot;version.&quot;</span>
+        <span class="c1">#</span>
+        <span class="c1"># Most importantly, we need to distinguish whether the sensor</span>
+        <span class="c1"># calibration information is present. When it *is* present, we</span>
+        <span class="c1"># don&#39;t need to load it via the separate *.mat or *.zPXImat file.</span>
+        <span class="c1">#</span>
+        <span class="c1"># NOTE: column counts here differ from the actual # columns in</span>
+        <span class="c1"># the *.info file:</span>
+        <span class="c1"># - two leading columns containing line/section numbers are removed</span>
+        <span class="c1"># - the &#39;index&#39; is the &quot;User Name&quot; column, so it is also removed</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chanconfig_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span><span class="p">:</span>
+            <span class="n">Version</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">chanconfig_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">17</span><span class="p">:</span>
+            <span class="n">Version</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">chanconfig_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;User Channel&quot;</span><span class="p">:</span>
+                <span class="n">Version</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">chanconfig_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Physical Channel&quot;</span><span class="p">:</span>
+                <span class="n">Version</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;Can&#39;t determine file format. Did Kevin change it again?&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Detected info file version: </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">Version</span><span class="p">)</span>
+        <span class="n">accepted_versions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">Version</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted_versions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is version </span><span class="si">%d</span><span class="s2">; only versions </span><span class="si">%s</span><span class="s2"> are accepted&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">info_file</span><span class="p">,</span> <span class="n">Version</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">accepted_versions</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Set up the output</span>
+        <span class="n">HeaderInfo</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+            <span class="s1">&#39;HeaderInfo&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="s1">&#39;filepaths&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">,</span> <span class="s1">&#39;daqconfig&#39;</span><span class="p">,</span> <span class="s1">&#39;chanconfig&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">HeaderInfo</span><span class="p">(</span>
+            <span class="n">info_file</span><span class="p">,</span> <span class="n">filepaths_df</span><span class="p">,</span> <span class="n">statistics_df</span><span class="p">,</span> <span class="n">daqconfig_df</span><span class="p">,</span> <span class="n">chanconfig_df</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">info</span>
+
+    <span class="k">def</span> <span class="nf">__read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">f_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read in the unitary data for the channels of interest</span>
+<span class="sd">            and multiply by coefficients to dimensionalize</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            info (namedtuple)   : info header data</span>
+<span class="sd">            channels (List)     : list of channel numbers (0-based) within file</span>
+<span class="sd">            f_type (str)        : &#39;fast&#39; or &#39;slow&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (List) of numpy arrays with data in dB?</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: invalid channel id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Identify data filename based on f_type:</span>
+        <span class="c1"># 1. Load entry from info file for given f_type.</span>
+        <span class="c1"># 2. If entry is not a valid path, then infer based on info filename.</span>
+        <span class="k">if</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span><span class="p">:</span>
+            <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;slow&#39;</span><span class="p">:</span>
+            <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="s1">&#39;File Name&#39;</span><span class="p">][</span><span class="n">row_idx</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">info_prefix</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">inferred_filename</span> <span class="o">=</span> <span class="n">info_prefix</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">f_type</span>
+            <span class="c1"># log.warning(</span>
+            <span class="c1">#     &#39;*.info points to non-existent *.%s file (%s); inferring: %s&#39;,</span>
+            <span class="c1">#     f_type, filename, inferred_filename</span>
+            <span class="c1"># )</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">inferred_filename</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">try_load_cal</span><span class="p">():</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cal_file</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;.zPXImat&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cal_file</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">cal_file</span><span class="p">)</span>
+
+        <span class="n">raw</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">native</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Get the frequency ID for the type of file</span>
+        <span class="k">if</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span><span class="p">:</span>
+            <span class="n">freqID</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">f_type</span> <span class="o">==</span> <span class="s1">&#39;slow&#39;</span><span class="p">:</span>
+            <span class="n">freqID</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># shortcut to remove a bunch of typing</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">statistics</span>
+        <span class="n">chan</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">chanconfig</span>
+
+        <span class="n">nChannels</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">freqID</span><span class="p">,</span> <span class="s1">&#39;Number Channels&#39;</span><span class="p">]</span>
+        <span class="n">nSamples</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">freqID</span><span class="p">,</span> <span class="s1">&#39;Samples Acquired&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Read the full binary file</span>
+        <span class="n">bin_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dtypestr</span> <span class="o">=</span> <span class="s1">&#39;(1,)i4&#39;</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtypestr</span><span class="p">)</span>
+            <span class="n">bin_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+            <span class="n">bin_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bin_data</span><span class="p">,</span> <span class="p">(</span><span class="n">nSamples</span><span class="p">,</span> <span class="n">nChannels</span><span class="p">))</span>
+
+        <span class="n">cal</span> <span class="o">=</span> <span class="n">try_load_cal</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cal</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calibration matrix:&#39;</span><span class="p">,</span> <span class="n">cal</span><span class="p">[</span><span class="s1">&#39;calibrationmatrix&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Perform import via numpy array</span>
+        <span class="c1"># type is nChannel columns of int32 (i4)</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="o">&gt;</span> <span class="n">nChannels</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Invalid channel ID, cannot read&#39;</span><span class="p">)</span>
+
+            <span class="n">vraw</span> <span class="o">=</span> <span class="n">bin_data</span><span class="p">[:,</span> <span class="n">channel</span><span class="p">]</span>
+
+            <span class="c1"># apply native scaling and native offset (counts to volts)</span>
+            <span class="n">vnative</span> <span class="o">=</span> <span class="n">vraw</span> <span class="o">*</span> <span class="n">chan</span><span class="p">[</span><span class="s1">&#39;Coeff k1&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="o">+</span> <span class="n">chan</span><span class="p">[</span><span class="s1">&#39;Coeff k0&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">cal</span><span class="p">:</span>  <span class="c1"># Use calibration data from separate file</span>
+                <span class="c1"># % V/psi with gain sens.  Convert to Pa/V</span>
+                <span class="n">cal_term</span> <span class="o">=</span> <span class="n">cal</span><span class="p">[</span><span class="s1">&#39;calibrationmatrix&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="c1"># TODO confirm magic number is conversion from psi to Pa.</span>
+                <span class="c1"># 1 psi = 6894.757 Pa</span>
+                <span class="c1"># We don&#39;t need the conversion because we want to keep data in psi.</span>
+                <span class="c1"># micsens = 1 / (cal_term / 6894.757)</span>
+                <span class="n">micsens</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">cal_term</span>
+                <span class="n">vdata</span> <span class="o">=</span> <span class="n">vnative</span> <span class="o">*</span> <span class="n">micsens</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Use calibration data from chanconfig</span>
+                <span class="c1"># Apply instrument sensitivity and offset (volts to engineering units)</span>
+                <span class="c1"># I think this is in psi</span>
+                <span class="n">vdata</span> <span class="o">=</span> <span class="n">vnative</span> <span class="o">*</span> <span class="n">chan</span><span class="p">[</span><span class="s1">&#39;EU C1&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="o">/</span> \
+                    <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="n">chan</span><span class="p">[</span><span class="s1">&#39;EU Gain (dB)&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="o">/</span> <span class="mi">20</span><span class="p">))</span> <span class="o">+</span> \
+                    <span class="n">chan</span><span class="p">[</span><span class="s1">&#39;EU C0&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;C[</span><span class="si">%02d</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">channel</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,),</span> <span class="n">vraw</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                <span class="s1">&#39;Counts:&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">vraw</span><span class="p">)</span><span class="si">:</span><span class="s1">+10d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vraw</span><span class="p">)</span><span class="si">:</span><span class="s1">+10d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;V:&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">vnative</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vnative</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;psi:&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">vdata</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vdata</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">raw</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vraw</span><span class="p">)</span>
+            <span class="n">native</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vnative</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vdata</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">raw</span><span class="p">,</span> <span class="n">native</span><span class="p">,</span> <span class="n">data</span></div>
+
+
+<span class="c1">###############################################################################</span>
+
+<div class="viewcode-block" id="read_tgts"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.read_tgts">[docs]</a><span class="k">def</span> <span class="nf">read_tgts</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="n">kulites</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read in the tgts file data and return the coordinates of the kulites</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts_file : str</span>
+<span class="sd">        targets data file</span>
+<span class="sd">    kulites : list, optional</span>
+<span class="sd">        list of kulite strings. If &quot;all&quot; (default), all targets identified as Kulites</span>
+<span class="sd">        are returned.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pos : dict of list</span>
+<span class="sd">        (x,y,z) positions for each kulite keyed by name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+            <span class="c1"># Fiducial marks do not have an extra column with the kulite name</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">11</span> <span class="ow">and</span> <span class="s1">&#39;K&#39;</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;pK&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> \
+                    <span class="ow">and</span> <span class="s1">&#39;mK&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">kulites</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kulites</span><span class="p">:</span>
+                        <span class="n">pos</span><span class="p">[</span><span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pos</span><span class="p">[</span><span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span>
+    <span class="k">return</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="compute_delta_rms"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.compute_delta_rms">[docs]</a><span class="k">def</span> <span class="nf">compute_delta_rms</span><span class="p">(</span><span class="n">kulites</span><span class="p">,</span> <span class="n">sosfilter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculate rms values for each kulite by subtracting off the mean, and return a dict.</span>
+<span class="sd">    if sosfilter is provided, applies it to the timeseries before calculating rms</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">calc_rms</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">a</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">rms_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">kulites</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">sosfilter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filtered</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">sosfilt</span><span class="p">(</span><span class="n">sosfilter</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filtered</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="n">rms_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_rms</span><span class="p">(</span><span class="n">filtered</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">filtered</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">rms_dict</span></div>
+
+
+<div class="viewcode-block" id="compute_rms_from_psd"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.compute_rms_from_psd">[docs]</a><span class="k">def</span> <span class="nf">compute_rms_from_psd</span><span class="p">(</span><span class="n">kulites</span><span class="p">,</span> <span class="n">startfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculate rms values for each kulite  in the input collection by integrating its psd</span>
+<span class="sd">    if startfreq is provided, integrates from startfreq upwards</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rms_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">psds</span> <span class="o">=</span> <span class="n">compute_psd</span><span class="p">(</span><span class="n">kulites</span><span class="p">)</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">psds</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">psds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;freq&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">startfreq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rms_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i_desired</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">freqs</span> <span class="o">&gt;=</span> <span class="n">startfreq</span><span class="p">)</span>
+            <span class="n">rms_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i_desired</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">rms_dict</span></div>
+
+
+<div class="viewcode-block" id="apply_filter"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.apply_filter">[docs]</a><span class="k">def</span> <span class="nf">apply_filter</span><span class="p">(</span><span class="n">kulites</span><span class="p">,</span> <span class="n">sosfilter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply an sos filter to the given kulite collection, and return a new kulites object.</span>
+
+<span class="sd">    Creates a deep copy in case you want to use this for comparing filtered</span>
+<span class="sd">    vs unfiltered collections, and want to hang on to an unmodified version too</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filtered_kulites</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">kulites</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">timeseries</span> <span class="ow">in</span> <span class="n">kulites</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">filtered_kulites</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">sosfilt</span><span class="p">(</span><span class="n">sosfilter</span><span class="p">,</span> <span class="n">timeseries</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filtered_kulites</span></div>
+
+
+<div class="viewcode-block" id="compute_psd"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.compute_psd">[docs]</a><span class="k">def</span> <span class="nf">compute_psd</span><span class="p">(</span><span class="n">kulites</span><span class="p">,</span> <span class="n">w_len</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute PSDs for kulite data</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kulites : Kulites</span>
+<span class="sd">        Kulites object</span>
+<span class="sd">    w_len : int, optional</span>
+<span class="sd">        window length</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of PSDs for each kulite, with an additional entry &quot;freq&quot; for the</span>
+<span class="sd">        frequency bins</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="c1"># Compute PSD</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kulites</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="n">srate</span> <span class="o">=</span> <span class="n">kulites</span><span class="o">.</span><span class="n">sample_rate</span>
+
+        <span class="n">freq</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">welch</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">srate</span><span class="p">,</span>
+                                       <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hanning&#39;</span><span class="p">,</span> <span class="n">nperseg</span><span class="o">=</span><span class="n">w_len</span><span class="p">,</span>
+                                       <span class="n">detrend</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="c1"># FIXME this is broken?</span>
+<div class="viewcode-block" id="create_kulite_grid"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.create_kulite_grid">[docs]</a><span class="k">def</span> <span class="nf">create_kulite_grid</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="n">kul_strs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a structured grid of kulite locations</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts_file : str</span>
+<span class="sd">        TGTS kulite location file</span>
+<span class="sd">    kul_strs : list</span>
+<span class="sd">        kulite names to include in plots</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    kul_grid : StructGrid</span>
+<span class="sd">        kulite positions in cartesion and cylindrical form</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Load the kulite positions</span>
+    <span class="n">kulite_pos</span> <span class="o">=</span> <span class="n">kul_strs</span><span class="o">.</span><span class="n">read_tgts</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="n">kul_strs</span><span class="p">)</span>
+
+    <span class="c1"># Generate grid</span>
+    <span class="n">kul_grid</span> <span class="o">=</span> <span class="n">tgts_file</span><span class="o">.</span><span class="n">StructGrid</span><span class="p">()</span>
+    <span class="n">kul_grid</span><span class="o">.</span><span class="n">sz</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">kul_strs</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">kul</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">kulite_pos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">kul_grid</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kul</span><span class="p">)</span>
+        <span class="n">kul_grid</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">kul_grid</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">kul_grid</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">kul_grid</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">kul_grid</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">p3d_utilities</span><span class="o">.</span><span class="n">to_cylindrical</span><span class="p">(</span><span class="n">kul_grid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">kul_grid</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kul_grid</span></div>
+
+
+<div class="viewcode-block" id="write_kulite_positions_p3d"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.write_kulite_positions_p3d">[docs]</a><span class="k">def</span> <span class="nf">write_kulite_positions_p3d</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">tgts_file</span><span class="p">,</span> <span class="n">kul_strs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a 1D plot3d grid with kulite locations</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_file : str</span>
+<span class="sd">        output p3d file</span>
+<span class="sd">    tgts_file : str</span>
+<span class="sd">        TGTS kulite location file</span>
+<span class="sd">    kul_strs : list</span>
+<span class="sd">        kulite names to include in plots</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kul_grid</span> <span class="o">=</span> <span class="n">create_kulite_grid</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="n">kul_strs</span><span class="p">)</span>
+    <span class="n">kul_grid</span><span class="o">.</span><span class="n">write_p3d</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_targets_matrix"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.read_targets_matrix">[docs]</a><span class="k">def</span> <span class="nf">read_targets_matrix</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="n">kul_strs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a list of kulite data</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts_file : str</span>
+<span class="sd">        TGTS kulite location file</span>
+<span class="sd">    kul_strs : list</span>
+<span class="sd">        kulite names to include in plots.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of list</span>
+<span class="sd">        Kulite data of the form: ``name, x, y, z, r, theta, i, j, k, diam, zone``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kul_strs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">kul_strs</span><span class="p">),</span> <span class="mi">11</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tgts_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+            <span class="c1"># Only lines with all entries, and only kulites (not painted or masked)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">11</span> <span class="ow">and</span> <span class="s1">&#39;K&#39;</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;pK&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> \
+                    <span class="ow">and</span> <span class="s1">&#39;mK&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]:</span>
+
+                <span class="c1"># Extract information</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">r_val</span><span class="p">,</span> <span class="n">theta_val</span> <span class="o">=</span> <span class="n">p3d_utilities</span><span class="o">.</span><span class="n">to_cylindrical</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">r_val</span><span class="p">)</span>
+                <span class="n">theta</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theta_val</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+                <span class="n">zone</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">kul_strs</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kul_strs</span><span class="p">:</span>
+                        <span class="n">mat</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">zone</span><span class="p">]</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">newrow</span> <span class="o">=</span> <span class="p">[</span><span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">zone</span><span class="p">]</span>
+                        <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mat</span><span class="p">,</span> <span class="n">newrow</span><span class="p">])</span>
+
+    <span class="c1"># sort list of lists by first column</span>
+    <span class="n">mat_sort</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()]</span>
+
+    <span class="k">return</span> <span class="n">mat_sort</span></div>
+
+
+<div class="viewcode-block" id="create_pressure_array"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.kulite_utilities.html#upsp.processing.kulite_utilities.create_pressure_array">[docs]</a><span class="k">def</span> <span class="nf">create_pressure_array</span><span class="p">(</span><span class="n">kuls</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a numpy array with kulite pressure-time histories</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kuls : dict</span>
+<span class="sd">        kulite names linked to array of pressure values</span>
+<span class="sd">    data_type : numpy.dtype</span>
+<span class="sd">        data type of array elements</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        kulite data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">leng</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data_type</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating kulite pressure file of </span><span class="si">%d</span><span class="s2"> kulites, history of </span><span class="si">%d</span><span class="s2">,&quot;</span>
+             <span class="o">+</span> <span class="s2">&quot; size </span><span class="si">%d</span><span class="s2">, and type </span><span class="si">%s</span><span class="s2">..&quot;</span><span class="p">,</span>
+             <span class="nb">len</span><span class="p">(</span><span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="n">leng</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">data_type</span><span class="p">)</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">kul</span> <span class="ow">in</span> <span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+        <span class="n">data_array</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">leng</span><span class="p">]</span> <span class="o">=</span> <span class="n">kuls</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">kul</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">leng</span>
+
+    <span class="k">return</span> <span class="n">data_array</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

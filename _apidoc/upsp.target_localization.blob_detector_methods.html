@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.target_localization.blob_detector_methods &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.target_localization.gaussian_fitting_methods" href="upsp.target_localization.gaussian_fitting_methods.html" />
+    <link rel="prev" title="upsp.target_localization" href="upsp.target_localization.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a><ul>
+      <li>Previous: <a href="upsp.target_localization.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+      <li>Next: <a href="upsp.target_localization.gaussian_fitting_methods.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization.gaussian_fitting_methods</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.target_localization.blob_detector_methods">
+<span id="upsp-target-localization-blob-detector-methods"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.target_localization.blob_detector_methods</span></code><a class="headerlink" href="#module-upsp.target_localization.blob_detector_methods" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.target_localization.blob_detector_methods.blob_func">
+<span class="sig-name descname"><span class="pre">blob_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detection_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decide_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/target_localization/blob_detector_methods.html#blob_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.target_localization.blob_detector_methods.blob_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a function that acts as a wrapper around openCV’s blob detection function
+to act as a target center localizer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detection_method</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code>) – String must be a key in the global dict target_detectors. The key selects the
+blob detection parameters to use</p></li>
+<li><p><strong>decide_method</strong> (<code class="docutils literal notranslate"><span class="pre">{'biggest',</span> <span class="pre">'smallest',</span> <span class="pre">'first',</span> <span class="pre">'last',</span> <span class="pre">'random',</span> <span class="pre">None}</span></code>, <em>optional</em>) – decision method if more than 1 blob is detected in the image. Biggest and
+smallest selects the largest and smallest (respectfully) based on the keypoint
+size parameter. First and last select the first and last (respectfully) based on
+the order returned by the blob detector. Random selects a random blob. None uses
+the default method, which is last</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Blob detector localization function - Wrapper around a blob detector to act as a
+localization function. The function has the signature:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">func</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_keypoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">keypoint</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">img</span></code> is a 2D image array containing one target, <code class="docutils literal notranslate"><span class="pre">target_type</span></code> does
+nothing, and <code class="docutils literal notranslate"><span class="pre">return_keypoint</span></code> specifies whether the keypoint itself is
+returned (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or just the center position (x, y).</p>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.target_localization.blob_detector_methods.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,7 @@
+``upsp.target_localization.blob_detector_methods``
+==================================================
+
+.. automodule:: upsp.target_localization.blob_detector_methods
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Installation &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start" href="quick-start.html" />
+    <link rel="prev" title="Unsteady Pressure-Sensitive Paint (uPSP) Data Processing Software" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#obtaining-source-code">Obtaining source code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-and-install">Build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unit-tests">Unit Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Unsteady Pressure-Sensitive Paint (uPSP) Data Processing Software</a></li>
+      <li>Next: <a href="quick-start.html" title="next chapter">Quick Start</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>The project does not currently provide pre-built binary releases. Users must
+build the project from source on their local system. The project is built as
+a Python package with native applications and extension modules written in C/C++.</p>
+<p>The following instructions will help the user build and install the package into
+their local Python environment as a <code class="docutils literal notranslate"><span class="pre">pip</span></code> package. The package build system
+leverages <code class="docutils literal notranslate"><span class="pre">scikit-build</span></code> and CMake to compile native C/C++ elements and deploy
+them alongside pure Python modules in the final package.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>The project is currently tested for use on Linux x86-64 target systems.</p></li>
+<li><p>See <a class="reference internal" href="dependencies.html#third-party-dependencies"><span class="std std-ref">Third-Party Dependencies</span></a> for a list of third-party libraries that must be installed
+on the local system in order to build the project. They can be managed using the
+system package manager (<code class="docutils literal notranslate"><span class="pre">apt</span></code> on Ubuntu, <code class="docutils literal notranslate"><span class="pre">yum</span></code> on CentOS, etc.) or with a C/C++
+package management framework—the package maintainers at NASA develop and test using
+<a class="reference external" href="https://vcpkg.io/en/index.html">vcpkg</a>. If using <code class="docutils literal notranslate"><span class="pre">vcpkg</span></code>, the dependencies will likely not be in a default system folder and
+so the following environment variables should be set to point the build system at the
+CMake toolchain file provided by your <code class="docutils literal notranslate"><span class="pre">vcpkg</span></code> install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="nb">export</span> <span class="nv">SKBUILD_CONFIGURE_OPTIONS</span><span class="o">=</span><span class="s2">&quot; -DCMAKE_TOOLCHAIN_FILE=</span><span class="si">${</span><span class="nv">VCPKG_ROOT</span><span class="si">}</span><span class="s2">/scripts/buildsystems/vcpkg.cmake&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Python must be installed on the local system (3.7+), ideally inside a virtual environment.</p></li>
+<li><p>We require <code class="docutils literal notranslate"><span class="pre">pip&gt;=22.3.1</span></code>. To upgrade, you can run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">pip</span></code>.</p></li>
+</ul>
+</section>
+<section id="obtaining-source-code">
+<h2>Obtaining source code<a class="headerlink" href="#obtaining-source-code" title="Permalink to this headline">¶</a></h2>
+<p>You can clone the repository from (TODO), or download the latest source code archive from (TODO).</p>
+</section>
+<section id="build-and-install">
+<h2>Build and install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h2>
+<p>Navigate to the source code folder tree and run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -v .
+</pre></div>
+</div>
+<p>This will build the <code class="docutils literal notranslate"><span class="pre">upsp</span></code> package and install it in your Python environment. Several executable
+entrypoints will be available in your local Python environment <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder after install.</p>
+<p>To check successful install, you can run <code class="docutils literal notranslate"><span class="pre">psp_process</span> <span class="pre">-h</span></code> to display its application usage, and run
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-c</span> <span class="pre">&quot;import</span> <span class="pre">upsp.raycast;</span> <span class="pre">import</span> <span class="pre">pydoc;</span> <span class="pre">print(pydoc.render_doc(upsp.raycast.BVH))&quot;</span></code> to display
+the Python API usage statement for one of the <code class="docutils literal notranslate"><span class="pre">upsp</span></code> C/C++ Python extension modules.</p>
+</section>
+<section id="unit-tests">
+<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this headline">¶</a></h2>
+<p>Unit tests for C/C++ modules are written with Google Test and are built as part of the packaging process.</p>
+<ul class="simple">
+<li><p>After running <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code>, you should have a local folder called
+<code class="docutils literal notranslate"><span class="pre">_skbuild</span></code> that caches the results of the build, for example,
+<code class="docutils literal notranslate"><span class="pre">_skbuild/linux-x86_64-3.9/cmake-build</span></code></p></li>
+<li><p>Navigate to <code class="docutils literal notranslate"><span class="pre">cpp/test</span></code> and then run <code class="docutils literal notranslate"><span class="pre">../../_skbuild/linux-x86_64-3.9/cmake-build/run_tests</span></code>
+(Some unit tests rely on relative paths to test data located in <code class="docutils literal notranslate"><span class="pre">cpp/test</span></code>).</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/installation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

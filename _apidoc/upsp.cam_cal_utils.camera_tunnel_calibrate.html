@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.camera_tunnel_calibrate &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.cam_cal_utils.external_calibrate" href="upsp.cam_cal_utils.external_calibrate.html" />
+    <link rel="prev" title="upsp.cam_cal_utils" href="upsp.cam_cal_utils.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+      <li>Next: <a href="upsp.cam_cal_utils.external_calibrate.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.external_calibrate</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.camera_tunnel_calibrate">
+<span id="upsp-cam-cal-utils-camera-tunnel-calibrate"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.camera_tunnel_calibrate</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.camera_tunnel_calibrate" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.camera_tunnel_calibrate.camera_to_tunnel_calibrate">
+<span class="sig-name descname"><span class="pre">camera_to_tunnel_calibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctc_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_cals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual_detections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tunnel_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/camera_tunnel_calibrate.html#camera_to_tunnel_calibrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.camera_tunnel_calibrate.camera_to_tunnel_calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs camera to tunnel calibration for the given cameras</p>
+<p>Generates <code class="docutils literal notranslate"><span class="pre">camera_to_tunnel</span></code> json files for each given camera and saved in
+<code class="docutils literal notranslate"><span class="pre">ctc_dir</span></code>.</p>
+<p>Any number of cameras can be given to this function. Each camera needs its own entry
+in <cite>imgs</cite>, <cite>internal_cals</cite>, and <cite>manual_detections</cite>. If there are 10 cameras, each
+of those inputs will be a list of length 10.</p>
+<p>If <cite>debug_show_matches</cite> or <cite>debug_show_img_targets</cite> are True, the debug images will
+be saved to the current directory. Each image will be appended with ‘_?’ where ? is
+the index of the camera (If ? is 0, it corresponds to <code class="docutils literal notranslate"><span class="pre">imgs[0]</span></code>,
+<code class="docutils literal notranslate"><span class="pre">internal_cals[0]</span></code>, and <code class="docutils literal notranslate"><span class="pre">manual_detections[0]</span></code>)</p>
+<p>All inputs should correspond to the same test configuration. The inputs
+<cite>tunnel_vals</cite>, <cite>tgts_all</cite>, <cite>test_config</cite>, and <cite>vis_checker</cite> will be used across all
+cameras.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctc_dir</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code>) – Directory to save the camera-to-tunnel calibrations</p></li>
+<li><p><strong>imgs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Each image should be <code class="docutils literal notranslate"><span class="pre">np.array</span></code> of shape (height, width) and 8-bit.
+<code class="docutils literal notranslate"><span class="pre">imgs[i]</span></code> should correspond to <code class="docutils literal notranslate"><span class="pre">internal_cals[i]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">manual_detections[i]</span></code></p></li>
+<li><p><strong>internal_cals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – <p>Each internal calibration should be of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">sensor_resolution</span><span class="p">,</span> <span class="n">sensor_size</span><span class="p">]</span>
+</pre></div>
+</div>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> is the (openCV formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> is the (openCV formatted) distortion coefficients for the
+camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sensor_resolution</span></code> is a tuple of the full pixel resolution of the camera
+(which can be larger than the images of the <cite>imgs</cite> input)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sensor_size</span></code> is a tuple of the physical sensor size in inches</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">internal_cals[i]</span></code> should correspond to <code class="docutils literal notranslate"><span class="pre">imgs[i]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">manual_detections[i]</span></code></p>
+</p></li>
+<li><p><strong>manual_detections</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – <p>Each manual detection using PASCAL VOC format. Each manual detection is a
+dict with following the keys:</p>
+<blockquote>
+<div><ul>
+<li><p>’class’ denoting the target_type</p></li>
+<li><p>’x1’ denoting the left edge of the bounding box</p></li>
+<li><p>’y1’ denoting the top edge of the bounding box</p></li>
+<li><p>’x2’ denoting the right edge of the bounding box</p></li>
+<li><p>’y2’ denoting the bottom edge of the bounding box</p></li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">manual_detections[i]</span></code> should correspond to <code class="docutils literal notranslate"><span class="pre">imgs[i]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">internal_cals[i]</span></code></p>
+</p></li>
+<li><p><strong>tunnel_vals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – <cite>tunnel_vals</cite> has the keys ALPHA, BETA, PHI, and STRUTZ which denote the model’s
+commanded position in the UPWT. For tests without this type of model positioning
+mechanism, set all values to 0.0</p></li>
+<li><p><strong>tgts_all</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Each target is a dict with (at a minimum) a ‘target_type’, ‘tvec’, and ‘norm’
+attribute.  The ‘target_type’ is a string for the type of target, usually ‘dot’.
+Currently, only targets with the ‘dot’ type are used. The ‘tvec’ attribute gives
+the target’s location and the ‘norm’ attribute gives the target’s normal vector
+Both are <code class="docutils literal notranslate"><span class="pre">np.array</span></code> vectors with shape (3, 1)</p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – <dl class="simple">
+<dt>The dict must contain the following keys and values:</dt><dd><ul>
+<li><p>’oblique_angle’ : maximum allowable oblique viewing angle</p></li>
+<li><p>’max_match_dist’ : maximum allowable matching distance between tgt
+projection and image target</p></li>
+<li><p>’dot_pad’ : pixel padding distance around center of dot target to use for
+sub-pixel localization</p></li>
+<li><p>’tunnel-cor_to_tgts_tvec’ : translation vector from center of rotation to
+tgts origin. For tests that do not have a center of rotation like the
+UPWT, set this value to [0.0, 0.0, 0.0]</p></li>
+<li><p>’tunnel-cor_to_tgts_rmat’ : rotation matrix from center of rotation to
+tgts origin. For tests that do not have a center of rotation like the
+UPWT, set this value to [[1, 0, 0], [0, 1, 0], [0, 0, 1]]</p></li>
+<li><p>’tunnel-cor_to_tunnel-origin_tvec’ : translation vector from center of
+rotation to tunnel origin. This can be [0.0, 0.0, 0.0]</p></li>
+<li><p>’tunnel-cor_to_tunnel-origin_rmat’ : rotation matrix from center of
+rotation to tunnel origin. This can be [[1, 0, 0], [0, 1, 0], [0, 0, 1]]</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>match_thresh</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>default</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">=</span> <span class="pre">0.80</span></code>) – Proportion of matched needed to form a consensus, optional default=0.8</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.camera_tunnel_calibrate.tf_camera_tgts_thru_tunnel">
+<span class="sig-name descname"><span class="pre">tf_camera_tgts_thru_tunnel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera_tunnel_cal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wtd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/camera_tunnel_calibrate.html#tf_camera_tgts_thru_tunnel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.camera_tunnel_calibrate.tf_camera_tgts_thru_tunnel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the transformation from the camera to the model (tgts frame)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_cal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – <p>camera calibration in the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">rmat__camera_tunnel</span><span class="p">,</span> <span class="n">tvec__camera_tunnel</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">]</span>
+</pre></div>
+</div>
+</p></li>
+<li><p><strong>wtd</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – wind tunnel data as a dict with (at a minimum) the keys ‘ALPHA’, ‘BETA’, ‘PHI’,
+and ‘STRUTZ’. ALPHA, BETA, and PHI are tunnel angles in degrees. STRUTZ is the
+offset of the tunnel center of rotation for the z axis in inches</p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – test configuration data as a dict with (at a minimum) the key
+‘tunnel-cor_to_tgts_tvec’ representing the translation vector from the tunnel
+center of rotation to the model frame</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rmat__camera_tgts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Rotation matrix</p></li>
+<li><p><strong>tvec__camera_tgts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>) – Translation vector</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.camera_tunnel_calibrate.tunnel_transform">
+<span class="sig-name descname"><span class="pre">tunnel_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ALPHA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BETA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PHI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRUTZ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec__cor_tgts__tgts_frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/camera_tunnel_calibrate.html#tunnel_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.camera_tunnel_calibrate.tunnel_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the transformation from the tunnel coordinate frame to the tgts frame</p>
+<p>Note: This is not necessarily to the tunnel origin, just some fixed point in the
+tunnel (fixed within a tunnel test). If <cite>STRUTZ</cite> = <cite>STRUTZ_abs</cite> then it will be the
+tunnel origin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ALPHA</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Tunnel alpha in degrees</p></li>
+<li><p><strong>BETA</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Tunnel beta in degrees</p></li>
+<li><p><strong>PHI</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Tunnel phi in degrees</p></li>
+<li><p><strong>STRUTZ</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – STRUTZ location of the UPWT strut</p></li>
+<li><p><strong>tvec__cor_tgts__tgts_frame</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span> <span class="pre">float</span></code>) – Translation vector from the tunnel center of rotation to the tgts frame
+in the tgts frame. The tgts frame is a fixed distance from the tunnel point of
+rotation from the tgts frame’s point of view, that translation vector is always
+along the x axis</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rotation_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Rotation matrix from tgts frame to tunnel frame</p></li>
+<li><p><strong>tvec__tunnel_tgts__tunnel_frame</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>) – Translation vector from tgts frame to tunnel frame</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.camera_tunnel_calibrate.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,20 @@
+
+``upsp`` Python API
+===================
+
+
+.. automodule:: upsp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. rubric:: Subpackages:
+
+.. toctree::
+   :maxdepth: 2
+
+   upsp.cam_cal_utils
+   upsp.intensity_mapping
+   upsp.kulite_comparison
+   upsp.processing
+   upsp.target_localization

@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Unsteady Pressure-Sensitive Paint (uPSP) Data Processing Software &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="installation.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="unsteady-pressure-sensitive-paint-upsp-data-processing-software">
+<h1>Unsteady Pressure-Sensitive Paint (uPSP) Data Processing Software<a class="headerlink" href="#unsteady-pressure-sensitive-paint-upsp-data-processing-software" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">upsp</span></code> package consists of a suite of applications for processing
+high-speed video files from fast-response, pressure-sensitive paint
+camera systems. It also provides a Python API for developers to
+extend and modify functionality. The software is maintained by NASA
+and used as part of several uPSP systems deployed at its small- and large-scale wind tunnel
+test facilities.</p>
+<p><a class="reference internal" href="#sls-screenshot"><span class="std std-numref">Fig. 1</span></a> shows one frame of a video animation of the pressure-time history produced
+by the uPSP software for a test event at the NASA Ames 11-ft transonic wind tunnel
+of the Space Launch System (SLS) Block 1B crew configuration (<a class="reference external" href="https://ntrs.nasa.gov/citations/20220005639">source</a>).</p>
+<figure class="align-default" id="id1">
+<span id="sls-screenshot"></span><img alt="_images/sls-pressure-time-history-screenshot.png" src="_images/sls-pressure-time-history-screenshot.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">One frame of a video animation of time-varying surface pressure measured by uPSP.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#obtaining-source-code">Obtaining source code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#build-and-install">Build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#unit-tests">Unit Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#producing-surface-pressure-time-history-for-one-test-condition">Producing surface pressure time history for one test condition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#batch-processing-multiple-test-conditions">Batch processing multiple test conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#guidelines-for-setting-nas-pbs-job-parameters">Guidelines for setting NAS PBS job parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#upsp-extract-frames"><code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#upsp-external-calibration"><code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications.html#psp-process"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#high-speed-camera-video-formats">High-speed camera video formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#surface-grid-definition">Surface grid definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#targets-file-tgts">“Targets” file (<code class="docutils literal notranslate"><span class="pre">*.tgts</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#steady-state-surface-pressure-file">Steady-state surface pressure file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#wind-tunnel-data-wtd">Wind Tunnel Data (<code class="docutils literal notranslate"><span class="pre">*.wtd</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#unsteady-psp-gain-calibration">Unsteady PSP gain calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#camera-to-tunnel-calibration">Camera-to-tunnel calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#psp-process-configuration-inp"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> configuration (<code class="docutils literal notranslate"><span class="pre">*.inp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#external-camera-calibration-configuration-parameters">External camera calibration configuration parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#batch-processing-configuration">Batch processing configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file-formats.html#output-files-from-psp-process">Output files from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swdd.html#software-architecture">Software Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swdd.html#pipeline-application-design-details">Pipeline Application Design Details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swdd.html#choice-of-software-language-s">Choice of software language(s)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_apidoc/upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_apidoc/upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_apidoc/upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_apidoc/upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_apidoc/upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p class="rubric">Indices and tables:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

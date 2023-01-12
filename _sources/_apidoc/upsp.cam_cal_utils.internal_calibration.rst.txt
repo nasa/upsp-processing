@@ -1,0 +1,7 @@
+``upsp.cam_cal_utils.internal_calibration``
+===========================================
+
+.. automodule:: upsp.cam_cal_utils.internal_calibration
+   :members:
+   :undoc-members:
+   :show-inheritance:

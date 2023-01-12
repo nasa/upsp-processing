@@ -1,0 +1,7 @@
+``upsp.cam_cal_utils.external_calibrate``
+=========================================
+
+.. automodule:: upsp.cam_cal_utils.external_calibrate
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.cam_cal_utils.visualization &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.cam_cal_utils.visualization</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">debug_text_displays</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="axisEqual3D"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.axisEqual3D">[docs]</a><span class="k">def</span> <span class="nf">axisEqual3D</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    In a 3D plot, equalizes all axes to same scale</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">extents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;get_</span><span class="si">{}</span><span class="s1">lim&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))()</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="s1">&#39;xyz&#39;</span><span class="p">])</span>
+    <span class="n">sz</span> <span class="o">=</span> <span class="n">extents</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">extents</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">extents</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">maxsize</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">sz</span><span class="p">))</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">maxsize</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">ctr</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="s1">&#39;xyz&#39;</span><span class="p">):</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;set_</span><span class="si">{}</span><span class="s1">lim&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))(</span><span class="n">ctr</span> <span class="o">-</span> <span class="n">r</span><span class="p">,</span> <span class="n">ctr</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_coord_sys"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.plot_coord_sys">[docs]</a><span class="k">def</span> <span class="nf">plot_coord_sys</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a pose, plots the basis of that coordinate system in the given matplotlib axis</span>
+
+<span class="sd">    In the plot, the x axis is blue, the y axis is orange, and the z axis is green</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmat : array_like, shape (3, 3)</span>
+<span class="sd">        Rotation Matrix. Columns represent the basis of the coordinate system</span>
+<span class="sd">    tvec : array_like, , shape (3,)</span>
+<span class="sd">        Origin of the coordinate system</span>
+<span class="sd">    ax : mpl_toolkits.mplot3d.axes3d.Axes3D</span>
+<span class="sd">        matplotlib axis</span>
+<span class="sd">    scale : int or float, optional</span>
+<span class="sd">        Size of the vcoordinate system vectors</span>
+<span class="sd">    text : str, optional</span>
+<span class="sd">        Label of the coordinate system. If ``None`` (default), no text is added.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">s_rmat</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">rmat</span>
+
+    <span class="c1"># TODO: these should be drawn in the order of distance to the virtual camera</span>
+    <span class="c1">#   Drawing them in this order by default can cause the debug outputs to look incorrect</span>
+    <span class="c1">#   due to occlusions    </span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_rmat</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">]],</span> <span class="s1">&#39;g&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">debug_text_displays</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">text</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_image_locations"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.show_image_locations">[docs]</a><span class="k">def</span> <span class="nf">show_image_locations</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">img_locations</span><span class="p">,</span> <span class="n">fig_name</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays an image with the given image locations indicated with a marker of the</span>
+<span class="sd">    given color (white by default)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fig_name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">img_locations</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">img_locations</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fig_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_coord_transforms"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.show_coord_transforms">[docs]</a><span class="k">def</span> <span class="nf">show_coord_transforms</span><span class="p">(</span><span class="n">cs1_rmat</span><span class="p">,</span> <span class="n">cs1_tvec</span><span class="p">,</span> <span class="n">cs2_rmat</span><span class="p">,</span> <span class="n">cs2_tvec</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">texts</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">compares</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shows the transformation from coordinate system 1 (cs1) to coordinate system 2 (cs2)</span>
+
+<span class="sd">    Additionally, shows the origin coordinate system. Draws a line from cs1 to cs2 Texts</span>
+<span class="sd">    is the label to be shown for the origin, cs1, and cs2 respectively compares is a</span>
+<span class="sd">    list of booleans that determines if a line is drawn from the origin to cs1</span>
+<span class="sd">    (compares[0]), from cs1 to cs2 (compares[1]), and from cs2 to the origin</span>
+<span class="sd">    (compares[2])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">figname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">figname</span> <span class="o">=</span> <span class="s1">&#39;coordinate system transforms&#39;</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figname</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Draw the origin, cs1, and cs2</span>
+    <span class="n">plot_coord_sys</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">plot_coord_sys</span><span class="p">(</span><span class="n">cs1_rmat</span><span class="p">,</span> <span class="n">cs1_tvec</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">texts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plot_coord_sys</span><span class="p">(</span><span class="n">cs2_rmat</span><span class="p">,</span> <span class="n">cs2_tvec</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">texts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="c1"># If compares[0] is True, draw a line from the origin to cs1</span>
+    <span class="k">if</span> <span class="n">compares</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="c1"># If compare[1] is True, draw a line from cs1 to cs2</span>
+    <span class="k">if</span> <span class="n">compares</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">cs1_tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="c1"># If compare[2] is True, draw a line from cs2 to the origin</span>
+    <span class="k">if</span> <span class="n">compares</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">],</span>
+                  <span class="p">[</span><span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">],</span>
+                  <span class="p">[</span><span class="n">cs2_tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Equalize and show</span>
+    <span class="n">axisEqual3D</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">savefig_name</span> <span class="o">=</span> <span class="n">figname</span>
+    <span class="k">if</span> <span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">savefig_name</span> <span class="o">+=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">texts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">savefig_name</span> <span class="o">+=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">texts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">texts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">savefig_name</span> <span class="o">+=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">texts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    
+    <span class="n">savefig_name</span> <span class="o">+=</span> <span class="s1">&#39;.png&#39;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefig_name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">figname</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_pts_and_norms"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.plot_pts_and_norms">[docs]</a><span class="k">def</span> <span class="nf">plot_pts_and_norms</span><span class="p">(</span><span class="n">pts_and_norms</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to plot points with normals</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pts_and_norms : list of dict</span>
+<span class="sd">        Each dictionary has keys &#39;tvec&#39; and &#39;norm&#39; tvec refers to the translation vector</span>
+<span class="sd">        from the origin to the point norm refers to the point&#39;s normal vector</span>
+<span class="sd">    ax : mpl_toolkits.mplot3d.axes3d.Axes3D</span>
+<span class="sd">        matplotlib axis</span>
+<span class="sd">    scale : int or float, optional</span>
+<span class="sd">        Size of the normal vectors</span>
+<span class="sd">    c : str, optional</span>
+<span class="sd">        Color of points and normals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">pt_and_norm</span> <span class="ow">in</span> <span class="n">pts_and_norms</span><span class="p">:</span>
+        <span class="c1"># Calculate translation vector relative to camera</span>
+        <span class="n">tvec</span> <span class="o">=</span> <span class="n">pt_and_norm</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Plot point</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Calculate scaled normal vector in camera frame</span>
+        <span class="n">s_norm</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">pt_and_norm</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Plot normal vector</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_norm</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_norm</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">s_norm</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                  <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_pts_and_norms"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.show_pts_and_norms">[docs]</a><span class="k">def</span> <span class="nf">show_pts_and_norms</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">pts_and_norms</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">texts</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to plot transformation from the origin to given coordinate system,</span>
+<span class="sd">    and show a set of points. Originally intended to plot the tgts frame and the targets</span>
+<span class="sd">    with their normals</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmat : array_like, shape (3, 3)</span>
+<span class="sd">        Basis of the coordinate system to be shown</span>
+<span class="sd">    tvec : array_like, shape (3,)</span>
+<span class="sd">        Origin of coordinate system to be shown</span>
+<span class="sd">    pts_and_norms : list of dict</span>
+<span class="sd">        Each dictionary has keys &#39;tvec&#39; and &#39;norm&#39; tvec refers to the translation vector</span>
+<span class="sd">        from the origin to the point norm refers to the point&#39;s normal vector. Points</span>
+<span class="sd">        and normals are in the coordinate frame of the origin</span>
+<span class="sd">    ax : matplotlib.Axes, optional</span>
+<span class="sd">        matplotlib axis. If not provided, a figure and 3D axes are created.</span>
+<span class="sd">    scale : int or float</span>
+<span class="sd">        Size of the normal vectors</span>
+<span class="sd">    c : str, optional</span>
+<span class="sd">        Color of points and normals</span>
+<span class="sd">    texts : tuple, optional</span>
+<span class="sd">        Labels for the origin and transformed coordinate system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># If no axis was given, make a new one</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="s1">&#39;Points &amp; Normals&#39;</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the camera frame, the vector from the camera frame to the tgts frame</span>
+    <span class="c1">#   and the tgts frame</span>
+    <span class="n">plot_coord_sys</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">tvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="s1">&#39;black&#39;</span><span class="p">)</span>
+    <span class="n">plot_coord_sys</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">texts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># Plot the targets and their normals</span>
+    <span class="n">plot_pts_and_norms</span><span class="p">(</span><span class="n">pts_and_norms</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="n">axisEqual3D</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;unfound_visibles.png&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show_projection_matching"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visualization.html#upsp.cam_cal_utils.visualization.show_projection_matching">[docs]</a><span class="k">def</span> <span class="nf">show_projection_matching</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">proj_pts</span><span class="p">,</span> <span class="n">matching_points</span><span class="p">,</span> <span class="n">num_matches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">bonus_pt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Show the projected target matching.</span>
+
+<span class="sd">    Projected points are labeled in red. Matching points are labeled in white. Line</span>
+<span class="sd">    connecting point to match is drawn in black</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : array_like</span>
+<span class="sd">        Display image</span>
+<span class="sd">    proj_pts : array_like, shape (n, 2)</span>
+<span class="sd">        :rojected locations of 3D points</span>
+<span class="sd">    matching_points : array_like, shape (n, 2)</span>
+<span class="sd">        Image location of point</span>
+<span class="sd">    name : str, optinoal</span>
+<span class="sd">        Figure name prefix</span>
+<span class="sd">    bonus_pt : array_like, optional</span>
+<span class="sd">        Optional input. Point to be shown in blue</span>
+<span class="sd">    scale : int or float, optional</span>
+<span class="sd">        Scale of point labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">num_matches</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">num_matches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proj_pts</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_Matched Points&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">proj_pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">proj_pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">matching_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">matching_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">proj_pts</span><span class="p">,</span> <span class="n">matching_points</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">num_matches</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">proj</span><span class="p">,</span> <span class="n">match</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">proj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">proj</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bonus_pt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">bonus_pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">bonus_pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_Matched_Points.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

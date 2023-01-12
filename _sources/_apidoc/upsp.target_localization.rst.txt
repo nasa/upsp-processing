@@ -1,0 +1,18 @@
+
+``upsp.target_localization``
+============================
+
+
+.. automodule:: upsp.target_localization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. rubric:: Submodules
+
+.. toctree::
+   :maxdepth: 2
+
+   upsp.target_localization.blob_detector_methods
+   upsp.target_localization.gaussian_fitting_methods

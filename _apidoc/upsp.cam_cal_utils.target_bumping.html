@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.target_bumping &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.cam_cal_utils.visibility" href="upsp.cam_cal_utils.visibility.html" />
+    <link rel="prev" title="upsp.cam_cal_utils.photogrammetry" href="upsp.cam_cal_utils.photogrammetry.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.photogrammetry.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.photogrammetry</span></code></a></li>
+      <li>Next: <a href="upsp.cam_cal_utils.visibility.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.visibility</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.target_bumping">
+<span id="upsp-cam-cal-utils-target-bumping"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.target_bumping</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.target_bumping" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.get_bumping_occlusion">
+<span class="sig-name descname"><span class="pre">get_bumping_occlusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#get_bumping_occlusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.get_bumping_occlusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to <a class="reference internal" href="#upsp.cam_cal_utils.target_bumping.tgts_get_internals" title="upsp.cam_cal_utils.target_bumping.tgts_get_internals"><code class="xref py py-func docutils literal notranslate"><span class="pre">tgts_get_internals()</span></code></a> that finds the point on the model
+surface that intersects the <cite>tgt</cite> normal vector if the target is occluded by the
+model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgt</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – A dict and has, at a minimum, the keys ‘tvec’, ‘target_type’, ‘norm’. ‘tvec’ has
+a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of the target relative
+to the model origin for its associated value. ‘norm’ has a
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the target
+relative to the model origin for its associated value. ‘target_type’ has a
+string representing the type of target (most commonly ‘dot’) for its associated
+value.</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>occlusion</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – Whether or not there is an occlusion. True means there is, False means there is
+not.</p></li>
+<li><p><strong>location</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code>) – Location where the <cite>tgt</cite> normal vector intersects the model surface</p></li>
+<li><p><strong>dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Distance from the target position to the point of intersection</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.is_real_occlusion">
+<span class="sig-name descname"><span class="pre">is_real_occlusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bumping_occlusion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#is_real_occlusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.is_real_occlusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to <a class="reference internal" href="#upsp.cam_cal_utils.target_bumping.tgts_get_internals" title="upsp.cam_cal_utils.target_bumping.tgts_get_internals"><code class="xref py py-func docutils literal notranslate"><span class="pre">tgts_get_internals()</span></code></a> that determines if an occlusion is
+due to real geometry, or is a numerical/processing error in generating the tgts file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bumping_occlusion</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – Return value of <a class="reference internal" href="#upsp.cam_cal_utils.target_bumping.get_bumping_occlusion" title="upsp.cam_cal_utils.target_bumping.get_bumping_occlusion"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_bumping_occlusion()</span></code></a> for the target associated with the
+function call</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>tgts_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the tgts file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+<li><p><strong>grid_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the grid file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the occlusion is due to real geometry</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.tgt_bump_externals">
+<span class="sig-name descname"><span class="pre">tgt_bump_externals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bump_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#tgt_bump_externals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.tgt_bump_externals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bumps very external targets to be slightly external. Slightly external defined by
+<cite>bump_eps</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> (3, 1) representing the normal vector of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>bump_eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Distance to bump the targets outside the model. Should be small so targets are
+just barely external to the model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>tgts_bumped</strong> – Copy of tgts with some target positions bumped along their normal to be slightly
+external</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.tgt_bump_internals">
+<span class="sig-name descname"><span class="pre">tgt_bump_internals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bump_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#tgt_bump_internals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.tgt_bump_internals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bumps all internal targets along their normal to be slightly external. Slightly
+external defined by <cite>bump_eps</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> (3, 1) representing the normal vector of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>bump_eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Distance to bump the targets outside the model. Should be small so targets are
+just barely external to the model</p></li>
+<li><p><strong>tgts_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the tgts file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+<li><p><strong>grid_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the grid file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_bumped</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Copy of <cite>tgts</cite> with some target positions bumped along their normal to be
+slightly external.</p></li>
+<li><p><strong>was_bumped</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – Denotes if any targets were bumped</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.tgts_bumper">
+<span class="sig-name descname"><span class="pre">tgts_bumper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bump_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#tgts_bumper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.tgts_bumper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bumps all internal targets along their normal to be slightly external. Bumps any
+targets very external to be slightly external</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> (3, 1) representing the normal vector of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>bump_eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Distance to bump the targets outside the model. Should be small so targets are
+just barely external to the model</p></li>
+<li><p><strong>tgts_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the tgts file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+<li><p><strong>grid_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the grid file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>bumped_external_targets</strong> – Copy of tgts input with the ‘tvec’ values modified so that each tgt is outside
+the grid of <cite>vis_checker</cite></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.tgts_file_bumper">
+<span class="sig-name descname"><span class="pre">tgts_file_bumper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts_file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bump_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#tgts_file_bumper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.tgts_file_bumper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a tgts file with all internal targets bumped along their normal to be
+slightly external and very external targets to be slightly external</p>
+<p>Creates a new tgts file in the same directory as tgts_file_path with the same name,
+but with the suffix ‘_bumped’ attached to the filename</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts_file_path</strong> (<a class="reference external" href="https://docs.python.org/3/glossary.html#term-path-like-object" title="(in Python v3.11)"><span class="xref std std-term">path-like</span></a>) – Path to the tgts file</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>bump_eps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Distance to bump the targets outside the model. Should be small so targets are
+just barely external to the model</p></li>
+<li><p><strong>tgts_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the tgts file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+<li><p><strong>grid_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the grid file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.target_bumping.tgts_get_internals">
+<span class="sig-name descname"><span class="pre">tgts_get_internals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/target_bumping.html#tgts_get_internals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.target_bumping.tgts_get_internals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to <code class="xref py py-func docutils literal notranslate"><span class="pre">ltgt_bump_internals()</span></code> that returns all internal targets</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> (3, 1) representing the normal vector of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – BVH to check for visibilty of nodes</p></li>
+<li><p><strong>tgts_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the tgts file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+<li><p><strong>grid_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Tolerance of the grid file. Used to determine if target internal-ness is real,
+or if it is an artifact due to the non-water tightness of the model grid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Each tuple is an occluded targets. The first item in the tuple is the target
+name. The second element is a boolean to denote if it is a real occlusion (like
+another part of the model is blocking the target so it should not be bumped) or
+just some accidental occlusion due to being differentiably inside the model grid</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.target_bumping.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

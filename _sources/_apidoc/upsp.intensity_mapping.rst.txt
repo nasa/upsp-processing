@@ -1,0 +1,18 @@
+
+``upsp.intensity_mapping``
+==========================
+
+
+.. automodule:: upsp.intensity_mapping
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. rubric:: Submodules
+
+.. toctree::
+   :maxdepth: 2
+
+   upsp.intensity_mapping.node_pixel_mapping
+   upsp.intensity_mapping.patching

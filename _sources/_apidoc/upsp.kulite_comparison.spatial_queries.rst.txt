@@ -1,0 +1,7 @@
+``upsp.kulite_comparison.spatial_queries``
+==========================================
+
+.. automodule:: upsp.kulite_comparison.spatial_queries
+   :members:
+   :undoc-members:
+   :show-inheritance:

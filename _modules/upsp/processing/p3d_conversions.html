@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.processing.p3d_conversions &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.processing.p3d_conversions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plot3d</span>
+
+
+<div class="viewcode-block" id="convert_to_obj"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.p3d_conversions.html#upsp.processing.p3d_conversions.convert_to_obj">[docs]</a><span class="k">def</span> <span class="nf">convert_to_obj</span><span class="p">(</span><span class="n">p3d_file</span><span class="p">,</span> <span class="n">obj_file</span><span class="p">,</span> <span class="n">zones_map_file</span><span class="p">):</span>
+    <span class="n">grd</span> <span class="o">=</span> <span class="n">plot3d</span><span class="o">.</span><span class="n">read_p3d_grid</span><span class="p">(</span><span class="n">p3d_file</span><span class="p">)</span>
+    <span class="n">grd</span><span class="o">.</span><span class="n">write_zones_mapping</span><span class="p">(</span><span class="n">zones_map_file</span><span class="p">)</span>
+    <span class="n">tris</span> <span class="o">=</span> <span class="n">p3d_to_obj_triangles</span><span class="p">(</span><span class="n">grd</span><span class="p">)</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="n">tris</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">tris</span><span class="p">[</span><span class="s2">&quot;faces&quot;</span><span class="p">]</span>
+
+    <span class="n">obj_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">obj_file</span><span class="p">)</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">obj_path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Write obj file by listing vertices, vertex normals then faces</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;o Mesh_0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">vList</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">vList</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;usemtl None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;s off</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">fList</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">fList</span><span class="p">)</span>
+
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s2">&quot;chmod&quot;</span><span class="p">,</span> <span class="s2">&quot;750&quot;</span><span class="p">,</span> <span class="n">obj_file</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="p3d_to_obj_triangles"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.p3d_conversions.html#upsp.processing.p3d_conversions.p3d_to_obj_triangles">[docs]</a><span class="k">def</span> <span class="nf">p3d_to_obj_triangles</span><span class="p">(</span><span class="n">grd</span><span class="p">):</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">faces</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx0</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">imax</span><span class="p">,</span> <span class="n">jmax</span><span class="p">,</span> <span class="n">kmax</span> <span class="ow">in</span> <span class="n">grd</span><span class="o">.</span><span class="n">sz</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">imax</span> <span class="o">*</span> <span class="n">jmax</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;v &quot;</span>
+                <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+                <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+                <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">imax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">jmax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">p2</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="p">(</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">p3</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="p">(</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span>
+
+                <span class="c1"># obj files assume counter-clockwise vertex order;</span>
+                <span class="c1"># assume normals have identical index to vertex</span>
+                <span class="n">f0</span> <span class="o">=</span> <span class="s2">&quot;f &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">f1</span> <span class="o">=</span> <span class="s2">&quot;f &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p0</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">faces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f0</span><span class="p">)</span>
+                <span class="n">faces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+
+        <span class="n">idx0</span> <span class="o">+=</span> <span class="n">imax</span> <span class="o">*</span> <span class="n">jmax</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vertices&quot;</span><span class="p">:</span> <span class="n">vertices</span><span class="p">,</span> <span class="s2">&quot;faces&quot;</span><span class="p">:</span> <span class="n">faces</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="convert_to_gltf"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.p3d_conversions.html#upsp.processing.p3d_conversions.convert_to_gltf">[docs]</a><span class="k">def</span> <span class="nf">convert_to_gltf</span><span class="p">(</span><span class="n">p3d_file</span><span class="p">,</span> <span class="n">gltf_file</span><span class="p">,</span> <span class="n">zones_mapping_file</span><span class="p">):</span>
+
+    <span class="n">grd</span> <span class="o">=</span> <span class="n">plot3d</span><span class="o">.</span><span class="n">read_p3d_grid</span><span class="p">(</span><span class="n">p3d_file</span><span class="p">)</span>
+    <span class="n">grd</span><span class="o">.</span><span class="n">write_zones_mapping</span><span class="p">(</span><span class="n">zones_mapping_file</span><span class="p">)</span>
+    <span class="n">tris</span> <span class="o">=</span> <span class="n">p3d_to_gltf_triangles</span><span class="p">(</span><span class="n">grd</span><span class="p">)</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="n">tris</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span>
+    <span class="n">vmax</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">3</span><span class="p">])),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">3</span><span class="p">])),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]))]</span>
+    <span class="n">vmin</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">3</span><span class="p">])),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">3</span><span class="p">])),</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]))]</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">tris</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span>
+    <span class="n">fmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+    <span class="n">fmin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+
+    <span class="n">npad</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span>
+    <span class="n">fbuff</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot;I&quot;</span> <span class="o">+</span> <span class="n">npad</span> <span class="o">*</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">vbuff</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fbuff</span> <span class="o">+</span> <span class="n">vbuff</span>
+    <span class="n">data_uri</span> <span class="o">=</span> <span class="s2">&quot;data:application/octet-stream;base64,&quot;</span> <span class="o">+</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
+        <span class="s2">&quot;utf-8&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">buff</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;uri&quot;</span><span class="p">:</span> <span class="n">data_uri</span><span class="p">,</span> <span class="s2">&quot;byteLength&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)}</span>
+
+    <span class="n">SCALAR</span> <span class="o">=</span> <span class="s2">&quot;SCALAR&quot;</span>
+    <span class="n">VEC2</span> <span class="o">=</span> <span class="s2">&quot;VEC2&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">VEC3</span> <span class="o">=</span> <span class="s2">&quot;VEC3&quot;</span>
+    <span class="n">VEC4</span> <span class="o">=</span> <span class="s2">&quot;VEC4&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">MAT2</span> <span class="o">=</span> <span class="s2">&quot;MAT2&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">MAT3</span> <span class="o">=</span> <span class="s2">&quot;MAT3&quot;</span>  <span class="c1"># noqa</span>
+    <span class="n">MAT4</span> <span class="o">=</span> <span class="s2">&quot;MAT4&quot;</span>  <span class="c1"># noqa</span>
+
+    <span class="n">BYTE</span> <span class="o">=</span> <span class="mi">5120</span>  <span class="c1"># noqa</span>
+    <span class="n">UNSIGNED_BYTE</span> <span class="o">=</span> <span class="mi">5121</span>  <span class="c1"># noqa</span>
+    <span class="n">SHORT</span> <span class="o">=</span> <span class="mi">5122</span>  <span class="c1"># noqa</span>
+    <span class="n">UNSIGNED_SHORT</span> <span class="o">=</span> <span class="mi">5123</span>  <span class="c1"># noqa</span>
+    <span class="n">UNSIGNED_INT</span> <span class="o">=</span> <span class="mi">5125</span>
+    <span class="n">FLOAT</span> <span class="o">=</span> <span class="mi">5126</span>
+
+    <span class="c1"># MESH PRIMITIVE MODES</span>
+    <span class="n">POINTS</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># noqa</span>
+    <span class="n">LINES</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># noqa</span>
+    <span class="n">LINE_LOOP</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># noqa</span>
+    <span class="n">LINE_STRIP</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># noqa</span>
+    <span class="n">TRIANGLES</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">TRIANGLE_STRIP</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># noqa</span>
+    <span class="n">TRIANGLE_FAN</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># noqa</span>
+
+    <span class="n">ARRAY_BUFFER</span> <span class="o">=</span> <span class="mi">34962</span>  <span class="c1"># eg vertex data</span>
+    <span class="n">ELEMENT_ARRAY_BUFFER</span> <span class="o">=</span> <span class="mi">34963</span>  <span class="c1"># eg index data</span>
+
+    <span class="n">indices_view</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;buffer&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;byteOffset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;byteLength&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">fbuff</span><span class="p">),</span>
+        <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="n">ELEMENT_ARRAY_BUFFER</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">vertices_view</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;buffer&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;byteOffset&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">fbuff</span><span class="p">),</span>
+        <span class="s2">&quot;byteLength&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">vbuff</span><span class="p">),</span>
+        <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="n">ARRAY_BUFFER</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">indices_accessor</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;bufferView&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;byteOffset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;componentType&quot;</span><span class="p">:</span> <span class="n">UNSIGNED_INT</span><span class="p">,</span>
+        <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)),</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">SCALAR</span><span class="p">,</span>
+        <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">fmax</span><span class="p">],</span>
+        <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">fmin</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">vertices_accessor</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;bufferView&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;byteOffset&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;componentType&quot;</span><span class="p">:</span> <span class="n">FLOAT</span><span class="p">,</span>
+        <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">VEC3</span><span class="p">,</span>
+        <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="n">vmax</span><span class="p">,</span>
+        <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="n">vmin</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">material</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;baseColorTexture&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+            <span class="s2">&quot;alphaMode&quot;</span><span class="p">:</span> <span class="s2">&quot;OPAQUE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;alphaCutoff&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">texture</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sampler&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+    <span class="n">sampler</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;magFilter&quot;</span><span class="p">:</span> <span class="mi">9729</span><span class="p">,</span> <span class="s2">&quot;minFilter&quot;</span><span class="p">:</span> <span class="mi">9987</span><span class="p">,</span> <span class="s2">&quot;wrapS&quot;</span><span class="p">:</span> <span class="mi">33648</span><span class="p">,</span> <span class="s2">&quot;wrapT&quot;</span><span class="p">:</span> <span class="mi">33648</span><span class="p">}</span>
+
+    <span class="n">primitive</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;POSITION&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;indices&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="n">TRIANGLES</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">gltf</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;asset&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;scenes&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]}],</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;mesh&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}],</span>
+        <span class="s2">&quot;meshes&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;primitives&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">primitive</span><span class="p">]}],</span>
+        <span class="s2">&quot;buffers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">buff</span><span class="p">],</span>
+        <span class="s2">&quot;bufferViews&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">indices_view</span><span class="p">,</span> <span class="n">vertices_view</span><span class="p">],</span>
+        <span class="s2">&quot;accessors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">indices_accessor</span><span class="p">,</span> <span class="n">vertices_accessor</span><span class="p">],</span>
+        <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">texture</span><span class="p">],</span>
+        <span class="s2">&quot;samplers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">sampler</span><span class="p">],</span>
+        <span class="s2">&quot;materials&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">material</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">gltf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">gltf_file</span><span class="p">)</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">gltf_path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gltf_file</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">gltf</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s2">&quot;chmod&quot;</span><span class="p">,</span> <span class="s2">&quot;750&quot;</span><span class="p">,</span> <span class="n">gltf_file</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="p3d_to_gltf_triangles"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.p3d_conversions.html#upsp.processing.p3d_conversions.p3d_to_gltf_triangles">[docs]</a><span class="k">def</span> <span class="nf">p3d_to_gltf_triangles</span><span class="p">(</span><span class="n">grd</span><span class="p">):</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx0</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">imax</span><span class="p">,</span> <span class="n">jmax</span><span class="p">,</span> <span class="n">kmax</span> <span class="ow">in</span> <span class="n">grd</span><span class="o">.</span><span class="n">sz</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">imax</span> <span class="o">*</span> <span class="n">jmax</span><span class="p">):</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">idx0</span> <span class="o">+</span> <span class="n">ii</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">imax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">jmax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="n">jj</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">p2</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="p">(</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">p3</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="p">(</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">imax</span> <span class="o">+</span> <span class="n">ii</span>
+                <span class="n">t0</span> <span class="o">=</span> <span class="p">[</span><span class="n">p0</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">]</span>
+                <span class="n">t1</span> <span class="o">=</span> <span class="p">[</span><span class="n">p0</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">]</span>
+                <span class="n">indices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span>
+                <span class="n">indices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+        <span class="n">idx0</span> <span class="o">+=</span> <span class="n">imax</span> <span class="o">*</span> <span class="n">jmax</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vertices&quot;</span><span class="p">:</span> <span class="n">vertices</span><span class="p">,</span> <span class="s2">&quot;indices&quot;</span><span class="p">:</span> <span class="n">indices</span><span class="p">}</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

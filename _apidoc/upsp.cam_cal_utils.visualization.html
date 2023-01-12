@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.visualization &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.intensity_mapping" href="upsp.intensity_mapping.html" />
+    <link rel="prev" title="upsp.cam_cal_utils.visibility" href="upsp.cam_cal_utils.visibility.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.visibility.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.visibility</span></code></a></li>
+      <li>Next: <a href="upsp.intensity_mapping.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.visualization">
+<span id="upsp-cam-cal-utils-visualization"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.visualization</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.visualization" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.axisEqual3D">
+<span class="sig-name descname"><span class="pre">axisEqual3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#axisEqual3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.axisEqual3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>In a 3D plot, equalizes all axes to same scale</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.plot_coord_sys">
+<span class="sig-name descname"><span class="pre">plot_coord_sys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#plot_coord_sys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.plot_coord_sys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a pose, plots the basis of that coordinate system in the given matplotlib axis</p>
+<p>In the plot, the x axis is blue, the y axis is orange, and the z axis is green</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Rotation Matrix. Columns represent the basis of the coordinate system</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, , <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code>) – Origin of the coordinate system</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/mpl_toolkits.mplot3d.axes3d.Axes3D.html#mpl_toolkits.mplot3d.axes3d.Axes3D" title="(in Matplotlib v3.6.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpl_toolkits.mplot3d.axes3d.Axes3D</span></code></a>) – matplotlib axis</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Size of the vcoordinate system vectors</p></li>
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Label of the coordinate system. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), no text is added.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.plot_pts_and_norms">
+<span class="sig-name descname"><span class="pre">plot_pts_and_norms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts_and_norms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#plot_pts_and_norms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.plot_pts_and_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to plot points with normals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pts_and_norms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each dictionary has keys ‘tvec’ and ‘norm’ tvec refers to the translation vector
+from the origin to the point norm refers to the point’s normal vector</p></li>
+<li><p><strong>ax</strong> (<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/mpl_toolkits.mplot3d.axes3d.Axes3D.html#mpl_toolkits.mplot3d.axes3d.Axes3D" title="(in Matplotlib v3.6.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpl_toolkits.mplot3d.axes3d.Axes3D</span></code></a>) – matplotlib axis</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Size of the normal vectors</p></li>
+<li><p><strong>c</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Color of points and normals</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.show_coord_transforms">
+<span class="sig-name descname"><span class="pre">show_coord_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cs1_rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs1_tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs2_rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs2_tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">texts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None,</span> <span class="pre">None]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compares</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[False,</span> <span class="pre">False,</span> <span class="pre">False]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#show_coord_transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.show_coord_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows the transformation from coordinate system 1 (cs1) to coordinate system 2 (cs2)</p>
+<p>Additionally, shows the origin coordinate system. Draws a line from cs1 to cs2 Texts
+is the label to be shown for the origin, cs1, and cs2 respectively compares is a
+list of booleans that determines if a line is drawn from the origin to cs1
+(compares[0]), from cs1 to cs2 (compares[1]), and from cs2 to the origin
+(compares[2])</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.show_image_locations">
+<span class="sig-name descname"><span class="pre">show_image_locations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_locations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fig_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'w'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#show_image_locations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.show_image_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays an image with the given image locations indicated with a marker of the
+given color (white by default)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.show_projection_matching">
+<span class="sig-name descname"><span class="pre">show_projection_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proj_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matching_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonus_pt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#show_projection_matching"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.show_projection_matching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the projected target matching.</p>
+<p>Projected points are labeled in red. Matching points are labeled in white. Line
+connecting point to match is drawn in black</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>) – Display image</p></li>
+<li><p><strong>proj_pts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – :rojected locations of 3D points</p></li>
+<li><p><strong>matching_points</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – Image location of point</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">optinoal</span></code>) – Figure name prefix</p></li>
+<li><p><strong>bonus_pt</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <em>optional</em>) – Optional input. Point to be shown in blue</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Scale of point labels</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visualization.show_pts_and_norms">
+<span class="sig-name descname"><span class="pre">show_pts_and_norms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pts_and_norms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">texts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visualization.html#show_pts_and_norms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visualization.show_pts_and_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to plot transformation from the origin to given coordinate system,
+and show a set of points. Originally intended to plot the tgts frame and the targets
+with their normals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Basis of the coordinate system to be shown</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code>) – Origin of coordinate system to be shown</p></li>
+<li><p><strong>pts_and_norms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each dictionary has keys ‘tvec’ and ‘norm’ tvec refers to the translation vector
+from the origin to the point norm refers to the point’s normal vector. Points
+and normals are in the coordinate frame of the origin</p></li>
+<li><p><strong>ax</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.Axes</span></code>, <em>optional</em>) – matplotlib axis. If not provided, a figure and 3D axes are created.</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Size of the normal vectors</p></li>
+<li><p><strong>c</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Color of points and normals</p></li>
+<li><p><strong>texts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <em>optional</em>) – Labels for the origin and transformed coordinate system.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.visualization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

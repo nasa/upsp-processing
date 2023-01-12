@@ -1,0 +1,7 @@
+``upsp.cam_cal_utils.visibility``
+=================================
+
+.. automodule:: upsp.cam_cal_utils.visibility
+   :members:
+   :undoc-members:
+   :show-inheritance:

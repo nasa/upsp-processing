@@ -1,0 +1,682 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.cam_cal_utils.visibility &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.cam_cal_utils.visibility</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">upsp.processing.p3d_utilities</span> <span class="k">as</span> <span class="nn">p3d</span>
+<span class="kn">import</span> <span class="nn">upsp.processing.p3d_conversions</span> <span class="k">as</span> <span class="nn">p2g</span>
+<span class="kn">import</span> <span class="nn">upsp.raycast</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="VisibilityChecker"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker">[docs]</a><span class="k">class</span> <span class="nc">VisibilityChecker</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Visibilty object class for occlusion and viewing angle checking</span>
+
+<span class="sd">    This class creates an object for checking visibility of a list of points with</span>
+<span class="sd">    associated normals. The intended use is for the external calibration to check target</span>
+<span class="sd">    visibility, and to check visibility of the the model mesh nodes for node-pixel</span>
+<span class="sd">    mapping.</span>
+
+<span class="sd">    For the visibility check, it is assumes that the entire model is within the field of</span>
+<span class="sd">    view of the camera. This simplifies the check for 2 reasons:</span>
+
+<span class="sd">    1. We don&#39;t need to check if a node is within the field of view</span>
+<span class="sd">    2. We don&#39;t need to check if an intersection is behind the camera</span>
+
+<span class="sd">        - A ray is drawn from a given point to the camera. If that ray intersects a</span>
+<span class="sd">          node, it is deemed not visible. However, if there is a node behind the camera</span>
+<span class="sd">          that intersects with the ray, this will still be seen as an intersection and</span>
+<span class="sd">          flagged as not visible. Even though the intersection behind the camera does</span>
+<span class="sd">          not truly occlude the given point.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grid_path : str</span>
+<span class="sd">        Filepath to the grid file</span>
+<span class="sd">    oblique_angle : float, optional</span>
+<span class="sd">        Maximum allowable oblique viewing angle. Viewing angle for a node pointed</span>
+<span class="sd">        directly at the camera and in the center of the field of view of the camera</span>
+<span class="sd">        is 0 degrees</span>
+<span class="sd">    epsilon : float, optional</span>
+<span class="sd">        Intersection tolerance. For the ray tracing intersection check, the origin of</span>
+<span class="sd">        the ray is offset from the model by a distance of epsilon in the direction of</span>
+<span class="sd">        the normal</span>
+<span class="sd">    debug : bool, optional</span>
+<span class="sd">        Debug parameter to speed up grid loading. It is suggested to use this debug for</span>
+<span class="sd">        all development, and to leave it False for all non-development case.  If True,</span>
+<span class="sd">        looks for ``&#39;{{filename}}_primitives.npy&#39;`` in &#39;.cache&#39;, where ``filename``</span>
+<span class="sd">        is the filename from `grid_path`. If it finds it, loads from the ``.npy`` file</span>
+<span class="sd">        rather than reading and processing the grid file. If it doesn&#39;t find it, it will</span>
+<span class="sd">        read and process the grid file as normal, and save the numpy array as</span>
+<span class="sd">        ``&#39;{{filename}}_primitives.npy&#39;`` in &#39;.cache&#39;</span>
+<span class="sd">    debug_nogrid : bool, optional</span>
+<span class="sd">        Debug parameter to speed up computation. It is suggested to use this debug for</span>
+<span class="sd">        development if occlusions are not needed for development work. There is no</span>
+<span class="sd">        reason to leave this parameter for any non-development work. If True, instead of</span>
+<span class="sd">        loading a real grid file, it loads a fake one with a single, extremely small</span>
+<span class="sd">        primitive (effectively having &#39;no grid&#39;). This makes BVH operations much faster.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_path</span><span class="p">,</span> <span class="n">oblique_angle</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">debug_nogrid</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># If debug_nogrid is used, create a fake BVH with one very small primitive</span>
+        <span class="k">if</span> <span class="n">debug_nogrid</span><span class="p">:</span>
+            <span class="n">primitives</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">])</span>
+
+        <span class="c1"># When debug is True (and debug_nogrid is False), we are allowed to cache &amp; load</span>
+        <span class="c1">#   the grid. This makes debugging faster, but cached items can become stale</span>
+        <span class="k">elif</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="c1"># Get the filename that we can save the primitives as</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">grid_path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;_primitives.npy&#39;</span>
+
+            <span class="c1"># If the primitives are available, load them</span>
+            <span class="n">CACHE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.cache&#39;</span><span class="p">,</span> <span class="s1">&#39;upsp&#39;</span><span class="p">)</span>
+            <span class="n">CACHE_FILENAME</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CACHE_DIR</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">CACHE_FILENAME</span><span class="p">):</span>
+                <span class="n">primitives</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">CACHE_FILENAME</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded BVH primitives cache &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="n">CACHE_FILENAME</span><span class="p">)</span>
+
+            <span class="c1"># If the primitives are not available, load the grid from scratch and cache it</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_mesh</span><span class="p">(</span><span class="n">grid_path</span><span class="p">)</span>
+
+                <span class="c1"># Since the primitives weren&#39;t available, package the vertices</span>
+                <span class="c1">#   and indices into the primitives. Then save them</span>
+                <span class="n">primitives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">package_primitives</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">CACHE_DIR</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">CACHE_FILENAME</span><span class="p">,</span> <span class="n">primitives</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Cached BVH primitives in &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="n">CACHE_FILENAME</span><span class="p">)</span>
+
+        <span class="c1"># When debug and debug_nogrid are False, load and calculate everything from</span>
+        <span class="c1">#   scratch. Don&#39;t cache any of the results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Load the mesh</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_mesh</span><span class="p">(</span><span class="n">grid_path</span><span class="p">)</span>
+            <span class="n">primitives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">package_primitives</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="c1"># Store the grid path used for this object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_path</span> <span class="o">=</span> <span class="n">grid_path</span>
+
+        <span class="c1"># Convert primitives to a list (potentially from a np array)</span>
+        <span class="n">primitives</span> <span class="o">=</span> <span class="n">primitives</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># Save the epsilon for occlusion checks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+
+        <span class="c1"># Save the square of the cosine of the oblique angle</span>
+        <span class="c1">#   This will be used for back face culling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_oblique_angle</span><span class="p">(</span><span class="n">oblique_angle</span><span class="p">)</span>
+
+        <span class="c1"># Save the BVH to the instance</span>
+        <span class="c1"># Simple scene with several triangle primitives</span>
+        <span class="c1"># [t0p0x, t0p0y, t0p0z, t0p1x, t0p1y, t0p1z, t0p2x, t0p2y, t0p2z, ...]</span>
+        <span class="c1"># t0 = [0, 0, 1, 1, 0, 1, 0, 1, 1]</span>
+        <span class="c1"># t1 = [0, 0, 2, 1, 0, 2, 0, 1, 2]</span>
+        <span class="c1"># primitives = t0 + t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">upsp</span><span class="o">.</span><span class="n">raycast</span><span class="o">.</span><span class="n">CreateBVH</span><span class="p">(</span><span class="n">primitives</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VisibilityChecker.update_oblique_angle"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.update_oblique_angle">[docs]</a>    <span class="k">def</span> <span class="nf">update_oblique_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oblique_angle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates object elements related to the oblique viewing angle</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        oblique_angle : float</span>
+<span class="sd">            Maximum allowable oblique viewing angle. Viewing angle for a node pointed</span>
+<span class="sd">            directly at the camera and in the center of the field of view of the camera</span>
+<span class="sd">            is 0 degrees</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oblique_angle</span> <span class="o">=</span> <span class="n">oblique_angle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">squared_cos_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">oblique_angle</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.load_mesh"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.load_mesh">[docs]</a>    <span class="k">def</span> <span class="nf">load_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads the grid file into vertices and indices</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grid_path : string</span>
+<span class="sd">            Filepath to the grid file</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        t : dict</span>
+<span class="sd">            Dict with keys &quot;vertices&quot; and &quot;indices&quot;. ``t[&quot;vertices&quot;]`` is a (N, 3) array</span>
+<span class="sd">            of the model vertices. ``t[&quot;indices&quot;]`` is a (N, 3) array of ints where each</span>
+<span class="sd">            row refers to a model face ``i``. The vertices that make up face ``i`` are</span>
+<span class="sd">            ``t[&quot;vertices&quot;][n]``, where ``n`` is (3, 1) from ``t[&quot;indices&quot;][i]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">grd</span> <span class="o">=</span> <span class="n">p3d</span><span class="o">.</span><span class="n">read_p3d_grid</span><span class="p">(</span><span class="n">grid_path</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">p2g</span><span class="o">.</span><span class="n">p3d_to_gltf_triangles</span><span class="p">(</span><span class="n">grd</span><span class="p">)</span>
+        <span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
+        <span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">t</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.package_primitives"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.package_primitives">[docs]</a>    <span class="k">def</span> <span class="nf">package_primitives</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Packages the primitives of the grid file into the BVH format</span>
+
+<span class="sd">        Converts the vertices and indices into a list of primitives in the form::</span>
+
+<span class="sd">            [t0p0x, t0p0y, t0p0z, t0p1x, t0p1y, t0p1z, t0p2x, t0p2y, t0p2z, ...]</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t : dict</span>
+<span class="sd">            Dict with keys &quot;vertices&quot; and &quot;indices&quot; from :meth:`load_mesh`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        primitives : np.ndarray</span>
+<span class="sd">            Packaged primitives</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Get vertex and face information</span>
+        <span class="n">nverts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">nfaces</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">verts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">],</span> <span class="p">(</span><span class="n">nverts</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># This is the faces, with the indexes corresponding to the elements of verts</span>
+        <span class="c1"># Note: faces are counter-clockwise ordered so normals are implicit in faces</span>
+        <span class="n">faces_v_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">],</span> <span class="p">(</span><span class="n">nfaces</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># Packaged for the BVH</span>
+        <span class="n">primitives</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">face_v_idx</span> <span class="ow">in</span> <span class="n">faces_v_idx</span><span class="p">:</span>
+            <span class="c1"># Get the face of the primitive tri</span>
+            <span class="n">face</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                             <span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                             <span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">2</span><span class="p">]]])</span>
+
+            <span class="c1"># If the face does not have 3 unique points, do not include it</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Append the face to the primitive</span>
+            <span class="n">primitives</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">face</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+        <span class="c1"># Convert the list of primitives to a numpy array</span>
+        <span class="n">primitives</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">primitives</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">primitives</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.unit_vector"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.unit_vector">[docs]</a>    <span class="k">def</span> <span class="nf">unit_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the unit vector of the vector</span>
+
+<span class="sd">        Helper function for :meth:`angle_between`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        vector : np.ndarray, shape (n, 3) float</span>
+<span class="sd">            Array of vectors</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unit_vector : np.ndarray</span>
+<span class="sd">            Unit vector(s) corresponding to `vector`</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        angle_between : Returns the angle in radians between vectors &#39;v1&#39; and &#39;v2&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.angle_between"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between">[docs]</a>    <span class="k">def</span> <span class="nf">angle_between</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the angle in radians between vectors `v1` and `v2`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        v1 : np.ndarray, shape (n, 3), float</span>
+<span class="sd">            Vector 1</span>
+<span class="sd">        v2 : np.ndarray, shape (n, 3), float</span>
+<span class="sd">            Vector 2</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        angle : float</span>
+<span class="sd">            Angle (in radians) between `v1` and `v2`</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        unit_vector : Returns the unit vector of the vector</span>
+<span class="sd">        is_back_facing : This is the &#39;slow&#39; version of the back face culling check</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v1_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_vector</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+        <span class="n">v2_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_vector</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">v1_u</span><span class="p">,</span> <span class="n">v2_u</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.is_back_facing"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing">[docs]</a>    <span class="k">def</span> <span class="nf">is_back_facing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This is the &#39;slow&#39; version of the back face culling check</span>
+
+<span class="sd">        This function is mostly for legacy/regression purposes</span>
+
+<span class="sd">        TODO: This does not filter points on the horizon of the model (~90 degrees</span>
+<span class="sd">        oblique viewing angle). It does seem to filter those above 70 degrees (might not</span>
+<span class="sd">        though, very little testing was done). It might have something to do with the</span>
+<span class="sd">        clip in angle between</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t : np.ndarray, shape (3,) or (3, n), float</span>
+<span class="sd">            Translation vector from camera to node</span>
+<span class="sd">        n : np.ndarray, shape (3,) or (3, n), float</span>
+<span class="sd">            Normal of the node</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        back_facing : bool</span>
+<span class="sd">            True if the node is back facing. False if it is not back facing</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        angle_between : Returns the angle in radians between vectors &#39;v1&#39; and &#39;v2&#39;</span>
+<span class="sd">        is_back_facing : This is the &#39;slow&#39; version of the back face culling check</span>
+<span class="sd">        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are</span>
+<span class="sd">            back facing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_between</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">oblique_angle</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.is_back_facing_fast"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast">[docs]</a>    <span class="k">def</span> <span class="nf">is_back_facing_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Returns True if the node is back facing, otherwise returns False</span>
+
+<span class="sd">        This re-write is significantly faster than the naive approach, but not as fast</span>
+<span class="sd">        as the vectorized approach. This function is mostly for legacy/regression</span>
+<span class="sd">        purposes</span>
+
+<span class="sd">        The node is back facing if angle between vectors &lt; oblique angle</span>
+
+<span class="sd">        Mathematically this is done as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \arccos\left(\frac{t \cdot n}{\|t\| \|n\|}\right) &lt; \textrm{oblique angle}</span>
+
+<span class="sd">        Since ``arccos`` is an expensive operation, re-write as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \frac{t \cdot n}{\|t\| \|n\|} &lt; \cos(\textrm{oblique angle})</span>
+
+<span class="sd">        Since division is more expensive than multiplication, re-write as:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">              t \cdot n &lt; \|t\| \|n\| \cos(\textrm{oblique angle})</span>
+
+<span class="sd">        Using :math:`\|a\|^2 = a \cdot a`, we get:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">              (t \cdot n) (|t \cdot n|) &lt;</span>
+<span class="sd">              (t \cdot t) (n \cdot n) \cos^2(\textrm{oblique angle})</span>
+
+<span class="sd">        Where the absolute value  is required on the LHS to preserve sign. All elements</span>
+<span class="sd">        of RHS are positive since ``t`` and ``n`` contain only real numbers</span>
+
+<span class="sd">        :math:`\cos^2(\textrm{oblique angle})` is calculated and cached when the oblique</span>
+<span class="sd">        angle changes, giving an additional speedup</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t : np.ndarray, shape (3, 1) or (3,), float</span>
+<span class="sd">            Translation vector from camera to node</span>
+<span class="sd">        n : np.ndarray, shape (3, 1) or (3,), float</span>
+<span class="sd">            Normal of the node</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        back_facing : bool</span>
+<span class="sd">            True if input is back facing (viewing angle &gt; maximum oblique angle). False</span>
+<span class="sd">            if input is not back facing (viewing angle &lt;= maximum oblique angle)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        is_back_facing : This is the &#39;slow&#39; version of the back face culling check</span>
+<span class="sd">        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are</span>
+<span class="sd">            back facing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">proj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="c1"># The RHS is always positive, so if dot(t, n) &lt; 0, then the node is</span>
+        <span class="c1">#   back-facing</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">proj</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="c1"># If the viewing angle is less than 90 degrees, check if it is less than the</span>
+        <span class="c1">#   max allowable viewing angle</span>
+        <span class="c1"># Since proj is now non-negative, we can neglect the alsolute sign from step #6</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">proj</span> <span class="o">*</span> <span class="n">proj</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">squared_cos_angle</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.is_back_facing_fast_vectorized"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized">[docs]</a>    <span class="k">def</span> <span class="nf">is_back_facing_fast_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns array of booleans for which nodes are back facing</span>
+
+<span class="sd">        See :meth:`is_back_facing_fast` for explaination of math. To vectorize</span>
+<span class="sd">        :math:`a \\cdot b` we use ``np.sum(a*b, axis=1)``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t : np.ndarray, shape (N, 3), float</span>
+<span class="sd">            Array of translation vectors from camera to nodes</span>
+<span class="sd">        n : np.ndarray, shape (N, 3), float</span>
+<span class="sd">            Array of normal vectors of the nodes</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        back_facing : np.ndarray, bool</span>
+<span class="sd">            ``output[i]`` is True if ``node[i]`` is backfacing (viewing angle &gt; maximum</span>
+<span class="sd">            oblique angle). ``output[i]`` is False if ``node[i]`` is not backfacing</span>
+<span class="sd">            (viewing angle &lt;= maximum oblique angle).</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        is_back_facing : This is the &#39;slow&#39; version of the back face culling check</span>
+<span class="sd">        is_back_facing_fast : Returns True if the node is back facing, otherwise returns</span>
+<span class="sd">            False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">proj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">proj</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">proj</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">squared_cos_angle</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span><span class="o">*</span><span class="n">t</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.does_intersect"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.does_intersect">[docs]</a>    <span class="k">def</span> <span class="nf">does_intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">return_pos</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function that determines if a point is occluded by the object mesh</span>
+
+<span class="sd">        Creates a ray from origin with given direction. Checks for intersection of ray</span>
+<span class="sd">        with the BVH</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        origin : np.ndarray, shape (3, 1), float</span>
+<span class="sd">            start of ray</span>
+<span class="sd">        direction : np.ndarray, shape (3, 1), float</span>
+<span class="sd">            direction of ray</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        result : bool</span>
+<span class="sd">            True if node is occluded and False if node is not occluded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">upsp</span><span class="o">.</span><span class="n">raycast</span><span class="o">.</span><span class="n">Ray</span><span class="p">(</span><span class="o">*</span><span class="n">origin</span><span class="p">,</span> <span class="o">*</span><span class="n">direction</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">upsp</span><span class="o">.</span><span class="n">raycast</span><span class="o">.</span><span class="n">Hit</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+        <span class="c1"># If the position was requested, return it</span>
+        <span class="k">if</span> <span class="n">return_pos</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Otherwise just return the boolean</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.is_visible"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.is_visible">[docs]</a>    <span class="k">def</span> <span class="nf">is_visible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tvec_model_to_camera</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">return_angles</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns list of nodes that are visible</span>
+
+<span class="sd">        Currently only checks for oblique viewing angle and occlusion, assumes all nodes</span>
+<span class="sd">        are within FOV of camera</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tvec_model_to_camera : np.ndarray, shape (3, 1), float</span>
+<span class="sd">            translation vector from model to camera</span>
+<span class="sd">        nodes : np.ndarray, shape (N, 3), float</span>
+<span class="sd">            X, Y, Z position of nodes to be checked. ``nodes[i]`` is associated with</span>
+<span class="sd">            ``normals[i]``</span>
+<span class="sd">        normals : np.ndarray, shape (N, 3), float</span>
+<span class="sd">            Normal vectors. ``normals[i]`` is associated with ``nodes[i]``</span>
+<span class="sd">        return_angles : bool, optional</span>
+<span class="sd">            If True, return angles for each visible node as well.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        visible : np.ndarray</span>
+<span class="sd">            Numpy array of the indices of the nodes that are visible</span>
+<span class="sd">        angles : np.ndarray</span>
+<span class="sd">            Angles of visible nodes. Only returned when ``return_angles=True``</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are</span>
+<span class="sd">            back facing</span>
+<span class="sd">        does_intersect : Function that determines if a point is occluded by the object</span>
+<span class="sd">            mesh</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the tvecs from the camera to each node</span>
+        <span class="n">tvecs</span> <span class="o">=</span> <span class="n">tvec_model_to_camera</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">nodes</span>
+
+        <span class="c1"># Get the unit_tvecs and unit_normals</span>
+        <span class="n">tvec_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tvecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">unit_tvecs</span> <span class="o">=</span> <span class="n">tvecs</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tvec_norms</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">normal_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">unit_normals</span> <span class="o">=</span> <span class="n">normals</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">normal_norms</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Determine what nodes are back-facing</span>
+        <span class="c1">#   or nearly back-facing based on oblique_angle</span>
+        <span class="c1"># If the angles values are not needed, use is_back_facing_fast_vectorized</span>
+        <span class="c1"># If angles are needed, use the slower</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_angles</span><span class="p">:</span>
+            <span class="n">back_facings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_back_facing_fast_vectorized</span><span class="p">(</span><span class="n">unit_tvecs</span><span class="p">,</span> <span class="n">unit_normals</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_between</span><span class="p">(</span><span class="n">unit_tvecs</span><span class="p">,</span> <span class="n">unit_normals</span><span class="p">)</span>
+            <span class="n">back_facings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">angles</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">oblique_angle</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Get the offset node positions</span>
+        <span class="n">epsilon_normals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">*</span> <span class="n">unit_normals</span>
+        <span class="n">origins</span> <span class="o">=</span> <span class="n">nodes</span> <span class="o">+</span> <span class="n">epsilon_normals</span>
+
+        <span class="n">visible</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)):</span>
+            <span class="c1"># If it is back-facing, move on to the next node</span>
+            <span class="k">if</span> <span class="n">back_facings</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># If there is an occlusion, move on to the next node</span>
+            <span class="c1">#   origin is the ray origin offset so it is close to, but not on the model</span>
+            <span class="c1">#   tvecs[i] is the ray direction vector that goes from the camera to node i</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_intersect</span><span class="p">(</span><span class="n">origins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">unit_tvecs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># If the node was not back-facing, and was not occluded, mark it visible</span>
+            <span class="n">visible</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_angles</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">visible</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="n">visible</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">visible</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.tri_normal"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.tri_normal">[docs]</a>    <span class="k">def</span> <span class="nf">tri_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the normal of a face with vertices ordered counter-clockwise</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        face : np.ndarray, shape (3, 3), float</span>
+<span class="sd">            X, Y, Z positions of the face vertices. ``face[i]`` contains x, y, z of</span>
+<span class="sd">            vertex ``i``</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        normal : np.ndarray, shape (3,)</span>
+<span class="sd">            Normal vector of input face</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">face</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">face</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Edge 1</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">face</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">face</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Edge 2</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">C</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.get_faces_and_face_normals"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.get_faces_and_face_normals">[docs]</a>    <span class="k">def</span> <span class="nf">get_faces_and_face_normals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the faces and face normals of all grid nodes</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        faces : np.ndarray, shape (n, 3, 3)</span>
+<span class="sd">            Each face is a (3, 3) with (i, 3) corresponding to a node, and each node</span>
+<span class="sd">            having an (x, y, z). Faces are ordered counter-clockwise.</span>
+<span class="sd">        face_normals : np.ndarray, shape (n, 3)</span>
+<span class="sd">            The face normal is (x, y, z). ``face_normals[i]`` corresponds to ``face[i]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the mesh</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_mesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_path</span><span class="p">)</span>
+
+        <span class="c1"># Get vertex and face information</span>
+        <span class="n">nverts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">nfaces</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">verts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">],</span> <span class="p">(</span><span class="n">nverts</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># This is the faces, with the indexes corresponding to the elements of verts</span>
+        <span class="c1"># Note: faces are counter-clockwise ordered so normals are implicit in faces</span>
+        <span class="n">faces_v_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">],</span> <span class="p">(</span><span class="n">nfaces</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># Get all the faces and the face normals</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">face_normals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">face_v_idx</span> <span class="ow">in</span> <span class="n">faces_v_idx</span><span class="p">:</span> <span class="c1">#[np.random.choice(range(len(faces_v_idx)), 25000)]:</span>
+            <span class="n">face</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                            <span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                            <span class="n">verts</span><span class="p">[</span><span class="n">face_v_idx</span><span class="p">[</span><span class="mi">2</span><span class="p">]]])</span>
+
+            <span class="k">if</span> <span class="p">((</span><span class="n">face</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">face</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">face</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                    <span class="ow">or</span> <span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">face</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+                <span class="k">continue</span>
+
+            <span class="n">faces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">)</span>
+            <span class="n">face_normals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri_normal</span><span class="p">(</span><span class="n">face</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">faces</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">face_normals</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisibilityChecker.get_tvecs_and_norms"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker.get_tvecs_and_norms">[docs]</a>    <span class="k">def</span> <span class="nf">get_tvecs_and_norms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the tvecs and tvec normals of all grid nodes</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tvecs : np.ndarray, shape (n, 3)</span>
+<span class="sd">            Each tvec is corresponds to the (x, y, z) of a node.</span>
+<span class="sd">        norms : np.ndarray, shape (n, 3)</span>
+<span class="sd">            Each norm is an (x, y, z) of the node&#39;s normal vector ``norms[i]``</span>
+<span class="sd">            corresponds to ``tvecs[i]``. The norm is the normal of the first face to</span>
+<span class="sd">            contain the tvec. Each tvec can appear in multiple faces, so the first is</span>
+<span class="sd">            used. In practice, each face that contains the node will have a different</span>
+<span class="sd">            normal vector, but in general the difference is a relatively small angle.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the faces and face normals from the vis_checker</span>
+        <span class="n">faces</span><span class="p">,</span> <span class="n">face_normals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_faces_and_face_normals</span><span class="p">()</span>
+
+        <span class="c1"># Calculate a normal for every node. If a node is on several faces, assume the</span>
+        <span class="c1">#   normals of all those faces are close enough and pick any one of them</span>
+        <span class="n">tvecs</span><span class="p">,</span> <span class="n">norms</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">node_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">face</span><span class="p">,</span> <span class="n">normal</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">face_normals</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">face</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="ow">in</span> <span class="n">node_set</span><span class="p">:</span>
+                    <span class="n">node_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+                    <span class="n">tvecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+                    <span class="n">norms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normal</span><span class="p">))</span>
+
+        <span class="c1"># Save the nodes and normals as np arrays</span>
+        <span class="n">tvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tvecs</span><span class="p">)</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">norms</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tvecs</span><span class="p">,</span> <span class="n">norms</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

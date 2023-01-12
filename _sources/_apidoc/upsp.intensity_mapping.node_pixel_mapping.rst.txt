@@ -1,0 +1,7 @@
+``upsp.intensity_mapping.node_pixel_mapping``
+=============================================
+
+.. automodule:: upsp.intensity_mapping.node_pixel_mapping
+   :members:
+   :undoc-members:
+   :show-inheritance:

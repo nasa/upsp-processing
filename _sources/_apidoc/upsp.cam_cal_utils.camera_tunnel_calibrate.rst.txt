@@ -1,0 +1,7 @@
+``upsp.cam_cal_utils.camera_tunnel_calibrate``
+==============================================
+
+.. automodule:: upsp.cam_cal_utils.camera_tunnel_calibrate
+   :members:
+   :undoc-members:
+   :show-inheritance:

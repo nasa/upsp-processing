@@ -1,0 +1,935 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.external_calibrate &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.cam_cal_utils.img_utils" href="upsp.cam_cal_utils.img_utils.html" />
+    <link rel="prev" title="upsp.cam_cal_utils.camera_tunnel_calibrate" href="upsp.cam_cal_utils.camera_tunnel_calibrate.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.camera_tunnel_calibrate.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.camera_tunnel_calibrate</span></code></a></li>
+      <li>Next: <a href="upsp.cam_cal_utils.img_utils.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.img_utils</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.external_calibrate">
+<span id="upsp-cam-cal-utils-external-calibrate"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.external_calibrate</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.external_calibrate" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.check_external_calibrate_two_stage_inputs">
+<span class="sig-name descname"><span class="pre">check_external_calibrate_two_stage_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat_init_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec_init_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#check_external_calibrate_two_stage_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.check_external_calibrate_two_stage_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that the inputs to external calibrate are valid</p>
+<p>Helper function to <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage" title="upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage"><code class="xref py py-func docutils literal notranslate"><span class="pre">external_calibrate_two_stage()</span></code></a>. Checks that the input are
+of the proper type, size, format, and have the relevant attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(h</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">w)</span></code>) – Numpy 2D array of the image</p></li>
+<li><p><strong>rmat_init_guess</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Initial guess of rotation matrix from camera to object</p></li>
+<li><p><strong>tvec_init_guess</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Initial guess of translation vector from camera to object</p></li>
+<li><p><strong>incal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – <p>Camera internal calibration.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): The (OpenCV
+formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (1, 5): The (OpenCV formatted)
+distortion coefficients for the camera</p></li>
+</ul>
+</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the target
+relative to the model origin for its associated value. ‘target_type’ has a
+string representing the type of target (most commonly ‘dot’) for its associated
+value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for ‘min_dist’, ‘max_dist’, and
+2 keys for the primary target type in targets and img_targets. ‘min_dist’ is the
+minimum distance between two image targets. ‘max_dist’ is the maximum allowable
+distance between an image target and the projection of a 3D target. The primary
+target type is ‘dot’ if there are 4+ dots in tgts. Otherwise the primary target
+type is ‘kulite’. The keys for the primary target type are target_type + ‘_pad’
+and <cite>target_type</cite> + ‘_blob_parameters’. The first is the padding around the img
+target center location to use to sub-pixel localize. The second is the blob
+detection parameters for that type of target</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code>, <em>optional</em>) – Name for all debug images (potentially camera name, test an camera name, etc).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>valid</strong> – True if the all inputs are valid, False if any input is invalid</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.compare_poses">
+<span class="sig-name descname"><span class="pre">compare_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">more_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#compare_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.compare_poses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the angle and distance in which the two poses differ</p>
+<p>Any two rotation matrices are related by a single rotation of theta about a given
+axis. Any two translation vectors are related by an [X, Y, Z] translation vector.
+This function returns the angle between the two poses, as well as the distance
+formatted as [theta, dist] where theta is in degrees and dist is in the units of
+tvec. If <cite>more_info</cite> is True, [theta, axis, tvec_rel] is returned where axis is the
+axis of rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pose0</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – Pose to compare: <code class="docutils literal notranslate"><span class="pre">(rmat,</span> <span class="pre">tvec)</span></code>, where <code class="docutils literal notranslate"><span class="pre">rmat</span></code> is the rotation matrix from
+camera to object (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape (3, 3)) and <code class="docutils literal notranslate"><span class="pre">tvec</span></code> is the
+translation vector from camera to object (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape (3,
+1)).</p></li>
+<li><p><strong>pose1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – Pose to compare: <code class="docutils literal notranslate"><span class="pre">(rmat,</span> <span class="pre">tvec)</span></code>, where <code class="docutils literal notranslate"><span class="pre">rmat</span></code> is the rotation matrix from
+camera to object (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape (3, 3)) and <code class="docutils literal notranslate"><span class="pre">tvec</span></code> is the
+translation vector from camera to object (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> with shape (3,
+1)).</p></li>
+<li><p><strong>more_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Changes the return value. Function returns (theta, distance) if <cite>more_info</cite> is
+False, function returns (rvec, tvec) if <cite>more_info</cite> is True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If <cite>more_info</cite> is False, returns <code class="docutils literal notranslate"><span class="pre">(theta,</span> <span class="pre">distance)</span></code>. If <cite>more_info</cite> is True,
+return is <code class="docutils literal notranslate"><span class="pre">(rvec,</span> <span class="pre">tvec)</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.external_calibrate">
+<span class="sig-name descname"><span class="pre">external_calibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isMatched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_localize_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reprojectionError</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#external_calibrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up and run solvePnPRansac to get the external calibration and inlier targets</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(height</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">width)</span></code>) – Image to use for calibration</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">5)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict that has, at a minimum, the keys ‘tvec’, and
+‘target_type’. If isMatched is False, ‘norm’ is additionally needed as a key.
+‘tvec’ has a np.ndarray (3, 1) representing the position of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.
+<code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for i from 0 to <cite>num_matches</cite>.
+‘norm’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the
+target relative to the model coordinate system for its associated value</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Matched image targets. Each dict has, at a minimum, keys ‘center’, and
+‘target_type’. ‘center’ has a value of the image target center location
+(tuple/np.ndarray of length 2 of floats) and ‘target_type’ has the key of the
+type of target (string). <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – dict with, at a minimum, a key for ‘min_dist’, ‘max_dist’, and each target type
+in targets and img_targets. ‘min_dist’ is the minimum distance between two image
+targets. ‘max_dist’ is the maximum allowable distance between an image target
+and the projection of a 3D target. The key for each target type is
+<cite>target_type</cite> + ‘_pad’. This is the padding around the img target center
+location to use to sub-pixel localize</p></li>
+<li><p><strong>isMatched</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – If True, denotes that <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> and all
+targets are visible to the camera. If False, denotes <cite>tgts</cite> and <cite>img_targets</cite>
+are not in any particular order. If False, targets are checked for visibility
+and <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.match_targets" title="upsp.cam_cal_utils.external_calibrate.match_targets"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_targets()</span></code></a> is used to match the tgts to the image targets</p></li>
+<li><p><strong>max_localize_delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Parameter passed to <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.subpixel_localize" title="upsp.cam_cal_utils.external_calibrate.subpixel_localize"><code class="xref py py-func docutils literal notranslate"><span class="pre">subpixel_localize()</span></code></a></p></li>
+<li><p><strong>reprojectionError</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Maximum reprojection error between a target and image target to be considered an
+inlier. ReprojectionError is often smaller than <code class="docutils literal notranslate"><span class="pre">test_config['max_dist']</span></code>
+since it is the optimized distance between the target and image target.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">rmat_opt</span></code> – optimized rotation matrix from the camera to the model</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tvec_opt</span></code> – optimized translation vector from the camera to the model</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">tgt_inliers</span></code> – list of inlier targets of the optimization</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">img_target_inliers</span></code> – list of the inlier image targets of the optimization</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgt_inliers[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_target_inliers[i]</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.external_calibrate_RANSAC">
+<span class="sig-name descname"><span class="pre">external_calibrate_RANSAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#external_calibrate_RANSAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_RANSAC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use RANSAC to find an external calibration with brute force</p>
+<p>To find an external calibration, select at random 3 targets and 3 img targets. Solve
+the associated P3P problem to get the external calibration(s). For each of the
+external calibrations (P3P can yield up to 4), find the visible targets, project
+them, and match them to the image targets. If there is sufficient consensus amoung
+the matches (i.e. the randomly selected targets and image targets yields a solution
+where many other unselected targets project to a location close to an image target),
+return that external calibration. If there is not sufficient consensus, repeat this
+process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>incal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – <p>Camera internal calibration.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): The (OpenCV
+formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (1, 5): The (OpenCV formatted)
+distortion coefficients for the camera</p></li>
+</ul>
+</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict with (at a minimum) ‘tvec’, ‘norm’, and ‘target_type’
+attributes. The ‘tvec’ attribute gives the target’s location and the ‘norm’
+attribute gives the target’s normal vector. ‘target_type’ is a string denoting
+the type of target (most commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each img_target is a dict with (at a minimum) a ‘center’ attribute. The ‘center’
+attribute gives the pixel position of the target’s center in the image.
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – VisibilityChecker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – If int, it represents the maximum number of iterations for RANSAC. If float must
+be greater than 0 but less than 1. Float means it represents the number of
+estimate number of iterations in order to have that probability of finding a
+solution should one exist (0.999 means there’s a 99.9% chance of finding a
+solution should one exist)</p></li>
+<li><p><strong>max_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Maximum matching distance between image targets and projected target location</p></li>
+<li><p><strong>match_thresh</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – If int, this is the number of matches that must be found to deem it a consensus.
+If float, must be greater than 0 but less than 1. If float, this is the
+proportion of tgts or img_targets (whichever is lower) that must be matched.
+I.e. If match_thresh is 0.8 and there are 50 target and 20 img_targets, there
+must be 16+ matches for it to be deemed a consensus.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Rotation matrix. May be <code class="docutils literal notranslate"><span class="pre">None</span></code> if the maximum number of iterations is met
+without finding a valid solution.</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>) – Translation vector. May be <code class="docutils literal notranslate"><span class="pre">None</span></code> if the maximum number of iterations is met
+without finding a valid solution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.external_calibrate_one_step">
+<span class="sig-name descname"><span class="pre">external_calibrate_one_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat_coarse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec_coarse</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#external_calibrate_one_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_one_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs external calibration from a seim-accurate coarse guess</p>
+<p>The coarse guess of <cite>rmat</cite> and <cite>tvec</cite> should project each target’s within 1 pixel of
+the associated image target</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(h</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">w)</span></code>) – Numpy 2D array of the image</p></li>
+<li><p><strong>rmat_coarse</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Coarsely refined rotation matrix from camera to object</p></li>
+<li><p><strong>tvec_coarse</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Coarsely refined translation vector from camera to object</p></li>
+<li><p><strong>incal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – <p>Camera internal calibration.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): The (OpenCV
+formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (1, 5): The (OpenCV formatted)
+distortion coefficients for the camera</p></li>
+</ul>
+</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the target
+relative to the model origin for its associated value. ‘target_type’ has a
+string representing the type of target (most commonly ‘dot’) for its associated
+value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for ‘min_dist’, ‘max_dist’, and
+2 keys for the primary target type in targets and img_targets. ‘min_dist’ is the
+minimum distance between two image targets. ‘max_dist’ is the maximum allowable
+distance between an image target and the projection of a 3D target. The primary
+target type is ‘dot’ if there are 4+ dots in tgts. Otherwise the primary target
+type is ‘kulite’. The keys for the primary target type are target_type + ‘_pad’
+and target_type + ‘_blob_parameters’. The first is the padding around the img
+target center location to use to sub-pixel localize. The second is the blob
+detection parameters for that type of target</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">None.</span> <span class="pre">Optional</span></code>, <em>default</em> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – Name for all debug images (potentially camera name, test an camera name, etc)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – camera-to-model external calibration rotation matrix</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – camera-to-model external calibration translation vector</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage">
+<span class="sig-name descname"><span class="pre">external_calibrate_two_stage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat_init_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec_init_guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#external_calibrate_two_stage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs external calibration from an inaccurate initial guess</p>
+<p>Runs blob detection to find the img targets, then matches and filters the 3D targets
+to the img targets. Performs a coarse optimization to improve the intial guess. Then
+calls <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_one_step" title="upsp.cam_cal_utils.external_calibrate.external_calibrate_one_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">external_calibrate_one_step()</span></code></a> to get the refined optimization</p>
+<p>The initial guess of rmat and tvec should project each target’s within ~5 pixels of
+the associated image target</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(h</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">w)</span></code>) – Numpy 2D array of the image</p></li>
+<li><p><strong>rmat_init_guess</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Initial guess of rotation matrix from camera to object</p></li>
+<li><p><strong>tvec_init_guess</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Initial guess of translation vector from camera to object</p></li>
+<li><p><strong>incal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – <p>Camera internal calibration.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): The (OpenCV
+formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (1, 5): The (OpenCV formatted)
+distortion coefficients for the camera</p></li>
+</ul>
+</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each target is a dict and has, at a minimum, the keys ‘tvec’, ‘target_type’,
+‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of
+the target relative to the model origin for its associated value. ‘norm’ has a
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the target
+relative to the model origin for its associated value. ‘target_type’ has a
+string representing the type of target (most commonly ‘dot’) for its associated
+value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for ‘min_dist’, ‘max_dist’, and
+2 keys for the primary target type in targets and img_targets. ‘min_dist’ is the
+minimum distance between two image targets. ‘max_dist’ is the maximum allowable
+distance between an image target and the projection of a 3D target. The primary
+target type is ‘dot’ if there are 4+ dots in tgts. Otherwise the primary target
+type is ‘kulite’. The keys for the primary target type are target_type + ‘_pad’
+and target_type + ‘_blob_parameters’. The first is the padding around the img
+target center location to use to sub-pixel localize. The second is the blob
+detection parameters for that type of target</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">None.</span> <span class="pre">Optional</span></code>, <em>default</em> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – Name for all debug images (potentially camera name, test an camera name, etc)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Valid solution camera-to-model rotation matrix</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>) – Valid solution camera-to-model translation vector</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage_from_wtd">
+<span class="sig-name descname"><span class="pre">external_calibrate_two_stage_from_wtd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tunnel_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera_tunnel_cal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#external_calibrate_two_stage_from_wtd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage_from_wtd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function to <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage" title="upsp.cam_cal_utils.external_calibrate.external_calibrate_two_stage"><code class="xref py py-func docutils literal notranslate"><span class="pre">external_calibrate_two_stage()</span></code></a>.</p>
+<p>The <cite>tunnel_vals</cite> plus <cite>test_config</cite> are used to estimate an initial guess of <cite>rmat</cite>
+and <cite>tvec</cite>. That initial guess should project each target’s within ~5 pixels of the
+associated image target</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(h</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">w)</span></code>) – Numpy 2D array of the image</p></li>
+<li><p><strong>tunnel_vals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Wind tunnel data as a dict with (at a minimum) the keys ‘ALPHA’, ‘BETA’, ‘PHI’,
+and ‘STRUTZ’. ALPHA, BETA, and PHI are tunnel angles in degrees. STRUTZ is the
+offset of the tunnel center of rotation for the z axis in inches</p></li>
+<li><p><strong>camera_tunnel_cal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>) – <p>Camera-tunnel calibration</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">rmat_camera_tunnel</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): Rotation matrix
+from camera to tunnel at wind off condition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tvec_camera_tunnel</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 1)): Translation
+vector from camera to tunnel at wind off condition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (3, 3)): The (OpenCV
+formatted) camera matrix for the camera</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, shape (1, 5)): The (OpenCV formatted
+distortion coefficients for the camera</p></li>
+</ul>
+</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – 3D targets. Each target is a dict and has, at a minimum, the keys ‘tvec’,
+‘target_type’, ‘norm’. ‘tvec’ has a np.ndarray (3, 1) representing the position
+of the target relative to the model origin for its associated value. ‘norm’ has
+a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the target
+relative to the model origin for its associated value. ‘target_type’ has a
+string representing the type of target (most commonly ‘dot’) for its associated
+value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for ‘min_dist’, ‘max_dist’, and
+2 keys for the primary target type in <cite>targets</cite> and <cite>img_targets</cite>. ‘min_dist’ is
+the minimum distance between two image targets. ‘max_dist’ is the maximum
+allowable distance between an image target and the projection of a 3D target.
+The primary target type is ‘dot’ if there are 4+ dots in tgts. Otherwise the
+primary target type is ‘kulite’. The keys for the primary target type are
+<cite>target_type</cite> + ‘_pad’ and <cite>target_type</cite> + ‘_blob_parameters’. The first is the
+padding around the img target center location to use to sub-pixel localize. The
+second is the blob detection parameters for that type of target</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>debug</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code>, <em>optional</em>) – Name for all debug images (potentially camera name, test an camera name, etc)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – camera-to-model external calibration rotation matrix</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – camera-to-model external calibration translation vector</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_bifilter">
+<span class="sig-name descname"><span class="pre">filter_bifilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_bifilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_bifilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the targets and image target for ambiguity</p>
+<p>Check that only 1 img target is within a radius of max_dist from every projected
+target location. If more than 1 img target is near a target, do not use that target</p>
+<p>Check that only 1 projected target location is within a radius of max_dist from
+every img target. If more than 1 projected target location is near an img target,
+do not use that img target</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">5)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target is a dict and has, at a minimum, the keys ‘tvec’, and
+‘target_type’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the
+position of the target relative to the model origin for its associated value.
+‘target_type’ has a string representing the type of target (most commonly ‘dot’)
+for its associated value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for
+i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched image targets. Each dict has, at a minimum, the key ‘center’ which has a
+value of is the image target center location (tuple/np.ndarray of floats).
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> for i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+<li><p><strong>max_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The maximum distance between two image targets. Any image targets farther than
+this distance are filtered out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_bifilter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have been bifiltered.</p></li>
+<li><p><strong>img_targets_bifilter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+<li><p><strong>num_matches_bifilter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_matched_bifilter[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets_bifilter[i]</span></code> for i
+from 0 to <cite>num_matches_bifilter</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_matches">
+<span class="sig-name descname"><span class="pre">filter_matches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_matches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to run multiple filtering functions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">5)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target is a dict that has, at a minimum, the keys ‘tvec’, and
+‘target_type’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the
+position of the target relative to the model origin for its associated value.
+‘target_type’ has a string representing the type of target (most commonly ‘dot’)
+for its associated value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for
+i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched image targets. Each dict has, at a minimum, the key ‘center’ which has a
+value of is the image target center location (tuple/np.ndarray of floats).
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> for i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for ‘min_dist’, ‘max_dist’.
+‘min_dist’ is the minimum distance between two image targets. ‘max_dist’ is the
+maximum allowable distance between an image target and the projection of a 3D
+target</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <em>optional</em>) – tuple of length 2. First item is the image to use as the background. Second item
+is the name of the debug image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Targets filtered to remove None values, matches greater than the maximum
+matching distance, matches that are not one-to-one, matches that do not pass a
+“bifilter” test, and matches that have image locations that are too close
+together</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Associated image locations of <cite>tgts_filtered</cite></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_max_dist">
+<span class="sig-name descname"><span class="pre">filter_max_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_max_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_max_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the targets and image target to pairs are not very far apart</p>
+<p>Any match where the distance between the projected target pixel position and the
+img target center is greater than max_dist is removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">5)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target is a dict and has, at a minimum, the keys ‘tvec’, and
+‘target_type’. ‘tvec’ has a <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> (3, 1) representing the position
+of the target relative to the model origin for its associated value.
+‘target_type’ has a string representing the type of target (most commonly ‘dot’)
+for its associated value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for
+i from 0 to <cite>num_matches</cite>.</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched image targets. Each dict has, at a minimum, the key ‘center’ which has a
+value of is the image target center location (tuple/np.ndarray of floats).
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> for i from 0 to num_matches</p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+<li><p><strong>max_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The maximum matching distance between a 3D target’s project and an image targets
+center. Pairs with matching distance greater this distance are filtered out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have been filtered such that the matching
+distance is less than max_dist.</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+<li><p><strong>num_matches_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code> for i from
+0 to <cite>num_matches_filtered</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_min_dist">
+<span class="sig-name descname"><span class="pre">filter_min_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_min_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_min_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the targets and image target that are too close together in the image</p>
+<p>If the image locations of any two targets are below the min_dist threshold, remove
+both targets from the set of matched targets. This is to avoid ambiguity in target
+matching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target should be a dict. The only strict requirement set by
+this function is <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for i from 0
+to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched image targets. Each dict has, at a minimum, the key ‘center’ which has a
+value of the image target center location (tuple/np.ndarray of floats).
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> for i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+<li><p><strong>min_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – The minimum distance between two image targets. Any image targets closer than
+this distance are filtered out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have been filtered so that their image locations
+are separated by a distance larger than min_dist.</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+<li><p><strong>num_matches_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code> for i from 0 to
+<cite>num_matches_filtered</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_nones">
+<span class="sig-name descname"><span class="pre">filter_nones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_nones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_nones" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the targets and image target to remove None objects</p>
+<p><a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts" title="upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_obj_and_img_pts()</span></code></a> matches each target to the closest img target.
+Therefore, it is possible that not every img target will have a match. Additionally,
+if <code class="docutils literal notranslate"><span class="pre">max_dist</span></code> is given to <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts" title="upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_obj_and_img_pts()</span></code></a>, it is possible that not
+every target will have a match. <a class="reference internal" href="#upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts" title="upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_obj_and_img_pts()</span></code></a> solves this by
+matching unmatched items to None.</p>
+<p>That causes something to fail, so this function reformats that output. Instead of
+using Nones, this function reorders the list of targets to the first n target have
+a match, and correspond to the first n items of the img targets list. n is
+additionally given as num_matches</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target should be a dict. The only strict requirement set by
+this function is <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for i from 0
+to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Image targets. Each image target should be a dict, but this function does not
+set any strict requirements other than that <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have been filtered to remove None values.</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+<li><p><strong>num_matches_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code> for i from
+0 to <cite>num_matches_filtered</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_one2one">
+<span class="sig-name descname"><span class="pre">filter_one2one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_matches</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_one2one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_one2one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the targets and image target to ensure matches are one-to-one</p>
+<p>Ensures that each target is matched with at most 1 img target, and that each img
+target is matched with at most 1 target. Remove anything that is not 1:1 as stated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target should be a dict. The only strict requirement set by
+this function is <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for i from 0
+to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Image targets. Each image target should be a dict, but this function does not
+set any strict requirements other than that <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> for i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – An integer of the number of matches. Must be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">min(len(tgts),</span> <span class="pre">len(img_targets))</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered_one2one</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have been filtered for pairs that are one-to-one.</p></li>
+<li><p><strong>img_targets_one2one</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+<li><p><strong>num_matches_one2one</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_one2one[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets_one2one[i]</span></code> for i from 0 to
+<cite>num_matches_one2one</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.filter_partially_occluded">
+<span class="sig-name descname"><span class="pre">filter_partially_occluded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#filter_partially_occluded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.filter_partially_occluded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks corners of cropped area used for sub-pixel localization for occlusion</p>
+<p>If the corners of the crop used for sub-pixel localization jumps surfaces, then the
+target is likely partially occluded. This most commonly occurs when a booster
+partially occludes a target on the core of a launch vehicle</p>
+<p>To get the 3D positions of corners of the cropped area, start at the target tvec.
+Approximate the physical distance (in inches) of the cropped area (which is
+done in pixels) using the focal length and distance from camera to model. Take
+steps along the camera image plane to get to the approximate corner locations in 3D.</p>
+<p>With the corner locations, ensure that they are not inside the model (since the
+model is curved the steps along the image plane may put the corners slightly inside
+the model. Then check for occlusions. If the corner is occluded, the target is
+deemed partially occluded. If none of the corners are occluded, the target is deemed
+not occluded (but is still potentially partially occluded). Only the corners are
+checked to reduce computation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>focal_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Focal length of the camera. Most easily accessible from a <code class="docutils literal notranslate"><span class="pre">cameraMatrix[0][0]</span></code></p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target is a dict and has, at a minimum, the keys ‘tvec’,
+‘target_type’, ‘norm’. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the
+position of the target relative to the model origin for its associated value.
+‘norm’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the normal vector of the
+target relative to the model origin for its associated value. ‘target_type’ has
+a string representing the type of target (most commonly ‘dot’) for its
+associated value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Image targets. Each image target should be a dict, but this function does not
+set any strict requirements other than that <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – Visibility checker object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processign parameters with, at a minimum, a key for each target type of the
+targets in <cite>tgts</cite> and <cite>img_targets</cite>. They key is <cite>target_type</cite> + ‘_pad’. This is
+the padding around the img target center location to use to sub-pixel localize</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have not been filtered out</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions in the image.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts">
+<span class="sig-name descname"><span class="pre">match_obj_and_img_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#match_obj_and_img_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.match_obj_and_img_pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches 3D targets to the image targets</p>
+<p>Projects the 3D targets into the image, then finds the closest image target. If the
+closest image target is less than max_dist pixels away, it is matched. If it is
+farther than <cite>max_dist</cite> pixels, it is matched to None. This matching scheme does not
+ensure matches are one-to-one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – List of 3D targets.</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Matched image target information. Each dict has, at a minimum, keys ‘center’,
+and ‘target_type’. ‘center’ has a value of the image target center location
+(tuple/np.ndarray of length 2 of floats) and ‘target_type’ has the key of the
+type of target (string). <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>max_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The maximum matching distance between a 3D target’s project and an image targets
+center. Pairs with matching distance greater this distance are filtered out.</p></li>
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>-----------</strong> – </p></li>
+<li><p><strong>matching_img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – List of the items from the <cite>img_targets</cite> input such that
+<code class="docutils literal notranslate"><span class="pre">matching_img_targets[i]</span></code> is the closest image target to the projected
+position of <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code>. If the closest image target is farther than <cite>max_dist</cite>,
+<code class="docutils literal notranslate"><span class="pre">matching_img_targets[i]</span></code> is None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.match_targets">
+<span class="sig-name descname"><span class="pre">match_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#match_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.match_targets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches each target to the closest img target</p>
+<p>If <cite>max_dist</cite> is given, distance between target and img target must be less than
+max_dist. By default this value is infinite, so any match is valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(1</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">5)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets. Each target is a dict and has, at a minimum, the keys ‘tvec’, and
+‘target_type’.  ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the
+position of the target relative to the model origin for its associated value.
+‘target_type’ has a string representing the type of target (most commonly ‘dot’)
+for its associated value. <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> for
+i from 0 to <cite>num_matches</cite></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Each dict has, at a minimum, keys ‘center’, and ‘target_type’. ‘center’ has a
+value of the image target center location (tuple/np.ndarray of length 2 of
+floats) and ‘target_type’ has the key of the type of target (string).
+<code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>max_dist</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The maximum matching distance between a 3D target’s project and an image targets
+center. Pairs with matching distance greater this distance are filtered out.</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <em>optional</em>) – Debug option. For no debugging, give None. To generate debugging images, give
+a tuple of length 3. First item is the image to use as the background.
+Second item is the name of the debug image. Third item can be a dict or None. If
+dict, matches will be filtered before the debug image is created. Dict needs to
+follow test_config input requirements of filter_matches. If None, matches will
+not be filtered in the debug image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgts_matched</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – 3D targets that are matched</p></li>
+<li><p><strong>matching_img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Image locations of matched targets</p></li>
+<li><p><strong>num_matches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">tgts_matched[i]</span></code> is matched with <code class="docutils literal notranslate"><span class="pre">matching_img_targets[i]</span></code> for i from 0 to
+<cite>num_matches</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.post_filter_append">
+<span class="sig-name descname"><span class="pre">post_filter_append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts_filtered</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets_filtered</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#post_filter_append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.post_filter_append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds tgts that were filtered back into the list</p>
+<p>The match-and-filter scheme we use is to have two ordered lists, where
+<code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> is matched to <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code> for i from 0 to
+<cite>num_matches</cite>. For i greater than num_matches, the tgt and img_target are not
+matched. We leave all unmatched targets in the list, because some filtering
+operations need them. Ex the the filters for min_dist and bi_filter.</p>
+<p>This function takes in the whole (randomly ordered) <cite>tgts</cite> and <cite>img_targets</cite>, as
+well as the (ordered) <cite>tgts_filtered</cite> and <cite>img_targets_filtered</cite>. Any <cite>tgts</cite> not in
+<cite>tgts_filtered</cite> are appended at the end, and similar for the <cite>img_targets</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – List of all targets, order is not important. Each target is a dict that has, at
+a minimum, the keys ‘tvec’, and ‘target_type’. If isMatched is False, ‘norm’ is
+additionally needed as a key. ‘tvec’ has a <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1)
+representing the position of the target relative to the model origin for its
+associated value. ‘target_type’ has a string representing the type of target
+(most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>tgts_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – List of filtered targets, order is important. <code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code> for i from 0 to <cite>num_matches</cite>. Each target is a
+dict that has, at a minimum, the keys ‘tvec’, and ‘target_type’. If isMatched is
+False, ‘norm’ is additionally needed as a key. ‘tvec’ has a
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> (3, 1) representing the position of the target relative
+to the model origin for its associated value. ‘target_type’ has a string
+representing the type of target (most commonly ‘dot’) for its associated value.</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – List of all matched image targets, order is not important. Each dict has, at a
+minimum, keys ‘center’, and ‘target_type’. ‘center’ has a value of the image
+target center location (tuple/np.ndarray of length 2 of floats) and
+‘target_type’ has the key of the type of target (string).</p></li>
+<li><p><strong>img_targets_filtered</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – List of filtered image targets, order is important. <code class="docutils literal notranslate"><span class="pre">img_targets_filtered[i]</span></code>
+is associated with <code class="docutils literal notranslate"><span class="pre">tgts_filtered[i]</span></code> for i from 0 to <cite>num_matches</cite>. Each dict
+has, at a minimum, keys ‘center’, and ‘target_type’. ‘center’ has a value of the
+image target center location (tuple/np.ndarray of length 2 of floats) and
+‘target_type’ has the key of the type of target (string).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.external_calibrate.subpixel_localize">
+<span class="sig-name descname"><span class="pre">subpixel_localize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_localize_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/external_calibrate.html#subpixel_localize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.external_calibrate.subpixel_localize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the sub-pixel localized position of the image targets</p>
+<p>Find the location of the image target centers with sub-pixel accuracy. This method
+filters common bad localization solutions. I.e The localized position is too far
+initial guess to make sense, invalid optimizer solution (None flag), outside the
+cropped region or outside the image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(h</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">w)</span></code>) – Numpy 2D array of the image</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched 3D targets. Each target should be a dict. The only strict requirement
+set by this function is <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code></p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Matched image targets. Each dict has, at a minimum, keys ‘center’, and
+‘target_type’. ‘center’ has a value of the image target center location
+(tuple/np.ndarray of length 2 of floats) and ‘target_type’ has the key of the
+type of target (string). <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">tgts[i]</span></code></p></li>
+<li><p><strong>test_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Processing parameters with, at a minimum, a key for each target type in
+<cite>targets</cite> and <cite>img_targets</cite>.  The key is <cite>target_type</cite> + ‘_pad’. This is the
+padding around the img target center location to use to sub-pixel localize</p></li>
+<li><p><strong>max_localize_delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – The maximum allowable distance that subpixel_localize can change the
+<cite>img_target</cite> position. If None, the max allowable distance will be set to the
+padding distance minus 2.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Target positions (<cite>tgts</cite>) that have not been filtered out.</p></li>
+<li><p><strong>img_targets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Refined (sub-pixel localized) target positions in the image.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal notranslate"><span class="pre">targets[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">img_targets[i]</span></code>. Return lists may not be the
+same length as input <cite>tgts</cite> and/or <cite>img_targets</cite> inputs (some
+<cite>targets</cite>/<cite>img_targets</cite> from the input may be rejected and thus are not included in
+the output)</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.external_calibrate.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

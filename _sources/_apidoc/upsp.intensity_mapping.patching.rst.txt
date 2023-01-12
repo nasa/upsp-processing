@@ -1,0 +1,7 @@
+``upsp.intensity_mapping.patching``
+===================================
+
+.. automodule:: upsp.intensity_mapping.patching
+   :members:
+   :undoc-members:
+   :show-inheritance:

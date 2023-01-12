@@ -1,0 +1,1008 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>File Formats &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Terminology" href="terminology.html" />
+    <link rel="prev" title="Applications" href="applications.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">File Formats</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#high-speed-camera-video-formats">High-speed camera video formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surface-grid-definition">Surface grid definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#targets-file-tgts">“Targets” file (<code class="docutils literal notranslate"><span class="pre">*.tgts</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#steady-state-surface-pressure-file">Steady-state surface pressure file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#wind-tunnel-data-wtd">Wind Tunnel Data (<code class="docutils literal notranslate"><span class="pre">*.wtd</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unsteady-psp-gain-calibration">Unsteady PSP gain calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-to-tunnel-calibration">Camera-to-tunnel calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psp-process-configuration-inp"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> configuration (<code class="docutils literal notranslate"><span class="pre">*.inp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#external-camera-calibration-configuration-parameters">External camera calibration configuration parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-processing-configuration">Batch processing configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-files-from-psp-process">Output files from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="applications.html" title="previous chapter">Applications</a></li>
+      <li>Next: <a href="terminology.html" title="next chapter">Terminology</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="file-formats">
+<h1>File Formats<a class="headerlink" href="#file-formats" title="Permalink to this headline">¶</a></h1>
+<p>The following file formats are used by the uPSP processing software.</p>
+<section id="high-speed-camera-video-formats">
+<span id="sec-video-file"></span><h2>High-speed camera video formats<a class="headerlink" href="#high-speed-camera-video-formats" title="Permalink to this headline">¶</a></h2>
+<p>The uPSP software supports the following vendor-specific files:</p>
+<ul class="simple">
+<li><p>CINE files (from Phantom Vision cameras)</p></li>
+<li><p>MRAW/CIH files (from Photron cameras)</p></li>
+</ul>
+<p>In particular, the software is tested primarily with monochannel,
+“12-bit packed” images. Other packing strategies are supported but are
+less commonly used.</p>
+</section>
+<section id="surface-grid-definition">
+<span id="sec-grid-file"></span><h2>Surface grid definition<a class="headerlink" href="#surface-grid-definition" title="Permalink to this headline">¶</a></h2>
+<p>The uPSP software requires an accurate definition of the wind tunnel
+model wetted surfaces. It currently supports two file formats,
+auto-detected based on file extension:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*.g</span></code>, <code class="docutils literal notranslate"><span class="pre">*.x</span></code>, <code class="docutils literal notranslate"><span class="pre">*.grid</span></code>, <code class="docutils literal notranslate"><span class="pre">*.grd</span></code>: PLOT3D structured grid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*.tri</span></code>: Cart3D unstructured grid</p></li>
+</ul>
+<p>The following subsections provide more detail for each grid file format.</p>
+<section id="plot3d-file-formats">
+<span id="sec-plot3d"></span><h3>PLOT3D file formats<a class="headerlink" href="#plot3d-file-formats" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://software.nasa.gov/software/ARC-14400-1">PLOT3D</a> is a computer
+graphics program (written at NASA) to visualize the
+grids and solutions of computational fluid dynamics.
+The program defined several file formats that are now industry standard;
+in particular, refer to
+<a class="reference external" href="https://ntrs.nasa.gov/citations/19900013774">PLOT3D User Manual, Chapter 8: Data File Formats</a>.
+The uPSP software processes the following subset of PLOT3D file formats:</p>
+<ul class="simple">
+<li><p>3D Grid XYZ file (<code class="docutils literal notranslate"><span class="pre">*.grd</span></code>, <code class="docutils literal notranslate"><span class="pre">*.x</span></code>, <code class="docutils literal notranslate"><span class="pre">*.g</span></code>) (PLOT3D User Manual,
+Section 8.2)</p>
+<ul>
+<li><p>Unformatted FORTRAN (binary, and contains leading- and trailing-
+32-bit record separators)</p></li>
+<li><p>Multi-grid</p></li>
+<li><p>Single precision</p></li>
+<li><p>No IBLANKS</p></li>
+</ul>
+</li>
+<li><p>3D Function file (<code class="docutils literal notranslate"><span class="pre">*.p3d</span></code>, <code class="docutils literal notranslate"><span class="pre">*.f</span></code>) (PLOT3D User Manual, Section
+8.4)</p>
+<ul>
+<li><p>Unformatted FORTRAN (binary, and contains leading- and trailing-
+32-bit record separators)</p></li>
+<li><p>Multi-grid</p></li>
+<li><p>Single precision</p></li>
+<li><p>Assumes only one scalar variable per vertex (in user manual,
+<code class="docutils literal notranslate"><span class="pre">NVAR=1</span></code>)</p></li>
+</ul>
+</li>
+</ul>
+<p>Note that the uPSP software does <em>not</em> ingest solution files (<code class="docutils literal notranslate"><span class="pre">*.q</span></code>),
+which normally contain values for the full flow variable solution at
+each grid point. Solution files are more commonly produced by CFD
+solvers and are occasionally confused with function files.</p>
+</section>
+<section id="cart3d-file-formats">
+<span id="sec-cart3d"></span><h3>Cart3D file formats<a class="headerlink" href="#cart3d-file-formats" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://www.nas.nasa.gov/publications/software/docs/cart3d/pages/cart3dTriangulations.html">Cart3D</a>
+is a high-fidelity inviscid analysis package (written at NASA) for conceptual and preliminary
+aerodynamic design. The package defined several <a class="reference external" href="https://www.nas.nasa.gov/publications/software/docs/cart3d/pages/cart3dTriangulations.html">grid file formats</a>
+that are now industry standard. The uPSP software processes the following subset of Cart3D file formats:</p>
+<ul class="simple">
+<li><p>Surface triangulations (<code class="docutils literal notranslate"><span class="pre">*.tri</span></code>) for 3D surface geometry definition</p></li>
+<li><p>Annotated triangulations (<code class="docutils literal notranslate"><span class="pre">*.triq</span></code>) for scalar values defined over
+a surface triangulation</p></li>
+</ul>
+</section>
+</section>
+<section id="targets-file-tgts">
+<span id="sec-tgts-file"></span><h2>“Targets” file (<code class="docutils literal notranslate"><span class="pre">*.tgts</span></code>)<a class="headerlink" href="#targets-file-tgts" title="Permalink to this headline">¶</a></h2>
+<p>In addition to a specification of the model surface geometry, the uPSP
+software must be provided a file that specifies:</p>
+<ul class="simple">
+<li><p>The 3D position and normal for visible key points on the model surface, known
+as targets</p>
+<ul>
+<li><p>These key points must be dark regions on the model surface where
+paint was either not applied to purposefully darked with a stain</p></li>
+</ul>
+</li>
+<li><p>Circular surface regions (position + diameter) where paint is
+not present or is damaged</p></li>
+</ul>
+<p>The targets locations must be outside the model grid by a distance of
+1e-5 +/- 5e-6 inches.</p>
+<p>The file format is commonly called the “targets” file and is defined by
+the DOTS application, a steady-state PSP solver application used at
+NASA, but should be modified to ensure the targets are consistent with
+the grid file. An example is included below.</p>
+<p>Targets File Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#   x            y           z           normal x  normal y  normal z size  i    j   k   name</span>
+<span class="mi">1</span>   <span class="mf">67.02449799</span>  <span class="mf">3.17536973</span> <span class="o">-</span><span class="mf">2.70057420</span>  <span class="mf">0.000000</span>  <span class="mf">0.762017</span> <span class="o">-</span><span class="mf">0.647557</span> <span class="mf">0.433</span> <span class="mi">596</span>  <span class="mi">21</span>  <span class="mi">55</span>  <span class="n">st6</span>
+<span class="mi">2</span>   <span class="mf">66.52809906</span>  <span class="mf">2.83113538</span>  <span class="mf">3.05953808</span>  <span class="mf">0.000000</span>  <span class="mf">0.678209</span>  <span class="mf">0.734869</span> <span class="mf">0.433</span> <span class="mi">596</span>  <span class="mi">85</span>  <span class="mi">50</span>  <span class="n">st7</span>
+<span class="mi">3</span>   <span class="mf">79.28500366</span>  <span class="mf">7.62883166</span> <span class="o">-</span><span class="mf">1.21192827</span>  <span class="mf">0.000420</span>  <span class="mf">0.742280</span> <span class="o">-</span><span class="mf">0.670089</span> <span class="mf">0.433</span> <span class="mi">2261</span> <span class="mi">160</span> <span class="mi">26</span>  <span class="n">st8</span>
+<span class="mi">4</span>   <span class="mf">79.03060150</span>  <span class="mf">7.57744602</span>  <span class="mf">1.26724449</span> <span class="o">-</span><span class="mf">0.000430</span>  <span class="mf">0.718970</span>  <span class="mf">0.695040</span> <span class="mf">0.433</span> <span class="mi">2261</span> <span class="mi">20</span>  <span class="mi">23</span>  <span class="n">st9</span>
+<span class="mi">5</span>   <span class="mf">81.26619721</span>  <span class="mf">2.67079590</span>  <span class="mf">3.20469503</span>  <span class="mf">0.000000</span>  <span class="mf">0.641469</span>  <span class="mf">0.767148</span> <span class="mf">0.433</span> <span class="mi">716</span>  <span class="mi">29</span>  <span class="mi">25</span>  <span class="n">st10</span>
+<span class="mi">6</span>   <span class="mf">95.46779633</span>  <span class="mf">7.70066046</span>  <span class="mf">1.12676893</span>  <span class="mf">0.000000</span>  <span class="mf">0.786289</span>  <span class="mf">0.617859</span> <span class="mf">0.433</span> <span class="mi">2260</span> <span class="mi">17</span>  <span class="mi">30</span>  <span class="n">st11</span>
+<span class="mi">7</span>   <span class="mf">98.17250061</span>  <span class="mf">2.85770474</span>  <span class="mf">3.03950497</span>  <span class="mf">0.000000</span>  <span class="mf">0.677413</span>  <span class="mf">0.735603</span> <span class="mf">0.433</span> <span class="mi">716</span>  <span class="mi">189</span> <span class="mi">27</span>  <span class="n">st12</span>
+<span class="mi">8</span>  <span class="mf">110.63110352</span>  <span class="mf">7.77465312</span>  <span class="mf">1.02533593</span>  <span class="mf">0.000000</span>  <span class="mf">0.826620</span>  <span class="mf">0.562760</span> <span class="mf">0.433</span> <span class="mi">2260</span> <span class="mi">15</span>  <span class="mi">224</span> <span class="n">st13</span>
+</pre></div>
+</div>
+</section>
+<section id="steady-state-surface-pressure-file">
+<span id="sec-steady-file"></span><h2>Steady-state surface pressure file<a class="headerlink" href="#steady-state-surface-pressure-file" title="Permalink to this headline">¶</a></h2>
+<p>The uPSP software requires a reference, steady-state surface pressure at
+each grid point in order to compute the unsteady fluctuating pressure.
+It supports the following file formats for ingesting steady-state
+pressure data, auto-detected by file extension. It is also dependent on
+the format used for the model grid file.</p>
+<ul class="simple">
+<li><p>PLOT3D function file (<code class="docutils literal notranslate"><span class="pre">*.f</span></code>, <code class="docutils literal notranslate"><span class="pre">*.p3d</span></code>) if the model grid is PLOT3D
+structured</p></li>
+<li><p>Cart3D annotated triangulation (<code class="docutils literal notranslate"><span class="pre">*.triq</span></code>) if the model grid is
+Cart3D unstructured</p></li>
+</ul>
+<p>See <a class="reference internal" href="#plot3d-file-formats"><span class="std std-ref">PLOT3D file formats</span></a> and <a class="reference internal" href="#cart3d-file-formats"><span class="std std-ref">Cart3D file formats</span></a>
+for more details. In both formats, the scalar values
+should be provided as values of the coefficient of pressure (<span class="math notranslate nohighlight">\(C_p\)</span>).</p>
+</section>
+<section id="wind-tunnel-data-wtd">
+<span id="sec-wtd-file"></span><h2>Wind Tunnel Data (<code class="docutils literal notranslate"><span class="pre">*.wtd</span></code>)<a class="headerlink" href="#wind-tunnel-data-wtd" title="Permalink to this headline">¶</a></h2>
+<p>During operations at the NASA Ames UPWT Complex 11-ft test section,
+time-averaged values for positioning of the model in the test
+section and current flow conditions are provided
+by the wind tunnel data systems via a simple, human-readable
+text file simply called the Wind Tunnel Data (<code class="docutils literal notranslate"><span class="pre">*.wtd</span></code>) file.</p>
+<p>An example WTD file is shown below. Tunnel data system values are written
+tab-delimited with their name in the corresponding header column.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># MACH     ALPHA     BETA     PHI        STRUTZ_UNC</span>
+  <span class="mf">0.838751</span> <span class="o">-</span><span class="mf">0.041887</span> <span class="mf">0.011826</span> <span class="o">-</span><span class="mf">90.000000</span> <span class="mf">3.012192</span>
+</pre></div>
+</div>
+<p>There are several uPSP applications that make use of data from
+this file:</p>
+<ul class="simple">
+<li><p>The wind-on external calibration step requires an initial guess of
+the model positioning in the test section</p></li>
+<li><p>The “intensity-to-pressure” paint calibration process requires
+the steady-state flow conditions for empirical estimates of the
+model surface temperature in cases where a per-grid-point temperature
+input file is not provided</p></li>
+</ul>
+<p>The uPSP applications make use of the following columns from the
+WTD file (which may have many more columns that are ignored by the uPSP code):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">STRUTZ_UNC</span></code>: (Uncorrected) “strutz” position, or current Z-coordinate of the model strut</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ALPHA</span></code>: (Corrected) Model pitch angle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BETA</span></code>: (Corrected) Model sideslip angle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PHI</span></code>: (Corrected) Model roll angle</p></li>
+</ul>
+<p>The model angles are “corrected” by the wind tunnel data system to
+account for additional bending due to deflection of the sting and
+model mounting system. All coordinates and angles are consistent with definitions
+published by NASA for the 11-ft test section. Technical details about the NASA
+Ames 11-ft test section, including coordinate system definitions and
+naming conventions, are published online by NASA (see
+<a class="reference external" href="https://www.nasa.gov/centers/ames/orgs/aeronautics/windtunnels/11x11-wind-tunnel.html">Unitary Plan Wind Tunnel 11-by 11-foot TWT Test Section</a>).</p>
+</section>
+<section id="unsteady-psp-gain-calibration">
+<span id="sec-upsp-gain-file"></span><h2>Unsteady PSP gain calibration<a class="headerlink" href="#unsteady-psp-gain-calibration" title="Permalink to this headline">¶</a></h2>
+<p>The uPSP software requires a pre-computed calibration for converting
+intensity ratios from camera pixel values into physical units of
+pressure.</p>
+<p>The calibration has 6 coefficients (<code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code>, <code class="docutils literal notranslate"><span class="pre">c</span></code>, <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">e</span></code>,
+<code class="docutils literal notranslate"><span class="pre">f</span></code>) that should be provided in a plain text file, example as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="mf">1.1</span>
+<span class="n">b</span> <span class="o">=</span> <span class="mf">2.2</span>
+<span class="n">c</span> <span class="o">=</span> <span class="mf">3.3</span>
+<span class="n">d</span> <span class="o">=</span> <span class="mf">4.4</span>
+<span class="n">e</span> <span class="o">=</span> <span class="mf">5.5</span>
+<span class="n">f</span> <span class="o">=</span> <span class="mf">6.6</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="swdd.html#phase-2-processing"><span class="std std-ref">Phase 2 processing</span></a> for their usage in a polynomial
+relation between pressure, temperature, and the unsteady gain value.</p>
+</section>
+<section id="camera-to-tunnel-calibration">
+<span id="sec-cam-cal-file"></span><h2>Camera-to-tunnel calibration<a class="headerlink" href="#camera-to-tunnel-calibration" title="Permalink to this headline">¶</a></h2>
+<p>The camera-to-tunnel calibration file contains the intrinsic camera
+parameters as well as the extrinsic camera parameters relative to the
+tunnel origin. It is a JSON file with the following elements:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">uPSP_cameraMatrix</span></code>: Camera Matrix formatted as <code class="docutils literal notranslate"><span class="pre">[[f,</span> <span class="pre">0,</span> <span class="pre">dcx],</span> <span class="pre">[0,</span> <span class="pre">f,</span>
+<span class="pre">dcy],</span> <span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]]</span></code>, where f is the focal length (in pixels), and (dcx,
+dcy) is the vector in pixel space from the image center to the
+principal point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">distCoeffs</span></code>: OpenCV 5-parameter lens distortion coefficients formatted
+as <code class="docutils literal notranslate"><span class="pre">[k1,</span> <span class="pre">k2,</span> <span class="pre">p1,</span> <span class="pre">p2,</span> <span class="pre">k3]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rmat</span></code>: rotation matrix from camera to tunnel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tvec</span></code>: translation vector from camera to tunnel</p></li>
+</ul>
+<p>Optional:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sensor_resolution</span></code>: Camera sensor resolution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sensor_size</span></code>: Camera sensor physical size</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Updated</span></code>: Date of last update to this file</p></li>
+</ul>
+</section>
+<section id="psp-process-configuration-inp">
+<span id="sec-input-deck"></span><h2><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> configuration (<code class="docutils literal notranslate"><span class="pre">*.inp</span></code>)<a class="headerlink" href="#psp-process-configuration-inp" title="Permalink to this headline">¶</a></h2>
+<p>The input deck file was designed to coordinate most of the inputs and
+options needed for <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>. It is also a good reference for
+which files influenced the final processed results. Descriptions of all
+the variables included in the input deck are included in <a class="reference internal" href="#input-deck"><span class="std std-numref">Table 1</span></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@general
+    test = my-test-event-name
+    run = 1234
+    sequence = 56
+    tunnel = ames_unitary
+@vars
+    dir = /nobackup/upsp/test_name
+@all
+    sds = $dir/inputs/123456.wtd
+    grid = $dir/inputs/test-subject.grid
+    targets = $dir/inputs/test-subject.tgts
+@camera
+    number = 1
+    cine = $dir/inputs/12345601.cine
+    calibration = $dir/inputs/cam01-to-model.json
+    aedc = false
+@camera
+    number = 2
+    filename = $dir/inputs/12345602.mraw
+  calibration = $dir/inputs/cam02-to-model.json
+    aedc = false
+@options
+    target_patcher = polynomial
+    registration = pixel
+    overlap = best_view
+    filter = gaussian
+    filter_size = 3
+    oblique_angle = 70
+    number_frames = 2000
+@output
+    dir = $dir/outputs
+</pre></div>
+</div>
+<span id="input-deck"></span><table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> input deck parameter descriptions.</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 5%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>Variable</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Required?</p></th>
+<th class="head"><p>How it is used</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>General</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>test</p></td>
+<td><p>test id number</p></td>
+<td><p>yes</p></td>
+<td><p>included in output HDF5 files</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>run</p></td>
+<td><p>run number</p></td>
+<td><p>yes</p></td>
+<td><p>included in output HDF5 files</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>sequence</p></td>
+<td><p>sequence number</p></td>
+<td><p>yes</p></td>
+<td><p>included in output HDF5 files</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>tunnel</p></td>
+<td><p>tunnel identifier</p></td>
+<td><p>yes</p></td>
+<td><p>used for determining which tunnel transformations and input files to expect,
+only currently support <code class="docutils literal notranslate"><span class="pre">ames_unitary</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Vars</p></td>
+<td></td>
+<td><p>allows variables to be set for use within the file</p></td>
+<td><p>no</p></td>
+<td><p>any variable can be used anywhere else in the file when preceeded with <code class="docutils literal notranslate"><span class="pre">$</span></code>, it will
+be replaced with the value when processed</p></td>
+</tr>
+<tr class="row-even"><td><p>All</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>sds</p></td>
+<td><p>wind tunnel data (WTD) file</p></td>
+<td><p>yes</p></td>
+<td><p>many variables are included in the output HDF5 files; used to determine the
+orientation of the model for calibration; used as part of converting
+camera intensity to pressure</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>grid</p></td>
+<td><p>grid file</p></td>
+<td><p>yes</p></td>
+<td><p>will be the basis of the projection from the image plane into space, data will be
+stored, when available, at each grid node</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>targets</p></td>
+<td><p>targets file</p></td>
+<td><p>yes</p></td>
+<td><p>targets used to correct the calibration for this data point; targets and
+fiducials: patched over by the target patcher</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>normals</p></td>
+<td><p>grid vertex normals override</p></td>
+<td><p>no</p></td>
+<td><p>allows for individually setting the normal direction for individual grid nodes, used as part
+of projection, useful for non-watertight structured grids</p></td>
+</tr>
+<tr class="row-odd"><td><p>Camera</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>need a block per camera that will be processed</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>number</p></td>
+<td><p>camera id number</p></td>
+<td><p>yes</p></td>
+<td><p>used to match cine files to the correct camera calibration, should not have duplicate camera numbers</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>cine</p></td>
+<td><p>cine file</p></td>
+<td><p>yes</p></td>
+<td><p>path to the
+camera video file
+that will be
+processed
+(deprecated;
+prefer “filename”
+key instead)</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>aedc</p></td>
+<td><p>aedc cine file type flag</p></td>
+<td><p>no</p></td>
+<td><p>aedc format is
+different than other cine file formats, so it is used to read the cine
+file; default is false</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>filename</p></td>
+<td><p>video file</p></td>
+<td><p>yes</p></td>
+<td><p>path to the
+camera video file. Supported extensions: *.mraw, *.cine.  For
+*.mraw, the *.cih header file must be a sibling file of the *.mraw
+file with the same basename, e.g., <code class="docutils literal notranslate"><span class="pre">video-01.mraw</span></code> and
+<code class="docutils literal notranslate"><span class="pre">video-01.cih</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>calibration</p></td>
+<td><p>model-to-camera external calibration file</p></td>
+<td><p>yes</p></td>
+<td><p>path to external
+camera calibration file (output from <code class="docutils literal notranslate"><span class="pre">upsp-extern</span> <span class="pre">al-calibration</span></code>;
+calibration of camera frame relative to position of wind tunnel model
+in the first frame of the camera video file).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Options</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>target_patcher</p></td>
+<td><p>type of target patching</p></td>
+<td><p>no</p></td>
+<td><p>decide what type of target patching is implemented, supports either <code class="docutils literal notranslate"><span class="pre">polynomial</span></code> or
+<code class="docutils literal notranslate"><span class="pre">none</span></code>; default is <code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>registration</p></td>
+<td><p>image registration type</p></td>
+<td><p>no</p></td>
+<td><p>decide what type of image registration to perform, supports either <code class="docutils literal notranslate"><span class="pre">pixel</span></code> or
+<code class="docutils literal notranslate"><span class="pre">none</span></code>; default is <code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>overlap</p></td>
+<td><p>multi-view handling</p></td>
+<td><p>no</p></td>
+<td><p>specify how to handle points that are visible from multiple cameras, supports either
+<code class="docutils literal notranslate"><span class="pre">best_view</span></code> or <code class="docutils literal notranslate"><span class="pre">average_view</span></code>; default is <code class="docutils literal notranslate"><span class="pre">average_view</span></code></p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>filter</p></td>
+<td><p>image plane filtering</p></td>
+<td><p>no</p></td>
+<td><p>decide what type of filtering to apply to each image prior to projection, supports
+either <code class="docutils literal notranslate"><span class="pre">gaussian</span></code> or <code class="docutils literal notranslate"><span class="pre">none</span></code>; default is <code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>filter_size</p></td>
+<td><p>size of the filter</p></td>
+<td><p>yes</p></td>
+<td><p>decide how large the filter will be in pixels, must be odd</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>oblique_angle</p></td>
+<td><p>minimum projection angle</p></td>
+<td><p>no</p></td>
+<td><p>minimum angle between grid surface plane and camera ray to be considered visible by
+the camera; default 70 (degrees)</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>number_frames</p></td>
+<td><p>number of frames to process</p></td>
+<td><p>yes</p></td>
+<td><p>number of camera frames to process (-1 = all frames)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>dir</p></td>
+<td><p>output directory</p></td>
+<td><p>yes</p></td>
+<td><p>destination directory for output files</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="external-camera-calibration-configuration-parameters">
+<span id="sec-excal-file"></span><h2>External camera calibration configuration parameters<a class="headerlink" href="#external-camera-calibration-configuration-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The external calibration application requires a set of configuration
+parameters. These parameters are mainly static parameters related to the
+tunnel, model setup in the tunnel, or hyper parameters related to the
+external calibration process. This input is stored as a JSON with the
+following elements:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">oblique_angle</span></code>: Oblique viewing angle for target visibility checks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tunnel-cor_to_tgts_tvec</span></code>: Tunnel center of rotation to targets frame
+translation vector</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tunnel-cor_to_tgts_rmat</span></code>: Tunnel center of rotation to targets frame
+rotation matrix</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tunnel-cor_to_tunnel-origin_tvec</span></code>: Tunnel center of rotation to tunnel
+origin translation vector</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tunnel-cor_to_tunnel-origin_rmat</span></code>: Tunnel center of rotation to tunnel
+origin rotation matrix</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dot_blob_parameters</span></code>: Blob detection parameters to find sharpie
+targets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dot_pad</span></code>: Sharpie target padding distance for sub-pixel localization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kulite_pad</span></code>: Kulite target padding distance for sub-pixel localization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_dist</span></code>: Maximum matching distance between a wind-off target
+position and a detected target</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_dist</span></code>: Minimum distance between two targets before they become too
+close and ambiguous</p></li>
+</ul>
+<p>Optional:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Updated</span></code>: Date of last update to this file</p></li>
+</ul>
+</section>
+<section id="batch-processing-configuration">
+<h2>Batch processing configuration<a class="headerlink" href="#batch-processing-configuration" title="Permalink to this headline">¶</a></h2>
+<section id="datapoint-index">
+<h3>Datapoint index<a class="headerlink" href="#datapoint-index" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;__meta__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;config_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: alias for this index file, e.g., &#39;default&#39;&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;test_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: alias for the wind tunnel test name, e.g., &#39;my-test-event-name&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;&lt;string: unique datapoint ID number, e.g., &#39;123456&#39;&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;camera_tunnel_calibration_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: directory containing camera-to-tunnel calibration files&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;camera_video_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to directory containing camera video files&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;grid_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to 3D model grid file&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;kulites_files_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to folder containing kulite *.slow, *.fast, *.info files&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;normals_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string (optional): path to grid normals override file&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;paint_calibration_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to uPSP unsteady gain calibration file&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;steady_psp_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to steady-state PSP PLOT3D function file&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;targets_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to targets file containing registration targets and fiducials&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;wtd_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: path to wind tunnel data file&gt;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Each input file is described in more detail in other sections of this chapter</p></li>
+<li><p>In the case of <code class="docutils literal notranslate"><span class="pre">*.mraw</span></code>-formatted camera video files, it is assumed
+that the corresponding <code class="docutils literal notranslate"><span class="pre">*.cih</span></code> video header file is a sibling of
+the <code class="docutils literal notranslate"><span class="pre">*.mraw</span></code> file in the same folder, with the same name (e.g.,
+<code class="docutils literal notranslate"><span class="pre">12345601.mraw</span></code> and <code class="docutils literal notranslate"><span class="pre">12345601.cih</span></code>).</p></li>
+</ul>
+</section>
+<section id="processing-pipeline-configuration-parameters">
+<h3>Processing pipeline configuration parameters<a class="headerlink" href="#processing-pipeline-configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<p>The processing parameters file is a single location for the user to
+specify parameter values for all applications in the processing
+pipeline.</p>
+<p>The file is structured to allow the user to specify a set of default
+values as well as one or more “overlays” to customize parameter values
+for individual datapoints or for sets of datapoints that share common
+characteristics. Each overlay is applied to a datapoint based on whether
+one or more key-value pairs in its entry in the datapoint index (see
+<a class="reference internal" href="#datapoint-index"><span class="std std-ref">Datapoint index</span></a>) matches a series of regular
+expressions (specified using Python-format syntax, see
+<a class="reference external" href="https://docs.python.org/3/library/re.html#regular-expression-syntax">here</a>).</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;__meta__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: alias for these parameter settings, e.g., &#39;default&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;processing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;defaults&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;psp_process&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;cutoff_x_max&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;filter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;filter_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;number_frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;oblique_angle&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;registration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pixel&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;target_patcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;polynomial&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;external-calibration&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;Updated&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;07/27/2021&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;dot_blob_parameters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;filterByColor&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;filterByArea&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;filterByCircularity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;filterByInertia&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;filterByConvexity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;thresholdStep&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minThreshold&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;maxThreshold&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minRepeatability&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minDistBetweenBlobs&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;blobColor&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minArea&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;maxArea&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minCircularity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.72</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;maxCircularity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.95</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minInertiaRatio&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.25</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;maxInertiaRatio&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1.01</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;minConvexity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.94</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="s2">&quot;maxConvexity&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1.01</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;dot_pad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;image_dims&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">512</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;kulite_pad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;max_dist&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;min_dist&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;model_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">87.1388</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;oblique_angle&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;sensor_resolution&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">800</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;sensor_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.8818898</span><span class="p">,</span><span class="w"> </span><span class="mf">1.4110236</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;sting_offset&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">-195.5125</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;tgts_transformation_rmat&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;tgts_transformation_tvec&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">-32.8612</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;tunnel-cor_to_tgts_tvec&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">-195.5125</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;test-model-geometry-2&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;external-calibration&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;model_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">123.456</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;test-model-geometry-3&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;external-calibration&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;model_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">150.456</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;__overlays__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="s2">&quot;defaults&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;.*&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;.*&quot;</span><span class="p">}],</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="s2">&quot;test-model-geometry-2&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;grid_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;.*test-model-geometry-2.*&quot;</span><span class="p">}]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="s2">&quot;test-model-geometry-3&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;grid_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;.*test-model-geometry-3.*&quot;</span><span class="p">}]</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Each child of <code class="docutils literal notranslate"><span class="pre">&quot;processing&quot;</span></code> NOT named <code class="docutils literal notranslate"><span class="pre">__overlays__</span></code> specifies
+some/all parameter values for some/all applications in the pipeline, and
+is referred to here as a “parameter set”. Each parameter set is given a
+name, for example, <code class="docutils literal notranslate"><span class="pre">&quot;defaults&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;test-model-geometry-3&quot;</span></code> in the above file.
+Each parameter set need not specify every available application
+parameter; in the example above, <code class="docutils literal notranslate"><span class="pre">&quot;defaults&quot;</span></code> contains a full
+specification, whereas <code class="docutils literal notranslate"><span class="pre">&quot;test-model-geometry-3&quot;</span></code> contains a specific value just
+to override the <code class="docutils literal notranslate"><span class="pre">&quot;model_length&quot;</span></code> parameter of the <code class="docutils literal notranslate"><span class="pre">&quot;external-calibration&quot;</span></code>
+pipeline application. The <code class="docutils literal notranslate"><span class="pre">&quot;test-model-geometry-3&quot;</span></code> overlay is applied to all
+datapoints whose <code class="docutils literal notranslate"><span class="pre">&quot;grid_file&quot;</span></code> matches the regular expression <code class="code highlight python docutils literal notranslate"><span class="sa"><span class="pre">r</span></span><span class="s2"><span class="pre">&quot;.*test-model-geometry-2.*&quot;</span></span></code></p>
+<p>In general, all parameter names map to corresponding parameters supplied
+directly to each pipeline application when running them individually/manually
+(see <a class="reference internal" href="swdd.html#pipeline-application-design-details"><span class="std std-ref">Pipeline Application Design Details</span></a>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">__overlays__</span></code> section specifies how to use the parameter sets to
+configure each datapoint. The user must provide a list of overlay
+entries, each in the format <code class="docutils literal notranslate"><span class="pre">[&lt;name&gt;,</span> <span class="pre">&lt;patterns&gt;]</span></code>. Each datapoint
+matching the contents of <code class="docutils literal notranslate"><span class="pre">&lt;patterns&gt;</span></code> will use the parameter values
+given by the parameter set named <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code>. Overlays are applied in the
+order listed, so in the example above, the <code class="docutils literal notranslate"><span class="pre">config123</span></code> parameter set
+will override any values already specified in <code class="docutils literal notranslate"><span class="pre">defaults</span></code>. The usage of
+<code class="docutils literal notranslate"><span class="pre">&lt;patterns&gt;</span></code> for matching a datapoint is as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;patterns&gt;</span></code> is a dictionary where each key <code class="docutils literal notranslate"><span class="pre">k</span></code> and each value
+<code class="docutils literal notranslate"><span class="pre">v</span></code> are regular expression strings (Python-format)</p></li>
+<li><p>For each entry in <code class="docutils literal notranslate"><span class="pre">&lt;patterns&gt;</span></code>, and for each input in the index
+JSON (<code class="docutils literal notranslate"><span class="pre">grid_file</span></code>, <code class="docutils literal notranslate"><span class="pre">targets_file</span></code>, etc.)</p>
+<ul>
+<li><p>If the input key matches the regular expression given by <code class="docutils literal notranslate"><span class="pre">k</span></code>,
+then</p></li>
+<li><p>The input value is tested against the regular expression given by
+<code class="docutils literal notranslate"><span class="pre">v</span></code>.</p></li>
+</ul>
+</li>
+<li><p>If all tests pass for all entries in <code class="docutils literal notranslate"><span class="pre">&lt;patterns&gt;</span></code>, then the
+datapoint “matches.”</p></li>
+</ul>
+</section>
+<section id="portable-batch-scheduler-pbs-job-configuration-parameters">
+<h3>Portable Batch Scheduler (PBS) job configuration parameters<a class="headerlink" href="#portable-batch-scheduler-pbs-job-configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;__meta__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: alias for these NAS settings, e.g., &#39;default&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;nas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;__defaults__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;charge_group&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: UNIX group id, e.g., &#39;g1234&#39;&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;node_model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: NAS node mode, e.g., &#39;ivy&#39;&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;queue&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: NAS job queue name, e.g., &#39;normal&#39;&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;number_nodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;integer: number of NAS nodes for processing, e.g., 10&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;external-calibration&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;launcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;wall_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: wall clock time to run this step, per data point, e.g., &#39;00:10:00&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;extract-first-frame&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;launcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;wall_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: wall clock time to run this step, per data point, e.g., &#39;00:10:00&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;psp_process&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;launcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;serial&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;number_nodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;integer: number of NAS nodes for processing, e.g., 40&gt;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;wall_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: wall clock time to run this step, per data point, e.g., &#39;00:10:00&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;render-images&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;launcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;wall_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: wall clock time to run this step, per data point, e.g., &#39;00:10:00&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Each step in the pipeline should be assigned a full set of NAS job
+parameters. A set of <code class="docutils literal notranslate"><span class="pre">__defaults__</span></code> will apply to all steps, and then
+optional overrides can be provided in a section named for each step. The
+job parameters are used by <code class="docutils literal notranslate"><span class="pre">qsub-step</span></code> to launch step jobs on the NAS
+cluster nodes, and are tuned primarily by the number of vertices in the
+grid file and the number of frames in each camera video file. See
+<a class="reference internal" href="quick-start.html#guidelines-for-setting-nas-pbs-job-parameters"><span class="std std-ref">Guidelines for setting NAS PBS job parameters</span></a> for more details.</p>
+</section>
+<section id="plotting-configuration-parameters">
+<h3>Plotting configuration parameters<a class="headerlink" href="#plotting-configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;__meta__&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string: alias for these plotting settings, e.g., &#39;default&#39;&gt;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;plotting&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;render-images&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;scalars&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;steady_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Steady State&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;contours&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">-1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.6</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;rms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;display_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;delta Cp RMS&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;contours&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.005</span><span class="p">,</span><span class="w"> </span><span class="mf">0.01</span><span class="p">,</span><span class="w"> </span><span class="mf">0.015</span><span class="p">,</span><span class="w"> </span><span class="mf">0.02</span><span class="p">,</span><span class="w"> </span><span class="mf">0.025</span><span class="p">,</span><span class="w"> </span><span class="mf">0.03</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;grids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;config111&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;views&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;left-side&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">123.4</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">123.4</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">123.4</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;psi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">120.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">              </span><span class="nt">&quot;imagewidth&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1280</span><span class="w"></span>
+<span class="w">            </span><span class="p">},</span><span class="w"></span>
+<span class="w">          </span><span class="p">},</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;exclude_zones&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">101</span><span class="p">,</span><span class="w"> </span><span class="mi">120</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;generate-miniwall&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;variables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mach&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%4.3f&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">0.85</span><span class="p">,</span><span class="w"> </span><span class="mf">0.9</span><span class="p">]},</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%4.2f&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">10.0</span><span class="p">]},</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;beta&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;%4.2f&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;values&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"> </span><span class="mf">10.0</span><span class="p">]}</span><span class="w"></span>
+<span class="w">      </span><span class="p">],</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;selectors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;beta&quot;</span><span class="p">],</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;layout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;cols&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mach&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;rows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;beta&quot;</span><span class="p">]},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;site&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;page_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My MiniWall&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;images_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;images&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;model_config_prefix&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PREFIX&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;run_log&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;model_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;111&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;my-run-log.txt&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="p">},</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;image_discovery&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;ext&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;patterns&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;datapoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[0-9]{6}&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;panel_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[0-9][0-9]&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;cache&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;lib/image_discovery.json&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>All parameters map to corresponding elements of the <code class="docutils literal notranslate"><span class="pre">upsp-plotting</span></code>
+configuration file (see <a class="reference internal" href="swdd.html#pipeline-application-design-details"><span class="std std-ref">Pipeline Application Design Details</span></a>).</p>
+</section>
+</section>
+<section id="output-files-from-psp-process">
+<h2>Output files from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code><a class="headerlink" href="#output-files-from-psp-process" title="Permalink to this headline">¶</a></h2>
+<p>Output data from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> consists of <span class="math notranslate nohighlight">\(\Delta C_p\)</span>
+measurements versus time for all nodes of the user-provided wind tunnel
+model grid. The measurements are provided either in raw binary format or
+bundled into an HDF5 file. In addition, metadata containing the model
+grid definition, wind tunnel conditions, and camera settings are bundled
+with the measurements in the HDF5 file.</p>
+<section id="pressure-time-history-raw-binary-outputs">
+<span id="sec-pressure-transpose-file"></span><h3>Pressure-time history raw binary outputs<a class="headerlink" href="#pressure-time-history-raw-binary-outputs" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> application will produce two (often large) binary
+files called <code class="docutils literal notranslate"><span class="pre">pressure</span></code> and <code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code>. If using the batch
+processing tools (described in <a class="reference internal" href="#batch-processing-configuration"><span class="std std-ref">Batch processing configuration</span></a>),
+these files will be available in the <code class="docutils literal notranslate"><span class="pre">output/10_other/additional_output</span></code> subdirectory
+for each datapoint; otherwise, they will be available in the directory
+supplied to <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> using the <code class="docutils literal notranslate"><span class="pre">--add_out_dir</span></code> command line
+option. Both files contain the same data, however, the formatting
+differs to facilitate downstream use cases.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">pressure</span></code> binary file is formatted as follows. For a given
+datapoint, the primary output data from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> is the
+pressure-time history, defined as a matrix <span class="math notranslate nohighlight">\(P\)</span> of size
+<span class="math notranslate nohighlight">\([N_f \times N_m]\)</span> where <span class="math notranslate nohighlight">\(N_f\)</span> is the number of frames from
+a uPSP camera (all cameras are synchronized, so this corresponds to the
+number of time steps) and <span class="math notranslate nohighlight">\(N_m\)</span> is the number of grid nodes. If we
+let <span class="math notranslate nohighlight">\(i = 1, 2, \ldots, N_f\)</span>, and <span class="math notranslate nohighlight">\(j = 1, 2, \ldots, N_m\)</span>,
+then element <span class="math notranslate nohighlight">\(P_{i, j}\)</span> corresponds to the unsteady pressure
+(<span class="math notranslate nohighlight">\(\Delta C_p\)</span>) measured during the <span class="math notranslate nohighlight">\(i\)</span>’th time step at the
+location of the <span class="math notranslate nohighlight">\(j\)</span>’th model grid node (the ordering of grid
+nodes corresponds one-to-one with the ordering in the user-supplied
+model grid definition file; see <a class="reference internal" href="#surface-grid-definition"><span class="std std-ref">Surface grid definition</span></a>).
+Equivalently, rows of <span class="math notranslate nohighlight">\(P\)</span> correspond to snapshots of the pressure
+distribution over the entire grid at each time step. The <code class="docutils literal notranslate"><span class="pre">pressure</span></code>
+binary file contains the matrix <span class="math notranslate nohighlight">\(P\)</span> written to disk in row-major
+format, where each value is a 32-bit, little endian, IEEE floating point
+number. This corresponds to the following sequence of matrix elements:</p>
+<div class="math notranslate nohighlight">
+\[P_{1,1}, P_{1,2}, ..., P_{1,N_m}, P_{2,1}, P_{2,2}, ..., P_{2,N_m}, ..., P_{N_f,1}, P_{N_f,2}, ..., P_{N_f,N_m}\]</div>
+<p>Because this file can be quite large (for example, a grid with 1 million
+nodes and a datapoint with 50,000 time points will have a total of 50
+billion floating point values, corresponding to approximately 186 GB),
+performance of file read operations can become an issue during
+post-processing. It is advantageous to read contiguous values from the
+file, meaning the <code class="docutils literal notranslate"><span class="pre">pressure</span></code> binary file is best suited for analyses
+of the <em>entire</em> model grid for a <em>subset</em> of time history.</p>
+<p>To facilitate analyses of the <em>entire</em> time history for a <em>subset</em> of
+model grid nodes, a separate <code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code> file is also
+generated. It contains the values of the <em>transpose</em> of <span class="math notranslate nohighlight">\(P\)</span>
+written to disk in a similar row-major format. This corresponds to the
+following sequence of matrix elements:</p>
+<div class="math notranslate nohighlight">
+\[P_{1,1}, P_{2,1}, ..., P_{N_f,1}, P_{1,2}, P_{2,2}, ..., P_{N_f,2}, ..., P_{1,N_m}, P_{2,N_m}, ..., P_{N_f,N_m}\]</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code> file, the time history for each individual
+grid node is contiguous in memory.</p>
+<p>The following Python code snippet demonstrates how the
+<code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code> flat file may be used to obtain the time history
+for a single model grid node:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="k">def</span> <span class="nf">read_pressure_transpose</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">number_grid_nodes</span><span class="p">,</span> <span class="n">node_index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a 1-D numpy array containing model grid node pressure time history</span>
+<span class="sd">    - filename: path to pressure_transpose file</span>
+<span class="sd">    - number_grid_nodes: total number of model grid nodes</span>
+<span class="sd">    - node_index: index of grid node (zero-based) in model grid file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filesize_bytes</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">itemsize_bytes</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># 32-bit floating point values</span>
+    <span class="n">number_frames</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">filesize_bytes</span> <span class="o">/</span> <span class="n">itemsize_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="n">number_grid_nodes</span><span class="p">)</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">number_frames</span> <span class="o">*</span> <span class="n">number_grid_nodes</span> <span class="o">*</span> <span class="n">itemsize_bytes</span> <span class="o">==</span> <span class="n">filesize_bytes</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">node_index</span> <span class="o">*</span> <span class="n">number_frames</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">number_frames</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="hdf5-formatted-files">
+<h3>HDF5-formatted files<a class="headerlink" href="#hdf5-formatted-files" title="Permalink to this headline">¶</a></h3>
+<p>HDF5-formatted files are also provided containing the pressure-time
+history solution matrix and associated metadata.</p>
+</section>
+<section id="diagnostics-and-quality-checks">
+<h3>Diagnostics and quality checks<a class="headerlink" href="#diagnostics-and-quality-checks" title="Permalink to this headline">¶</a></h3>
+<p>There are a number of additional outputs that are useful for checking
+behavior of the processing code and to check quality of input data
+files. By default, outputs are stored in the output directory specified
+in the input deck file; this can be overridden using the
+<code class="docutils literal notranslate"><span class="pre">-add_out_dir</span></code> command line option. <a class="reference internal" href="#psp-process-quality-checks"><span class="std std-numref">Table 2</span></a>
+describes each output file in more detail.</p>
+<span id="psp-process-quality-checks"></span><table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-number">Table 2 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> output files for diagnostics and quality checks. The prefix <code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;</span></code> refers to an image from camera <code class="docutils literal notranslate"><span class="pre">XX</span></code>.</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-8bit-raw.png</span></code></p></td>
+<td><p>first frame, scaled to 8-bit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-raw.exr</span></code></p></td>
+<td><p>first frame, converted to high-dynamic-range, 32-bit, OpenEXR format. High-fidelity representation of the first frame from the camera. Pixel values are equal to those in the source image — all supported source video files have less than 32 bits per pixel, so 32-bit OpenEXR provides a way to preserve fidelity across vendor-specific input video files.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-8bit-projected-fiducials.png</span></code></p></td>
+<td><p>first frame, scaled to 8-bit, with fiducial positions from the <code class="docutils literal notranslate"><span class="pre">tgts</span></code> file projected into the frame accounting for occlusion and obliqueness checks, using the input external calibration parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-8bit-fiducial-clusters.png</span></code></p></td>
+<td><p>first frame, scaled to 8-bit, with fiducials colored according to their cluster ID (only clusters with &gt;1 fiducial are assigned colors)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-8bit-cluster-boundaries.png</span></code></p></td>
+<td><p>first frame, scaled to 8-bit, showing boundaries drawn around fiducial clusters. Pixels inside the drawn boundaries will be “patched” by replacing their values with a polynomial interpolant (prior to projection to the 3D grid)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;camXX&gt;-nodecount.png</span></code></p></td>
+<td><p>first frame, colormapped to show # grid nodes mapped to each pixel. Ideally, if no image filter is used, then there should be an approximate one-to-one map of grid nodes to pixel; otherwise, an image filter can be used to average neighboring pixels, so that pixels with no grid node will have their value averaged into a neighboring value that does map to a grid node. If there are many more grid nodes than pixels, then it may indicate the grid resolution is over-specified compared to the resolution of the camera.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/file-formats.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

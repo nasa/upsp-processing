@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.intensity_mapping.patching &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.kulite_comparison" href="upsp.kulite_comparison.html" />
+    <link rel="prev" title="upsp.intensity_mapping.node_pixel_mapping" href="upsp.intensity_mapping.node_pixel_mapping.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a><ul>
+      <li>Previous: <a href="upsp.intensity_mapping.node_pixel_mapping.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping.node_pixel_mapping</span></code></a></li>
+      <li>Next: <a href="upsp.kulite_comparison.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.intensity_mapping.patching">
+<span id="upsp-intensity-mapping-patching"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping.patching</span></code><a class="headerlink" href="#module-upsp.intensity_mapping.patching" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.clusterFiducials">
+<span class="sig-name descname"><span class="pre">clusterFiducials</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fiduals_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#clusterFiducials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.clusterFiducials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clusters input fiducials based on image location and image size</p>
+<p>A cluster is made of all fiducials with a path of overlap between them, i.e. A is
+overlapping B which is overlapping C and D, therefore A, B, C, and D are all in the
+same cluster. It is considered overlap if the internal pixels to one fiducial
+overlap the internal or boundary pixels of another fiducial. A cluster can be a
+single fiducial if there is no overlap.</p>
+<p>This function clusters targets, then returns the clusters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fiduals_visible</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Each fiducial is a dict with (at a minimum) ‘tvec’ and ‘target_type’ attributes.
+The ‘tvec’ attribute gives the fiducial’s location and ‘target_type’ is a string
+denoting the type of fiducial (most commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Thickness of boundary (in pixels)</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>clusters</strong> – List of clusters, where each cluster is a list of fiducials from
+<cite>fiducials_visible</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.get_cluster_internal_and_boundary">
+<span class="sig-name descname"><span class="pre">get_cluster_internal_and_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#get_cluster_internal_and_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.get_cluster_internal_and_boundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of internal and boundary pixels for the input cluster</p>
+<p>An internal pixel is either directly a part of the fiducials or in between
+fiducials. A boundary pixel is any pixel within buffer pixels of an internal pixel
+and is not an internal itself</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – List of fiducials in the cluster. Each fiducial is a dict with (at a minimum)
+‘tvec’ and ‘target_type’ attributes.  The ‘tvec’ attribute gives the fiducial’s
+location and ‘target_type’ is a string denoting the type of fiducial (most
+commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3x3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – thickness of boundary (in pixels)</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>internals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – Positions (x, y) of the <code class="docutils literal notranslate"><span class="pre">n</span></code> internal points</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(m</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – Positions (x, y) of the <code class="docutils literal notranslate"><span class="pre">m</span></code> boundary pixels</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map" title="upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_boundary_map_from_internal_map</span></code></a></dt><dd><p>Determines boundary pixels from bit mask of internal pixels</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_pixel_properties" title="upsp.intensity_mapping.patching.get_fiducial_pixel_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_pixel_properties</span></code></a></dt><dd><p>Returns the pixel properties of the input fiducial</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map">
+<span class="sig-name descname"><span class="pre">get_fiducial_boundary_map_from_internal_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">internal_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#get_fiducial_boundary_map_from_internal_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines boundary pixels from bit mask of internal pixels</p>
+<p><cite>internal_map</cite> is a bitwise mask (image) where 1 is an internal and 0 is not.
+<cite>internal_map</cite> needs to be big enough to contain all boundary pixels. That means it
+needs to have a buffer of 0’s around it that is <cite>boundary_thickness</cite> thick on all
+sides (a number of columns of 0’s left of leftmost internal equal to
+<cite>boundary_thickness</cite>. Same for rightmost. And similarly rows above and below)</p>
+<p>Performs <code class="docutils literal notranslate"><span class="pre">n</span></code> dilation operations on the internal_map with a 3x3 square kernel
+where <code class="docutils literal notranslate"><span class="pre">n</span></code> is equal to boundary_thickness. <cite>boundary_map</cite> (return value) is the
+result minus <cite>internal_map</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>internal_map</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – Bitwise mask of internal pixels</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – thickness of boundary (in pixels)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>boundary_map</strong> – Bitmask of boundary pixels. Same shape as <cite>internal_map</cite> input</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary" title="upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_internal_and_boundary</span></code></a></dt><dd><p>Return internal and boundary pixel positions for the input fiducial</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_cluster_internal_and_boundary" title="upsp.intensity_mapping.patching.get_cluster_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cluster_internal_and_boundary</span></code></a></dt><dd><p>Returns a list of internal and boundary pixels for the input cluster</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary">
+<span class="sig-name descname"><span class="pre">get_fiducial_internal_and_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#get_fiducial_internal_and_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return internal and boundary pixel positions for the input fiducial</p>
+<p>An internal pixel a part of the fiducials (minimum axis aligned bounding rectangle).
+A boundary pixel is any pixel within buffer pixels of an internal pixel and is not
+an internal itself</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgt</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – dict with (at a minimum) ‘tvec’ and ‘target_type’ attributes. The ‘tvec’
+attribute gives the fiducial’s location and ‘target_type’ is a string denoting
+the type of fiducial (most commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3x3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – thickness of boundary (in pixels)</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>internals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – Positions (x, y) of the <code class="docutils literal notranslate"><span class="pre">n</span></code> internal points</p></li>
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(m</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>) – Positions (x, y) of the <code class="docutils literal notranslate"><span class="pre">m</span></code> boundary pixels</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map" title="upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_boundary_map_from_internal_map</span></code></a></dt><dd><p>Determines boundary pixels from bit mask of internal pixels</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_pixel_properties" title="upsp.intensity_mapping.patching.get_fiducial_pixel_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_pixel_properties</span></code></a></dt><dd><p>Returns the pixel properties of the input fiducial</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.get_fiducial_pixel_properties">
+<span class="sig-name descname"><span class="pre">get_fiducial_pixel_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tgt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#get_fiducial_pixel_properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.get_fiducial_pixel_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the pixel properties of the input fiducial</p>
+<p>Pixel properties refers to projected location, pixel size (adjusted for focal
+length, distance to camera, and diameter), and minimum axis-aligned bounding box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tgt</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – dict with (at a minimum) ‘tvec’ and ‘target_type’ attributes. The ‘tvec’
+attribute gives the fiducial’s location and ‘target_type’ is a string denoting
+the type of fiducial (most commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – thickness of boundary (in pixels)</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>tgt_proj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Fiducial projection which is a dict with keys ‘target_type’, and ‘proj’ which
+map to a string and list of positions (length 2, (x, y)) respectively.
+‘target_type’ matches the input ‘target_type’.</p></li>
+<li><p><strong>targ_size_px</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Fiducial size in pixels accounting for the focal length, distance to camera, and
+diameter. Does not take model geometry into account, and is either exactly
+accurate or an over estimate (likely a mild overestimate).</p></li>
+<li><p><strong>t_min</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(2,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Upper left corner of the minimum axis aligned bounding box of the fiducial plus
+boundary pixels.</p></li>
+<li><p><strong>t_max</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(2,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Bottom right corner for the bounding box.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary" title="upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_internal_and_boundary</span></code></a></dt><dd><p>Return internal and boundary pixel positions for the input fiducial</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_cluster_internal_and_boundary" title="upsp.intensity_mapping.patching.get_cluster_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cluster_internal_and_boundary</span></code></a></dt><dd><p>Returns a list of internal and boundary pixels for the input cluster</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.get_target_node_idxs">
+<span class="sig-name descname"><span class="pre">get_target_node_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tgts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#get_target_node_idxs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.get_target_node_idxs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indices of all nodes that are inside of targets</p>
+<p>Returns list of indices of nodes that fall within the patch of a target. This is
+calculated by finding the distance from every node to every target. All nodes that
+are a distance less than <code class="docutils literal notranslate"><span class="pre">tgt['size']</span></code> from the target are marked as ‘invalid’ and
+the indices of those nodes are returned</p>
+<p>This is calculated in a two step procedure for a speedup. It is based on the fact
+that Euclidean distance &lt;= Manhattan distance &lt;= sqrt(3) * euclidean distance, and
+that Manhattan distance is much faster to calculate than Euclidean distance since
+there is no square or square root operation.</p>
+<p>Step 1 calculates the Manhattan distance (L1 norm) from every node to every target.
+If the Manhattan distance is greater than <code class="docutils literal notranslate"><span class="pre">sqrt(3)</span> <span class="pre">*</span> <span class="pre">tgt['size']</span></code>, we know for
+certain that the node is at least <code class="docutils literal notranslate"><span class="pre">tgt['size']</span></code> units of Euclidean distance from
+the target. This will be the vast majority of nodes (all but ~300 for example launch
+vehicle w/ ~1 million nodes).</p>
+<p>Step 2 checks the Euclidean distance of each node that failed the Manhattan distance
+check. Nodes that fall within <code class="docutils literal notranslate"><span class="pre">tgt['size']</span></code> of any target are marked as invalid
+and their index is returned.</p>
+<p>If a large portion of the nodes are near a target, this process would be slow since
+it is effectively double calculating any node near a target. However, since the
+targets are relatively small compared to the surface area of the model, it results
+in a roughly 2X speedup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – A numpy array of the X, Y, and Z values of the nodes</p></li>
+<li><p><strong>tgts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Each target is a dictionary with (at a minimum) a ‘tvec’ and ‘size’ attribute.
+The ‘tvec’ attribute gives the target’s location and the ‘size’ gives the
+Euclidean distance from the center of the target to the perimeter</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>nodes_in_targets</strong> – Sorted array of the indices (<code class="docutils literal notranslate"><span class="pre">np.int32</span></code>) of the nodes that are inside of a
+target</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.patchFiducials">
+<span class="sig-name descname"><span class="pre">patchFiducials</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fiduals_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inp_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_thickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_thickness_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#patchFiducials"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.patchFiducials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Patches clusters in the <cite>inp_img</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fiduals_visible</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – Each fiducial is a dict with (at a minimum) ‘tvec’ and ‘target_type’ attributes.
+The ‘tvec’ attribute gives the fiducial’s location and ‘target_type’ is a string
+denoting the type of fiducial (most commonly ‘dot’ or ‘kulite’)</p></li>
+<li><p><strong>inp_img</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">np.uint8</span></code>) – Input image to be patched. <cite>rmat</cite> and <cite>tvec</cite> should be aligned to image</p></li>
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3x3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>boundary_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Thickness of boundary (in pixels)</p></li>
+<li><p><strong>buffer_thickness_in</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Buffer (in inches) to add to fiducials when determining internals applied
+radially (increases effective radius of fiducial by <cite>buffer_thickness_in</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out_img</strong> – Image with patched fiducials</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary" title="upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fiducial_internal_and_boundary</span></code></a></dt><dd><p>Return internal and boundary pixel positions for the input fiducial</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.get_cluster_internal_and_boundary" title="upsp.intensity_mapping.patching.get_cluster_internal_and_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cluster_internal_and_boundary</span></code></a></dt><dd><p>Returns a list of internal and boundary pixels for the input cluster</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.polyfit2D" title="upsp.intensity_mapping.patching.polyfit2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polyfit2D</span></code></a></dt><dd><p>Finds the polynomial fit using the boundary pixels</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.polyval2D" title="upsp.intensity_mapping.patching.polyval2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polyval2D</span></code></a></dt><dd><p>Finds the value for the internal pixels using the polynomial fit</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.polyfit2D">
+<span class="sig-name descname"><span class="pre">polyfit2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Is</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#polyfit2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.polyfit2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the polynomial fit using the boundary pixels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bounds</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">floats</span></code>) – (x, y) position of boundary pixels in local coordinates (i.e. leftmost boundary
+pixel has x coordinate of 0. Topmost has coordinate of 0). <code class="docutils literal notranslate"><span class="pre">bounds[n]</span></code>
+corresponds to <code class="docutils literal notranslate"><span class="pre">Is[n]</span></code></p></li>
+<li><p><strong>Is</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n,)</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">floats</span></code>) – Intensity value of boundary pixels pixels. <code class="docutils literal notranslate"><span class="pre">Is[n]</span></code> corresponds to
+<code class="docutils literal notranslate"><span class="pre">bounds[n]</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>coeffs</strong> – Polynomial fit coefficients</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.polyval2D" title="upsp.intensity_mapping.patching.polyval2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polyval2D</span></code></a></dt><dd><p>Finds the value for the internal pixels using the polynomial fit</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.patching.polyval2D">
+<span class="sig-name descname"><span class="pre">polyval2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">internals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/patching.html#polyval2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.patching.polyval2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the value for the internal pixels using the polynomial fit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>internals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">floats</span></code>) – (x, y) position of internal pixels in local coordinates (i.e. leftmost boundary
+pixel has x coordinate of 0. Topmost has y coordinate of 0)</p></li>
+<li><p><strong>coeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n,)</span></code>) – Polynomial fit coefficients</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Is</strong> – Estimated intensity for internals</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n,)</span></code></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.patching.polyfit2D" title="upsp.intensity_mapping.patching.polyfit2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polyfit2D</span></code></a></dt><dd><p>Finds the polynomial fit using the boundary pixels</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.intensity_mapping.patching.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

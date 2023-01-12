@@ -1,0 +1,572 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.cam_cal_utils.parsers &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.cam_cal_utils.parsers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="read_tgts"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_tgts">[docs]</a><span class="k">def</span> <span class="nf">read_tgts</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">,</span> <span class="n">output_target_types</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the targets in the tgts file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts_file_path : str</span>
+<span class="sd">        File path to the tgts file</span>
+<span class="sd">    output_target_types : str, list of str, optional</span>
+<span class="sd">        If not None, only targets with a type of or in `output_target_types` will be</span>
+<span class="sd">        read. If None, all target types will be read</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    targets : list of dict</span>
+<span class="sd">        List of targets. Each target is of the form::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &#39;target_type&#39; : class_string, &#39;tvec&#39; : [x, y, z], &#39;norm&#39;, : [x, y, z],</span>
+<span class="sd">                &#39;size&#39;: float, &#39;name&#39;: str, &#39;idx&#39;: int, &#39;zones&#39;: [i, j, k]</span>
+<span class="sd">            }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Package output_target_types</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">output_target_types</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">output_target_types</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">output_target_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">output_target_types</span><span class="p">]</span>
+
+    <span class="n">targets</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">line_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+            <span class="c1"># Populate the line from the csv</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+            <span class="c1"># If the length of the line is greater than 1, attempt to populate the</span>
+            <span class="c1">#   the list of targets</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Read in items listed under &#39;*Targets&#39;</span>
+                <span class="k">if</span> <span class="n">line_type</span> <span class="o">==</span> <span class="s2">&quot;*Targets&quot;</span><span class="p">:</span>
+                    <span class="c1"># If the last element has &#39;st&#39; for &#39;sharpie target&#39; it is a dot</span>
+                    <span class="k">if</span> <span class="s2">&quot;st&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">target_type</span> <span class="o">=</span> <span class="s2">&quot;dot&quot;</span>
+
+                    <span class="c1"># If the last element has &#39;mK&#39; for &#39;masked Kulite&#39; it is a Kulite</span>
+                    <span class="c1">#   (and visible to the camera)</span>
+                    <span class="k">elif</span> <span class="s2">&quot;mK&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">target_type</span> <span class="o">=</span> <span class="s2">&quot;kulite&quot;</span>
+
+                    <span class="c1"># If the last element has &#39;pK&#39; for &#39;painted Kulite&#39; it is a Kulite</span>
+                    <span class="c1">#   (and not visible to the camera)</span>
+                    <span class="k">elif</span> <span class="s2">&quot;pK&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">target_type</span> <span class="o">=</span> <span class="s2">&quot;painted_kulite&quot;</span>
+
+                    <span class="c1"># Otherwise this item is unknown</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">target_type</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c1"># Ignore items in other categories of the tgts file</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># If output_target_types was not given, or the target_type is one of the</span>
+                <span class="c1">#   output_target_types given, grab this target</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">output_target_types</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="n">target_type</span> <span class="ow">in</span> <span class="n">output_target_types</span>
+                <span class="p">):</span>
+                    <span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;target_type&quot;</span><span class="p">:</span> <span class="n">target_type</span><span class="p">,</span>
+                            <span class="s2">&quot;tvec&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]],</span> <span class="mi">1</span><span class="p">),</span>
+                            <span class="s2">&quot;norm&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">7</span><span class="p">]],</span> <span class="mi">1</span><span class="p">),</span>
+                            <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">7</span><span class="p">]),</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s2">&quot;idx&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="s2">&quot;zones&quot;</span><span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">8</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">9</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">])),</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+            <span class="c1"># If the length of the line is 1 or 0, set the line_type to the line&#39;s item</span>
+            <span class="c1">#   if it has one, or set it to None if it has no items</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">line_type</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">targets</span></div>
+
+
+<div class="viewcode-block" id="read_pascal_voc"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_pascal_voc">[docs]</a><span class="k">def</span> <span class="nf">read_pascal_voc</span><span class="p">(</span><span class="n">annot_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return image objects from a PASCAL VOC XML file</span>
+
+<span class="sd">    Reads the input file(s) and returns an list of dicts, where each dict contains the</span>
+<span class="sd">    class, bounding box, and flags of an image object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    annot_path : list or str</span>
+<span class="sd">        This can be a string, or a list of strings (or list-like). Each string is the</span>
+<span class="sd">        path to a label</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : dict or list</span>
+<span class="sd">        If `annot_path` is a single label path, the output is a list of dicts. If</span>
+<span class="sd">        `annot_path` is a list of label paths (or list-like), the output is a list of</span>
+<span class="sd">        lists, where each inner list if a list of dicts.</span>
+<span class="sd">        Each dict is represents an image object and has the keys &#39;class&#39;, &#39;x1&#39;,</span>
+<span class="sd">        &#39;x2&#39;, &#39;y1&#39;, &#39;y2&#39;, &#39;difficult&#39;, and &#39;truncated&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Assert that annot_path is of the right form</span>
+    <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;Error in read_pascal_voc. Input &#39;annot_path&#39; should be a filepath</span><span class="se">\</span>
+<span class="s2">    string or list (or list-like) of filepath strings.&quot;</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">annot_path</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">annot_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">,</span> <span class="n">error_msg</span>
+
+    <span class="c1"># Check if annot_path is a string. If it is not, it should be a list (or list-like)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">annot_path</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">annot_path</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read_pascal_voc</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="c1"># Converts the .xml into a tree file</span>
+    <span class="n">et</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">annot_path</span><span class="p">)</span>
+    <span class="n">element</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+
+    <span class="c1"># Parses PASCAL VOC data into python objects</span>
+    <span class="n">element_objs</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;object&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Populate the annotation_data with the filepath, and image</span>
+    <span class="c1">#   width &amp; height</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">element_obj</span> <span class="ow">in</span> <span class="n">element_objs</span><span class="p">:</span>
+        <span class="c1"># Populate the class_count and class_mapping return variables</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">element_obj</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="c1"># Populate bounding box information</span>
+        <span class="n">obj_bbox</span> <span class="o">=</span> <span class="n">element_obj</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;bndbox&quot;</span><span class="p">)</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">obj_bbox</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;xmin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">obj_bbox</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;ymin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">obj_bbox</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;xmax&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">obj_bbox</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;ymax&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)))</span>
+        <span class="n">difficulty</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_obj</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;difficult&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">truncated</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_obj</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;truncated&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c1">#   LabelImg used the same coordinate system as OpenCV</span>
+        <span class="c1">#   LabelImg clips x1 and y1 to 1, even if the true value is 0</span>
+        <span class="c1">#   For future work, that should be fixed in the annotations.</span>
+        <span class="k">if</span> <span class="n">truncated</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">x1</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">y1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">y1</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Populate annotation_data&#39;s bounding box field</span>
+        <span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">class_name</span><span class="p">,</span>
+                <span class="s2">&quot;x1&quot;</span><span class="p">:</span> <span class="n">x1</span><span class="p">,</span>
+                <span class="s2">&quot;x2&quot;</span><span class="p">:</span> <span class="n">x2</span><span class="p">,</span>
+                <span class="s2">&quot;y1&quot;</span><span class="p">:</span> <span class="n">y1</span><span class="p">,</span>
+                <span class="s2">&quot;y2&quot;</span><span class="p">:</span> <span class="n">y2</span><span class="p">,</span>
+                <span class="s2">&quot;difficult&quot;</span><span class="p">:</span> <span class="n">difficulty</span><span class="p">,</span>
+                <span class="s2">&quot;truncated&quot;</span><span class="p">:</span> <span class="n">truncated</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">targets</span></div>
+
+
+<div class="viewcode-block" id="read_wind_tunnel_data"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_wind_tunnel_data">[docs]</a><span class="k">def</span> <span class="nf">read_wind_tunnel_data</span><span class="p">(</span><span class="n">wtd_file_path</span><span class="p">,</span> <span class="n">items</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;ALPHA&quot;</span><span class="p">,</span> <span class="s2">&quot;BETA&quot;</span><span class="p">,</span> <span class="s2">&quot;PHI&quot;</span><span class="p">,</span> <span class="s2">&quot;STRUTZ&quot;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Read specified wind tunnel data from `wtd_file_path`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wtd_file_path : str</span>
+<span class="sd">        Filepath to wind tunnel data file</span>
+<span class="sd">    items : container, optional</span>
+<span class="sd">        Items requested from the file. By default ALPHA, BETA, PHI and STRUTZ are</span>
+<span class="sd">        returned.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tunnel_vals : dict</span>
+<span class="sd">        Dictionary with keys of specified items and values of associated wtd values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Read in the wind tunel data file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">wtd_file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">tunnel_vals</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csv_reader</span><span class="p">)</span>
+
+    <span class="c1"># Convert values to floats</span>
+    <span class="n">tunnel_vals</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tunnel_vals</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c1"># Remove all but the relevant</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">tunnel_vals</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">tunnel_vals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">tunnel_vals</span></div>
+
+
+<div class="viewcode-block" id="convert_cv2_cm_to_uPSP_cm"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.convert_cv2_cm_to_uPSP_cm">[docs]</a><span class="k">def</span> <span class="nf">convert_cv2_cm_to_uPSP_cm</span><span class="p">(</span><span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a standard camera matrix to a uPSP camera matrix</span>
+
+<span class="sd">    OpenCV (and the standard) cameraMatrix uses the absolute position of the optical</span>
+<span class="sd">    principal point. Since uPSP often crops images, the absoulte position varies</span>
+<span class="sd">    from configuration to configuration even if the optics haven&#39;t changed. So instead,</span>
+<span class="sd">    the position of the principal point relative to the image center is saved.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Camera matrix of the form: ``[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]``</span>
+<span class="sd">        where f is the focal length and (cx, cy) is</span>
+<span class="sd">        the absolute position of the optical principal point</span>
+<span class="sd">    dims : tuple, length 2</span>
+<span class="sd">        Image dimensions (width, height)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    uPSP_cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Converted camera matrix of the form: ``[[fx, 0, dcx], [0, fy, dcy], [0, 0, 1]]``</span>
+<span class="sd">        cx = w/2 + dcx and cy = h/2 + dcy where w and h are the image width and height</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    convert_uPSP_cm_to_cv2_cm : inverse conversion</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Cx (Principal Point X)</span>
+    <span class="n">cx</span> <span class="o">=</span> <span class="n">cameraMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Delta Cx (Principal Point Y)</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="n">cameraMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Get offset from image center and principal point</span>
+    <span class="n">dcx</span> <span class="o">=</span> <span class="n">cx</span> <span class="o">-</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">dcy</span> <span class="o">=</span> <span class="n">cy</span> <span class="o">-</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Return a copy of the uPSP cameraMatrix with the modified values</span>
+    <span class="n">uPSP_cameraMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cameraMatrix</span><span class="p">)</span>
+    <span class="n">uPSP_cameraMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">dcx</span>
+    <span class="n">uPSP_cameraMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">dcy</span>
+
+    <span class="k">return</span> <span class="n">uPSP_cameraMatrix</span></div>
+
+
+<div class="viewcode-block" id="convert_uPSP_cm_to_cv2_cm"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.convert_uPSP_cm_to_cv2_cm">[docs]</a><span class="k">def</span> <span class="nf">convert_uPSP_cm_to_cv2_cm</span><span class="p">(</span><span class="n">uPSP_cameraMatrix</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a uPSP camera matrix to a standard camera matrix</span>
+
+<span class="sd">    OpenCV (and the standard) cameraMatrix uses the absolute position of the optical</span>
+<span class="sd">    principal point. Since uPSP often crops images, the absoulte position varies</span>
+<span class="sd">    from configuration to configuration even if the optics haven&#39;t changed. So instead,</span>
+<span class="sd">    the position of the principal point relative to the image center is saved. To use</span>
+<span class="sd">    OpenCV functions, it has to be converted back to the standard OpenCV camera matrix.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    uPSP_cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Camera matrix of the form: ``[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]``</span>
+<span class="sd">        where f is the focal length and (cx, cy) is</span>
+<span class="sd">        the absolute position of the optical principal point</span>
+<span class="sd">    dims : tuple, length 2</span>
+<span class="sd">        Image dimensions (width, height)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Converted camera matrix of the form: ``[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]``</span>
+<span class="sd">        cx = w/2 + dcx and cy = h/2 + dcy where w and h are the image width and height</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    convert_uPSP_cm_to_cv2_cm : inverse conversion</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Delta Cx (Principal Point X)</span>
+    <span class="n">dcx</span> <span class="o">=</span> <span class="n">uPSP_cameraMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Delta Cx (Principal Point Y)</span>
+    <span class="n">dcy</span> <span class="o">=</span> <span class="n">uPSP_cameraMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Offset the image center by (dcx, dcy)</span>
+    <span class="n">image_center</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">principal_point</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">dcx</span><span class="p">,</span> <span class="n">image_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dcy</span><span class="p">)</span>
+
+    <span class="c1"># Return a copy of the uPSP cameraMatrix with the modified values</span>
+    <span class="n">cameraMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">uPSP_cameraMatrix</span><span class="p">)</span>
+    <span class="n">cameraMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">principal_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cameraMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">principal_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">cameraMatrix</span></div>
+
+
+<div class="viewcode-block" id="read_internal_params"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_internal_params">[docs]</a><span class="k">def</span> <span class="nf">read_internal_params</span><span class="p">(</span><span class="n">internal_cal_path</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">read_sensor</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns the internal (intrinsic) camera parameters</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    internal_cal_dir : str</span>
+<span class="sd">        Path to internal calibrations</span>
+<span class="sd">    dims : tuple</span>
+<span class="sd">        Image dimensions (image height, image width)</span>
+<span class="sd">    read_sensor: bool, optional</span>
+<span class="sd">        If True, additionally read and return the sensor resolution and size</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Camera matrix of the form ``[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]``</span>
+<span class="sd">        where f is the focal length and (cx, cy)</span>
+<span class="sd">        is the position of the optical principal point relative to the image center</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5,)</span>
+<span class="sd">        Distortion coefficients of the form ``[k1, k2, p1, p2, k3]``</span>
+<span class="sd">        where k1, k2, and k3 are the radial distortion terms and p1 and p2 are the</span>
+<span class="sd">        tangential distortion terms</span>
+<span class="sd">    sensor_resolution : np.ndarray, shape (3,)</span>
+<span class="sd">        Camera sensor resolution, only returned if `read_sensor` is True</span>
+<span class="sd">    sensor_size : np.ndarray, shape (2,)</span>
+<span class="sd">        Camera sensor physical size, only returned if `read_sensor` is True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Read the internal calibration parameters</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">internal_cal_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">incal</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">uPSP_cameraMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">incal</span><span class="p">[</span><span class="s2">&quot;uPSP_cameraMatrix&quot;</span><span class="p">])</span>
+    <span class="n">distCoeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">incal</span><span class="p">[</span><span class="s2">&quot;distCoeffs&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Convert the written uPSP_cameraMatrix to the OpenCV cameraMatrix</span>
+    <span class="n">cameraMatrix</span> <span class="o">=</span> <span class="n">convert_uPSP_cm_to_cv2_cm</span><span class="p">(</span><span class="n">uPSP_cameraMatrix</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+    <span class="c1"># If read_sensor is False, just return the cameraMatrix and distCoeffs</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">read_sensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span>
+
+    <span class="c1"># Otherwise return the sensor parameters as well</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sensor_resolution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">incal</span><span class="p">[</span><span class="s2">&quot;sensor_resolution&quot;</span><span class="p">])</span>
+        <span class="n">sensor_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">incal</span><span class="p">[</span><span class="s2">&quot;sensor_size&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">sensor_resolution</span><span class="p">,</span> <span class="n">sensor_size</span></div>
+
+
+<div class="viewcode-block" id="read_camera_tunnel_cal"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_camera_tunnel_cal">[docs]</a><span class="k">def</span> <span class="nf">read_camera_tunnel_cal</span><span class="p">(</span><span class="n">cal_path</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">read_sensor</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns the internal (intrinsic) and external (extrinsic) camera calibration parameters</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cal_path : str</span>
+<span class="sd">        Path to camera calibration</span>
+<span class="sd">    dims : tuple</span>
+<span class="sd">        Image dimensions (image height, image width)</span>
+<span class="sd">    read_sensor: bool, optional</span>
+<span class="sd">        If True, additionally read and return the sensor resolution and size</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Camera matrix of the form ``[[fx, 0, cx], [0, fy, cy], [0, 0, 1]]``</span>
+<span class="sd">        where f is the focal length and (cx, cy)</span>
+<span class="sd">        is the position of the optical principal point relative to the image center</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5,)</span>
+<span class="sd">        Distortion coefficients of the form ``[k1, k2, p1, p2, k3]``</span>
+<span class="sd">        where k1, k2, and k3 are the radial distortion terms and p1 and p2 are the</span>
+<span class="sd">        tangential distortion terms</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3)</span>
+<span class="sd">        Rotation matrix from camera to tunnel</span>
+<span class="sd">    tvec : np.ndarray, shape (3,)</span>
+<span class="sd">        Translation vector from camera to tunnel</span>
+<span class="sd">    sensor_resolution : np.ndarray, shape (2,)</span>
+<span class="sd">        Sensor size of camera in pixels, only returned if `read_sensor` is True</span>
+<span class="sd">    sensor_size : np.ndarray, shape (2,)</span>
+<span class="sd">        Sensor size of camera in inches, only returned if `read_sensor` is True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Read the camera calibration parameters</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cal_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">cal</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">uPSP_cameraMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;uPSP_cameraMatrix&quot;</span><span class="p">])</span>
+    <span class="n">distCoeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;distCoeffs&quot;</span><span class="p">])</span>
+    <span class="n">tvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;tvec&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">rmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;rmat&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Convert the written uPSP_cameraMatrix to the OpenCV cameraMatrix</span>
+    <span class="n">cameraMatrix</span> <span class="o">=</span> <span class="n">convert_uPSP_cm_to_cv2_cm</span><span class="p">(</span><span class="n">uPSP_cameraMatrix</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+
+    <span class="c1"># If read_sensor is False, just return the cameraMatrix and distCoeffs</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">read_sensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span>
+
+    <span class="c1"># Otherwise return the sensor parameters as well</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sensor_resolution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;sensor_resolution&quot;</span><span class="p">])</span>
+        <span class="n">sensor_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cal</span><span class="p">[</span><span class="s2">&quot;sensor_size&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">sensor_resolution</span><span class="p">,</span> <span class="n">sensor_size</span></div>
+
+
+<div class="viewcode-block" id="read_json"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_json">[docs]</a><span class="k">def</span> <span class="nf">read_json</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Safely reads a json file and returns the associated dict</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : path-like</span>
+<span class="sd">        File path to the tgts file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        dict of json file items</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Safely read the json file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_test_config"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.parsers.html#upsp.cam_cal_utils.parsers.read_test_config">[docs]</a><span class="k">def</span> <span class="nf">read_test_config</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Safely reads a test config file and returns the associated dict with arrays</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : path-like</span>
+<span class="sd">        File path to the tgts file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        dict of json file items</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Safely read the json file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">test_config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># Transcribe the test config into numpy arrays if possible</span>
+        <span class="n">test_config_np</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">test_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># If the length is 3, it is a (3, 1) or (3, 3)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                        <span class="n">test_config_np</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="n">test_config_np</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">test_config_np</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+                <span class="c1"># If the length if not 3, it is a float or long array</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">test_config_np</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+            <span class="c1"># If an exception is raised, just add the actual value for the key</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">test_config_np</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="k">return</span> <span class="n">test_config_np</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

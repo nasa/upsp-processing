@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.internal_calibration &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.cam_cal_utils.parsers" href="upsp.cam_cal_utils.parsers.html" />
+    <link rel="prev" title="upsp.cam_cal_utils.img_utils" href="upsp.cam_cal_utils.img_utils.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.img_utils.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.img_utils</span></code></a></li>
+      <li>Next: <a href="upsp.cam_cal_utils.parsers.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.parsers</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.internal_calibration">
+<span id="upsp-cam-cal-utils-internal-calibration"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.internal_calibration</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.internal_calibration" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.alpha_shape_is_safe">
+<span class="sig-name descname"><span class="pre">alpha_shape_is_safe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#alpha_shape_is_safe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.alpha_shape_is_safe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an alpha shape generated from points and the <cite>alpha</cite> parameter</p>
+<p>Returns an alpha shape constructed from the points and the given alpha parameters.
+An alpha shape is similar to a convex hull, but sets a maximum on the distance
+between two vertices. The distances is 1 / <cite>alpha</cite>. An alpha shape is a convex hull
+if the alpha parameter is 0.</p>
+<p>The shape may be more accurately referred to as an alpha complex (rather than alpha
+shape) since it has poligonal edges, but many sources use alpha shape to refer to
+both.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">k)</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">floats</span></code>) – Calibration points to create the alpha shape from. <code class="docutils literal notranslate"><span class="pre">n</span></code> is the number of points
+<code class="docutils literal notranslate"><span class="pre">k</span></code> is the dimensionality of the points (2 for image points, 3 for real world
+points)</p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Alpha parameter of the alpha shape. Larger means more points are rejected. Must
+be non-negative. Negative values are clipped to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>is_safe</strong> – Function that accepts an array-like object (list, np.array, etc) of points and
+returns a list of booleans of the same length. <code class="docutils literal notranslate"><span class="pre">return[i]</span></code> corresponds to
+<code class="docutils literal notranslate"><span class="pre">point[i]</span></code> and True means that point is inside the alpha shape (False means it
+is not).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.get_safe_pts">
+<span class="sig-name descname"><span class="pre">get_safe_pts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_area_is_safe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_vol_is_safe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critical_pt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#get_safe_pts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.get_safe_pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines which <cite>obj_pts</cite> are inside the well behaved region of the internal calibration</p>
+<p>Performs 3 checks on each of the <cite>obj_pts</cite>. The first check and second check is that
+each obj_pt and its projection are within the safe volume and safe area as defined
+by cal_area_is_safe and cal_vol_is_safe. These checks are always performed. The
+third check is not always necessary, and is more involved.</p>
+<p>If the highest order (non-zero) radial distortion term of <cite>distCoeffs</cite> is negative,
+then at some real world distance from the camera optical axis, increasing the real
+world distance from the camera optical axis will decrease pixel distance of that
+point’s projection. I.e. moving farther out of frame will move the point closer to
+the image center. This is not a bug, but is not an accurate model of the physical
+system. This means that some object points very far out of the field of view can
+be projected into the frame. These points have a ‘negative derivative’ of the
+projection curve. As the input (real world distance from camera optical axis)
+increases, the output (projected distance from the image center) decreases.</p>
+<p>The points need not be outside the field of view to have a negative derivative. So a
+simple FOV check is unfortunately insufficient. The third check is unnecessary if
+<cite>cal_area_is_safe</cite> and <cite>cal_vol_is_safe</cite> are well constructed. If they are not well
+constructed, the third check ensures the object points are in the well-behaved
+region of the internal calibration. For most cases, this means the object points
+are in the positive region of the internal calibration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Rotation matrix from camera to object</p></li>
+<li><p><strong>tvec</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to object</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>obj_pts</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – List of 3d points. Points are relative to the object frame</p></li>
+<li><p><strong>cal_area_is_safe</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – <code class="docutils literal notranslate"><span class="pre">alpha_shape_is_safe</span></code> function that takes <cite>img_pts</cite> as an array, (shape
+<code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code>) of floats and returns an array-like object of booleans.
+<code class="docutils literal notranslate"><span class="pre">return[i]</span></code> corresonds to <code class="docutils literal notranslate"><span class="pre">img_pts[i]</span></code>. If <code class="docutils literal notranslate"><span class="pre">return[i]</span></code> is True, then
+<code class="docutils literal notranslate"><span class="pre">img_pts[i]</span></code> is within the safe internal calibration image area. If it is
+False, it is not within that safe area</p></li>
+<li><p><strong>cal_vol_is_safe</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – <code class="docutils literal notranslate"><span class="pre">alpha_shape_is_safe</span></code> function that takes <cite>obj_pts</cite> and returns a array-like
+object of booleans. <code class="docutils literal notranslate"><span class="pre">return[i]</span></code> corresonds to <code class="docutils literal notranslate"><span class="pre">img_pts[i]</span></code>. If <code class="docutils literal notranslate"><span class="pre">return[i]</span></code>
+is True, then <code class="docutils literal notranslate"><span class="pre">img_pts[i]</span></code> is within the safe internal calibration 3D volume.
+If it is False, it is not within that safe volume</p></li>
+<li><p><strong>critical_pt</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – <p>Criteria for step 3. Must be one of:</p>
+<ul>
+<li><p>If ‘first’ then <cite>obj_pts</cite> cannot have a homogeneous coordinate with a
+magnitude past the first maxima of the distortion curve. This is the most
+useful option for the majority of lenses.</p></li>
+<li><p>If ‘infinity’, the magnitude must be less than the final maxima of the
+distortion curve, and the distortion curve must be decreasing after the final
+maxima. This is the most useful option for mustache or otherwise complex
+distortion, if the mustache distortion effect is accurate</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">None</span></code>, step 3 will be omitted. If <cite>cal_area_is_safe</cite> and
+<cite>cal_vol_is_safe</cite> are available (and not dummy return True functions from
+<a class="reference internal" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds_debug" title="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds_debug"><code class="xref py py-func docutils literal notranslate"><span class="pre">incal_calibration_bounds_debug()</span></code></a>), the step 3 check is likely
+unnecessary</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obj_pts_safe</strong> – Array of booleans where <code class="docutils literal notranslate"><span class="pre">return[i]</span></code> cooresponds to <code class="docutils literal notranslate"><span class="pre">obj_pts[i]</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">return[i]</span></code> is True, <code class="docutils literal notranslate"><span class="pre">obj_pts[i]</span></code> is well behaved. If <code class="docutils literal notranslate"><span class="pre">return[i]</span></code> is
+False, <code class="docutils literal notranslate"><span class="pre">obj_pts[i]</span></code> may not be well behaved</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds" title="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">incal_calibration_bounds</span></code></a></dt><dd><p>creates <code class="docutils literal notranslate"><span class="pre">alpha_shape_is_safe</span></code> functions</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds">
+<span class="sig-name descname"><span class="pre">incal_calibration_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibio_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_vol_alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_area_alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_vol_figs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#incal_calibration_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates objects that determines if a point is inside the calibration regions</p>
+<p>From the <cite>calibio_path</cite>, the 3D points from the calibration board are used to define
+the safe 3D volume. The 2D points of the image detections are used to define the
+safe image area. The area/volume are defined using an alpha shape (technically an
+alpha complex). An alpha shape is similar to a convex hull, but sets a limit on the
+distance between two vertices for them to be connected. The max distances for the
+volume and area is 1 / <cite>cal_vol_alpha</cite> and  1 / <cite>cal_area_alpha</cite> respectively.</p>
+<p>If the global variable <cite>debug_show_cal_bounds</cite> is True, this method also creates
+debug images.</p>
+<p>One debug image is created for the safe image area. That image is green for pixels
+inside the ‘safe’ region and red for pixels outside the safe region. The region is
+not discretized to pixels, so the image is a (good) approximation.</p>
+<p>Several debug images are created for the safe 3D volume. Each debug image is a slice
+of the 3D safe object. The slices are done at planes progressively farther from the
+camera (not spherical shells of constant distance from the camera). Points in the
+field of view (not accounting for lens distortion) are given. Points colored red are
+unsafe. Points colored green are safe.</p>
+<p>Generates the following images when <cite>debug_show_cal_bounds</cite> (global) is True:</p>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">3d_cal_points_camera.png</span></code></dt><dd><p>A scatter plot of the internal calibration points as viewed from the camera
+position. X is the real world position relative to the camera horizontal
+axis. Z is the real world position relative to the camera optical axis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">3d_cal_points_side.png</span></code></dt><dd><p>A scatter plot of the internal calibration points as viewed from a location
+to the side of the camera. X is the real world position relative to the
+camera horizontal axis. Y is the real world position relative to the camera
+vertical axis.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">image_area.png</span></code></dt><dd><p>The safe and unsafe locations in the image based on the internal calibration
+points and the cal_area_alpha parameter</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsafe_volume_Z=*_inches.png</span></code></dt><dd><p>Where * is Z location of the planar slice in inches for the given image.
+These images are like a wedding cake stack of the 3D calibration volume.
+Each image is a slice of the volume at a given Z distance from the camera.
+The image shows the safe and unsafe locations in that planar slice.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calibio_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the calib.io saved calibration json</p></li>
+<li><p><strong>cal_vol_alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Used to define the 3D volume alpha shape. Alpha parameter is 1 / <cite>cal_vol_alpha</cite></p></li>
+<li><p><strong>cal_area_alpha</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Used to define the 3D image area alpha shape. Alpha parameter is 1 /
+<cite>cal_vol_alpha</cite></p></li>
+<li><p><strong>dof</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>, <em>optional</em>) – Depth of field. Optional, but must be given if global variable
+<cite>debug_show_cal_bounds</cite> is True since it is used to generate debug images. The
+first item of tuple is distance to the first slice of the 3D volume. The second
+item is distance to the last slice. The slices are done in planes (not in
+spherical shells of constant distance to the camera).</p></li>
+<li><p><strong>num_vol_figs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <em>optional</em>) – Number of volume figures. Optional, but must be given if global variable
+<cite>debug_show_cal_bounds</cite> is True since it is used to generate debug images.  The
+debug images of the calibration volume slice the volume into planes at
+progressively farther distances. This input determines the number of slices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>cal_area_is_safe</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – Function that takes image points in an array-like object and returns a
+corresponding array of bools indicating which points are safe.</p></li>
+<li><p><strong>cal_vol_is_safe</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>) – Function that takes 3D points in an array-like object and returns a
+corresponding array of bools indicating which points are safe.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds_debug">
+<span class="sig-name descname"><span class="pre">incal_calibration_bounds_debug</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#incal_calibration_bounds_debug"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns debugging <a class="reference internal" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds" title="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds"><code class="xref py py-func docutils literal notranslate"><span class="pre">incal_calibration_bounds()</span></code></a> objects</p>
+<p>The returned <a class="reference internal" href="#upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds" title="upsp.cam_cal_utils.internal_calibration.incal_calibration_bounds"><code class="xref py py-func docutils literal notranslate"><span class="pre">incal_calibration_bounds()</span></code></a> functions True for every input point</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.incal_from_calibio">
+<span class="sig-name descname"><span class="pre">incal_from_calibio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibio_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#incal_from_calibio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.incal_from_calibio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the internal calibration values from the calib.io output json</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calibio_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the calib.io saved calibration json</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>img_size</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(2,)</span></code>) – Image size (height, width)</p></li>
+<li><p><strong>uPSP_cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Camera matrix for uPSP applications (same as openCV <code class="docutils literal notranslate"><span class="pre">cameraMatrix</span></code>, but cx and
+cy are vectors from image center to principal point rather than the principal
+point itself).</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>) – openCV distortion coefficients</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.uncertainties_from_calibio">
+<span class="sig-name descname"><span class="pre">uncertainties_from_calibio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibio_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#uncertainties_from_calibio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.uncertainties_from_calibio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns uncertainties for OpenCV terms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calibio_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the calib.io saved calibration json</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Standard deviation of calibration terms: (focal length, principal point x,
+principal point y, k1, k2, p1, p2, k3)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.internal_calibration.write_incal_from_calibio">
+<span class="sig-name descname"><span class="pre">write_incal_from_calibio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calibio_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/internal_calibration.html#write_incal_from_calibio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.internal_calibration.write_incal_from_calibio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the internal calibration to a json file</p>
+<p>Saves internal calibration as <code class="docutils literal notranslate"><span class="pre">'{camera_name}.json'</span></code> to <cite>save_dir</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calibio_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Path to the calib.io saved calibration json</p></li>
+<li><p><strong>camera_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Name of the camera</p></li>
+<li><p><strong>sensor_size</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(2,)</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">floats</span></code>) – Physical size of the image sensor in inches</p></li>
+<li><p><strong>save_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – Path of directory to save the internal calibration json file. If None, save_dir
+is set to the directory containing the Calib.io json</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.internal_calibration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

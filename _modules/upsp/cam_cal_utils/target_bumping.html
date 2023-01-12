@@ -1,0 +1,571 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.cam_cal_utils.target_bumping &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.cam_cal_utils.target_bumping</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">upsp.cam_cal_utils</span> <span class="kn">import</span> <span class="n">parsers</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">debug_print_bumping</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">debug_bump_distance</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">max_bump_iterations</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># debug to stop infinite loops</span>
+
+
+<div class="viewcode-block" id="get_bumping_occlusion"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.get_bumping_occlusion">[docs]</a><span class="k">def</span> <span class="nf">get_bumping_occlusion</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to :func:`tgts_get_internals` that finds the point on the model</span>
+<span class="sd">    surface that intersects the `tgt` normal vector if the target is occluded by the</span>
+<span class="sd">    model</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgt : dict</span>
+<span class="sd">        A dict and has, at a minimum, the keys &#39;tvec&#39;, &#39;target_type&#39;, &#39;norm&#39;. &#39;tvec&#39; has</span>
+<span class="sd">        a :class:`numpy.ndarray` (3, 1) representing the position of the target relative</span>
+<span class="sd">        to the model origin for its associated value. &#39;norm&#39; has a</span>
+<span class="sd">        :class:`numpy.ndarray` (3, 1) representing the normal vector of the target</span>
+<span class="sd">        relative to the model origin for its associated value. &#39;target_type&#39; has a</span>
+<span class="sd">        string representing the type of target (most commonly &#39;dot&#39;) for its associated</span>
+<span class="sd">        value.</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    occlusion : bool</span>
+<span class="sd">        Whether or not there is an occlusion. True means there is, False means there is</span>
+<span class="sd">        not.</span>
+<span class="sd">    location : np.ndarray, shape (3,)</span>
+<span class="sd">        Location where the `tgt` normal vector intersects the model surface</span>
+<span class="sd">    dist : float</span>
+<span class="sd">        Distance from the target position to the point of intersection</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set the epsilon (occlusion check bumps) distance to 0</span>
+    <span class="c1">#   This way any occlusion will be returned</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">vis_checker</span><span class="o">.</span><span class="n">epsilon</span>
+    <span class="n">vis_checker</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Get the target tvec and unit normal</span>
+    <span class="n">tgt_tvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">tgt_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">tgt_norm</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tgt_norm</span><span class="p">)</span>
+
+    <span class="c1"># Check for occlusions of this target along its normal</span>
+    <span class="n">occlusion</span> <span class="o">=</span> <span class="n">vis_checker</span><span class="o">.</span><span class="n">does_intersect</span><span class="p">(</span><span class="n">tgt_tvec</span><span class="p">,</span> <span class="n">tgt_norm</span><span class="p">,</span> <span class="n">return_pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Reset vis_checker.epsilon to the original value</span>
+    <span class="n">vis_checker</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">eps</span>
+
+    <span class="c1"># If there is an occlusion, investigate</span>
+    <span class="k">if</span> <span class="n">occlusion</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="c1"># Calculate the distance from the target to the occlusion location</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tgt_tvec</span> <span class="o">-</span> <span class="n">occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dist</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<span class="c1"># Helper function to check if the occlusion found is outside the tolerance</span>
+<div class="viewcode-block" id="is_real_occlusion"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.is_real_occlusion">[docs]</a><span class="k">def</span> <span class="nf">is_real_occlusion</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to :func:`tgts_get_internals` that determines if an occlusion is</span>
+<span class="sd">    due to real geometry, or is a numerical/processing error in generating the tgts file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bumping_occlusion : tuple</span>
+<span class="sd">        Return value of :func:`get_bumping_occlusion` for the target associated with the</span>
+<span class="sd">        function call</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    tgts_tol : float, optional</span>
+<span class="sd">        Tolerance of the tgts file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    grid_tol : float, optional</span>
+<span class="sd">        Tolerance of the grid file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the occlusion is due to real geometry</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># The x, y, and z of the target was rounded to 1e-4 by DOTS</span>
+    <span class="c1">#   So the max distance a target could be rounded was 1e-4 in all 3 axes</span>
+    <span class="c1">#   This is our tolerance</span>
+    <span class="n">dots_tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">tgts_tol</span>
+
+    <span class="c1"># Tim Sanstrom&#39;s bvh seems to have a tolerance of 1e-3 built into it</span>
+    <span class="c1">#   The code is confusing</span>
+    <span class="n">intersect_tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">grid_tol</span>
+
+    <span class="c1"># Calculate the total tolerance</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">([</span><span class="n">dots_tol</span><span class="p">,</span> <span class="n">intersect_tol</span><span class="p">])</span>
+
+    <span class="c1"># Return True if the distance to the occlusion is greater than (or equal to) the</span>
+    <span class="c1">#   tolerance. Otherwise return False</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">tol</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tgts_get_internals"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.tgts_get_internals">[docs]</a><span class="k">def</span> <span class="nf">tgts_get_internals</span><span class="p">(</span><span class="n">tgts</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">grid_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to :func:`ltgt_bump_internals` that returns all internal targets</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    tgts : list of dict</span>
+<span class="sd">        Each target is a dict and has, at a minimum, the keys &#39;tvec&#39;, &#39;target_type&#39;,</span>
+<span class="sd">        &#39;norm&#39;. &#39;tvec&#39; has a :class:`numpy.ndarray` (3, 1) representing the position of</span>
+<span class="sd">        the target relative to the model origin for its associated value. &#39;norm&#39; has a</span>
+<span class="sd">        :class:`np.ndarray` (3, 1) representing the normal vector of the target relative</span>
+<span class="sd">        to the model origin for its associated value. &#39;target_type&#39; has a string</span>
+<span class="sd">        representing the type of target (most commonly &#39;dot&#39;) for its associated value.</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    tgts_tol : float, optional</span>
+<span class="sd">        Tolerance of the tgts file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    grid_tol : float, optional</span>
+<span class="sd">        Tolerance of the grid file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of tuple</span>
+<span class="sd">        Each tuple is an occluded targets. The first item in the tuple is the target</span>
+<span class="sd">        name. The second element is a boolean to denote if it is a real occlusion (like</span>
+<span class="sd">        another part of the model is blocking the target so it should not be bumped) or</span>
+<span class="sd">        just some accidental occlusion due to being differentiably inside the model grid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">internals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">tgts</span><span class="p">:</span>
+        <span class="n">bumping_occlusion</span> <span class="o">=</span> <span class="n">get_bumping_occlusion</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">internals</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                              <span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                              <span class="n">is_real_occlusion</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">internals</span></div>
+
+
+<div class="viewcode-block" id="tgt_bump_internals"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.tgt_bump_internals">[docs]</a><span class="k">def</span> <span class="nf">tgt_bump_internals</span><span class="p">(</span><span class="n">tgts</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">grid_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bumps all internal targets along their normal to be slightly external. Slightly</span>
+<span class="sd">    external defined by `bump_eps`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts : list of dict</span>
+<span class="sd">        Each target is a dict and has, at a minimum, the keys &#39;tvec&#39;, &#39;target_type&#39;,</span>
+<span class="sd">        &#39;norm&#39;. &#39;tvec&#39; has a :class:`numpy.ndarray` (3, 1) representing the position of</span>
+<span class="sd">        the target relative to the model origin for its associated value. &#39;norm&#39; has a</span>
+<span class="sd">        :class:`np.ndarray` (3, 1) representing the normal vector of the target relative</span>
+<span class="sd">        to the model origin for its associated value. &#39;target_type&#39; has a string</span>
+<span class="sd">        representing the type of target (most commonly &#39;dot&#39;) for its associated value.</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    bump_eps : float, optional</span>
+<span class="sd">        Distance to bump the targets outside the model. Should be small so targets are</span>
+<span class="sd">        just barely external to the model</span>
+<span class="sd">    tgts_tol : float, optional</span>
+<span class="sd">        Tolerance of the tgts file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    grid_tol : float, optional</span>
+<span class="sd">        Tolerance of the grid file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tgts_bumped : list of dict</span>
+<span class="sd">        Copy of `tgts` with some target positions bumped along their normal to be</span>
+<span class="sd">        slightly external.</span>
+<span class="sd">    was_bumped : bool</span>
+<span class="sd">        Denotes if any targets were bumped</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a new list to store the bumped targets</span>
+    <span class="n">tgts_bumped</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Flag for if at least one target was bumped</span>
+    <span class="n">was_bumped</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Iterate through all targets</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">tgts</span><span class="p">:</span>
+        <span class="n">bumping_occlusion</span> <span class="o">=</span> <span class="n">get_bumping_occlusion</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">)</span>
+
+        <span class="c1"># If there was an occlusion, check the status</span>
+        <span class="k">if</span> <span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+
+            <span class="k">if</span> <span class="n">debug_bump_distance</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Internal Target:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="s1">&#39;Dist:&#39;</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span>
+
+            <span class="c1"># If the occlusion is artificial (differentiably inside the mode), bump the</span>
+            <span class="c1">#   target to be just outside the model</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_real_occlusion</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span><span class="p">):</span>
+                <span class="c1"># Set the was_bumped flag to True</span>
+                <span class="n">was_bumped</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># Create a copy of the original target</span>
+                <span class="n">bumped_tgt</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+                <span class="c1"># Normalize the target normal vector</span>
+                <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">])</span>
+
+                <span class="c1"># Bump the target to the occlusion point plus some small tolerance along the normal</span>
+                <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">bump_eps</span> <span class="o">*</span> <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Add the bumped target to the new list of targets</span>
+                <span class="n">tgts_bumped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bumped_tgt</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">debug_print_bumping</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Internal Target:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Original tvec:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">New tvec:&#39;</span><span class="p">,</span> <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span>
+
+            <span class="c1"># If the occlusion is real (truely occluded by some model surface),</span>
+            <span class="c1">#   then just add the original target to the new list of targets</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tgts_bumped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+        <span class="c1"># If there is no occlusion, just add the original target to the original list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tgts_bumped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tgts_bumped</span><span class="p">,</span> <span class="n">was_bumped</span></div>
+
+
+<div class="viewcode-block" id="tgt_bump_externals"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.tgt_bump_externals">[docs]</a><span class="k">def</span> <span class="nf">tgt_bump_externals</span><span class="p">(</span><span class="n">tgts</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bumps very external targets to be slightly external. Slightly external defined by</span>
+<span class="sd">    `bump_eps`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts : list of dict</span>
+<span class="sd">        Each target is a dict and has, at a minimum, the keys &#39;tvec&#39;, &#39;target_type&#39;,</span>
+<span class="sd">        &#39;norm&#39;. &#39;tvec&#39; has a :class:`numpy.ndarray` (3, 1) representing the position of</span>
+<span class="sd">        the target relative to the model origin for its associated value. &#39;norm&#39; has a</span>
+<span class="sd">        :class:`np.ndarray` (3, 1) representing the normal vector of the target relative</span>
+<span class="sd">        to the model origin for its associated value. &#39;target_type&#39; has a string</span>
+<span class="sd">        representing the type of target (most commonly &#39;dot&#39;) for its associated value.</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    bump_eps : float, optional</span>
+<span class="sd">        Distance to bump the targets outside the model. Should be small so targets are</span>
+<span class="sd">        just barely external to the model</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tgts_bumped : list of dict</span>
+<span class="sd">        Copy of tgts with some target positions bumped along their normal to be slightly</span>
+<span class="sd">        external</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tgts_bumped</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">tgts</span><span class="p">:</span>
+        <span class="c1"># Create a copy of the target, but with an inverted normal</span>
+        <span class="n">tgt_inv_norm</span>  <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tvec&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">bump_eps</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]),</span>
+                         <span class="s1">&#39;norm&#39;</span><span class="p">:</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">])}</span>
+
+        <span class="c1"># Get the point on the model surface just behind the target</span>
+        <span class="n">bumping_occlusion</span> <span class="o">=</span> <span class="n">get_bumping_occlusion</span><span class="p">(</span><span class="n">tgt_inv_norm</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">)</span>
+
+        <span class="c1"># Create a copy of the original target</span>
+        <span class="n">bumped_tgt</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+        <span class="c1"># Normalize the target normal vector</span>
+        <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Bump the target to the occlusion point plus some small tolerance along the normal</span>
+        <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">bump_eps</span> <span class="o">*</span> <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Add the bumped target to the new list of targets</span>
+        <span class="n">tgts_bumped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bumped_tgt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug_print_bumping</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;External Bump:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Original tvec:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Occlusion Site:&#39;</span><span class="p">,</span> <span class="n">bumping_occlusion</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">New tvec:&#39;</span><span class="p">,</span> <span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">debug_bump_distance</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bumped_tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">External Target:&#39;</span><span class="p">,</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="s1">&#39;Dist:&#39;</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tgts_bumped</span></div>
+
+
+<div class="viewcode-block" id="tgts_bumper"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.tgts_bumper">[docs]</a><span class="k">def</span> <span class="nf">tgts_bumper</span><span class="p">(</span><span class="n">tgts</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">grid_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bumps all internal targets along their normal to be slightly external. Bumps any</span>
+<span class="sd">    targets very external to be slightly external</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts : list of dict</span>
+<span class="sd">        Each target is a dict and has, at a minimum, the keys &#39;tvec&#39;, &#39;target_type&#39;,</span>
+<span class="sd">        &#39;norm&#39;. &#39;tvec&#39; has a :class:`numpy.ndarray` (3, 1) representing the position of</span>
+<span class="sd">        the target relative to the model origin for its associated value. &#39;norm&#39; has a</span>
+<span class="sd">        :class:`np.ndarray` (3, 1) representing the normal vector of the target relative</span>
+<span class="sd">        to the model origin for its associated value. &#39;target_type&#39; has a string</span>
+<span class="sd">        representing the type of target (most commonly &#39;dot&#39;) for its associated value.</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    bump_eps : float, optional</span>
+<span class="sd">        Distance to bump the targets outside the model. Should be small so targets are</span>
+<span class="sd">        just barely external to the model</span>
+<span class="sd">    tgts_tol : float, optional</span>
+<span class="sd">        Tolerance of the tgts file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    grid_tol : float, optional</span>
+<span class="sd">        Tolerance of the grid file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bumped_external_targets : list of dict</span>
+<span class="sd">        Copy of tgts input with the &#39;tvec&#39; values modified so that each tgt is outside</span>
+<span class="sd">        the grid of `vis_checker`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Bump the internal targets until nothing needs to be bumped</span>
+    <span class="c1"># Python doesn&#39;t have a Do-While Loop so I have to run it once then throw it into</span>
+    <span class="c1">#   the loop</span>
+    <span class="n">was_bumped</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">internal_bump_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bumped_internal_targets</span> <span class="o">=</span> <span class="n">tgts</span>
+    <span class="k">if</span> <span class="n">debug_print_bumping</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Internal Bump Iteration&#39;</span><span class="p">,</span> <span class="n">internal_bump_count</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">was_bumped</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">internal_bump_count</span> <span class="o">&gt;</span> <span class="n">max_bump_iterations</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of internal bumps exceeds max allowed. Skiping to external bump.&#39;</span> <span class="o">+</span>
+                  <span class="s1">&#39;Targets are still be internal. Please modify bump_eps, tgts_tol, or grid_tol&#39;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="n">bumped_internal_targets</span><span class="p">,</span> <span class="n">was_bumped</span> <span class="o">=</span> <span class="n">tgt_bump_internals</span><span class="p">(</span>
+                <span class="n">bumped_internal_targets</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span>
+        <span class="p">)</span>
+        <span class="n">internal_bump_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">was_bumped</span> <span class="ow">and</span> <span class="n">debug_print_bumping</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Internal Bump Iteration&#39;</span><span class="p">,</span> <span class="n">internal_bump_count</span><span class="p">)</span>
+
+    <span class="c1"># Bump the external targets and ensure all targets are external</span>
+    <span class="n">are_internal</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">external_bump_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">are_internal</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">external_bump_count</span> <span class="o">&gt;</span> <span class="n">max_bump_iterations</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of external bumps exceeds max allowed. Writing bumped file&#39;</span> <span class="o">+</span>
+                  <span class="s1">&#39;anyway. Targets are still be internal. Please modify bump_eps, &#39;</span> <span class="o">+</span>
+                  <span class="s1">&#39;tgts_tol, or grid_tol&#39;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="c1"># Bump the external targets</span>
+        <span class="n">bumped_external_targets</span> <span class="o">=</span> <span class="n">tgt_bump_externals</span><span class="p">(</span><span class="n">bumped_internal_targets</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="p">)</span>
+        <span class="n">bumped_internal_targets</span> <span class="o">=</span> <span class="n">bumped_external_targets</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">was_bumped</span> <span class="o">=</span> <span class="n">tgt_bump_internals</span><span class="p">(</span>
+                <span class="n">bumped_internal_targets</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span><span class="p">)</span>
+
+        <span class="c1"># If there are no internal targets, set are_interal to False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">was_bumped</span><span class="p">:</span>
+            <span class="n">are_internal</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">external_bump_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">bumped_external_targets</span></div>
+
+
+<div class="viewcode-block" id="tgts_file_bumper"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.target_bumping.html#upsp.cam_cal_utils.target_bumping.tgts_file_bumper">[docs]</a><span class="k">def</span> <span class="nf">tgts_file_bumper</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">grid_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a tgts file with all internal targets bumped along their normal to be</span>
+<span class="sd">    slightly external and very external targets to be slightly external</span>
+
+<span class="sd">    Creates a new tgts file in the same directory as tgts_file_path with the same name,</span>
+<span class="sd">    but with the suffix &#39;_bumped&#39; attached to the filename</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgts_file_path : path-like</span>
+<span class="sd">        Path to the tgts file</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        BVH to check for visibilty of nodes</span>
+<span class="sd">    bump_eps : float, optional</span>
+<span class="sd">        Distance to bump the targets outside the model. Should be small so targets are</span>
+<span class="sd">        just barely external to the model</span>
+<span class="sd">    tgts_tol : float, optional</span>
+<span class="sd">        Tolerance of the tgts file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    grid_tol : float, optional</span>
+<span class="sd">        Tolerance of the grid file. Used to determine if target internal-ness is real,</span>
+<span class="sd">        or if it is an artifact due to the non-water tightness of the model grid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Read in the targets</span>
+    <span class="n">tgts</span> <span class="o">=</span> <span class="n">parsers</span><span class="o">.</span><span class="n">read_tgts</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">)</span>
+
+    <span class="c1"># Bump the targets</span>
+    <span class="n">bumped_targets</span> <span class="o">=</span> <span class="n">tgts_bumper</span><span class="p">(</span><span class="n">tgts</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">bump_eps</span><span class="p">,</span> <span class="n">tgts_tol</span><span class="p">,</span> <span class="n">grid_tol</span><span class="p">)</span>
+
+    <span class="c1"># Get the filepath of the new tgts file</span>
+    <span class="n">filename</span><span class="p">,</span> <span class="n">file_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">))</span>
+    <span class="n">new_tgts_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">),</span>
+                                      <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;_bumped&#39;</span> <span class="o">+</span> <span class="n">file_ext</span><span class="p">)</span>
+
+    <span class="c1"># Open the new tgts file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">new_tgts_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_write</span><span class="p">:</span>
+        <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f_write</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_MINIMAL</span><span class="p">)</span>
+
+        <span class="c1"># Open the old tgts file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tgts_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_read</span><span class="p">:</span>
+            <span class="c1"># Read the old tgts file</span>
+            <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f_read</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">is_in_targets_section</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># For each line in the old tgts file</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">item</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+                        <span class="n">line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+                <span class="c1"># Check for when we enter the targets section (denoted with *Targets)</span>
+                <span class="c1">#   When we do, write all the bumped targets</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_in_targets_section</span> <span class="ow">and</span> <span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*Targets&#39;</span><span class="p">):</span>
+                    <span class="c1"># Write the *Targets header</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="n">is_in_targets_section</span> <span class="o">=</span> <span class="kc">True</span>
+
+                    <span class="c1"># Write the bumped targets</span>
+                    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">bumped_targets</span><span class="p">:</span>
+                        <span class="n">tgt_line</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;idx&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span>
+                                    <span class="s2">&quot;</span><span class="si">{:&gt;14}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:3.9f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;norm&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="p">,</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;zones&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;zones&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;zones&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)]</span>
+
+                        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tgt_line</span><span class="p">:</span>
+                            <span class="n">f_write</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                        <span class="n">f_write</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="c1"># If we did not just enter the targets section, check if we are still</span>
+                <span class="c1">#   chugging through it. If we are, look for the next section break</span>
+                <span class="c1">#   denoted by something with a * (like *Fiducials or *Virtuals)</span>
+                <span class="k">elif</span> <span class="n">is_in_targets_section</span> <span class="ow">and</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">is_in_targets_section</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="c1"># Regardless of if this is before or after the Targets section, if we</span>
+                <span class="c1">#   are not in the targets section, write the line verbatim</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_in_targets_section</span><span class="p">:</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

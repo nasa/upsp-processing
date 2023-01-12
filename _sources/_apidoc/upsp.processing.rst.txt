@@ -1,0 +1,25 @@
+
+``upsp.processing``
+===================
+
+
+.. automodule:: upsp.processing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. rubric:: Submodules
+
+.. toctree::
+   :maxdepth: 2
+
+   upsp.processing.context
+   upsp.processing.grids
+   upsp.processing.io
+   upsp.processing.kulite_processing
+   upsp.processing.kulite_utilities
+   upsp.processing.p3d_conversions
+   upsp.processing.p3d_utilities
+   upsp.processing.plot3d
+   upsp.processing.tree

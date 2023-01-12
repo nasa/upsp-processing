@@ -1,0 +1,840 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.intensity_mapping.patching &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.intensity_mapping.patching</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="kn">from</span> <span class="nn">upsp.cam_cal_utils</span> <span class="kn">import</span> <span class="n">photogrammetry</span>
+
+
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+<span class="c1"># Degree of polynomial fit for patch</span>
+<span class="n">degree</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># TODO: Another potential method to look into is a 2D taylor expansion</span>
+<span class="c1">#   F(t_0 + delta_t) = sum n from 0 to inf: 1/n! (n-th derivative of F w.r.t. t) * delta_t^n</span>
+<span class="c1">#   Where F(t) = f(x_o + t * delta_x, y_o + t * delta_y)</span>
+<span class="c1">#   (f is the function we want, F(t) is easy to take a taylor series of)</span>
+<span class="c1">#   n-th derivative of F(t):</span>
+<span class="c1">#       sum m from 0 to n:</span>
+<span class="c1">#           (n choose m) * (m-th partial derivative w.r.t. x and (n-m)-th partial</span>
+<span class="c1">#           derivative w.r.t. y of f) evaluated at (x_o, y_o) * delta_x^m * delta_y^(n-m)</span>
+
+<span class="c1"># TODO: Another thing to try (with the current method or Taylor expansion) is weighting</span>
+<span class="c1">#   Each pixel gets exponentially less weight on the current patch based on distance</span>
+<span class="c1">#   Typically exp(-d^2) where d is distance</span>
+
+
+<div class="viewcode-block" id="get_target_node_idxs"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.get_target_node_idxs">[docs]</a><span class="k">def</span> <span class="nf">get_target_node_idxs</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">tgts</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the indices of all nodes that are inside of targets</span>
+
+<span class="sd">    Returns list of indices of nodes that fall within the patch of a target. This is</span>
+<span class="sd">    calculated by finding the distance from every node to every target. All nodes that</span>
+<span class="sd">    are a distance less than ``tgt[&#39;size&#39;]`` from the target are marked as &#39;invalid&#39; and</span>
+<span class="sd">    the indices of those nodes are returned</span>
+
+<span class="sd">    This is calculated in a two step procedure for a speedup. It is based on the fact</span>
+<span class="sd">    that Euclidean distance &lt;= Manhattan distance &lt;= sqrt(3) * euclidean distance, and</span>
+<span class="sd">    that Manhattan distance is much faster to calculate than Euclidean distance since</span>
+<span class="sd">    there is no square or square root operation.</span>
+
+<span class="sd">    Step 1 calculates the Manhattan distance (L1 norm) from every node to every target.</span>
+<span class="sd">    If the Manhattan distance is greater than ``sqrt(3) * tgt[&#39;size&#39;]``, we know for</span>
+<span class="sd">    certain that the node is at least ``tgt[&#39;size&#39;]`` units of Euclidean distance from</span>
+<span class="sd">    the target. This will be the vast majority of nodes (all but ~300 for example launch</span>
+<span class="sd">    vehicle w/ ~1 million nodes).</span>
+
+<span class="sd">    Step 2 checks the Euclidean distance of each node that failed the Manhattan distance</span>
+<span class="sd">    check. Nodes that fall within ``tgt[&#39;size&#39;]`` of any target are marked as invalid</span>
+<span class="sd">    and their index is returned.</span>
+
+<span class="sd">    If a large portion of the nodes are near a target, this process would be slow since</span>
+<span class="sd">    it is effectively double calculating any node near a target. However, since the</span>
+<span class="sd">    targets are relatively small compared to the surface area of the model, it results</span>
+<span class="sd">    in a roughly 2X speedup.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nodes : np.ndarray, shape (N, 3), float</span>
+<span class="sd">        A numpy array of the X, Y, and Z values of the nodes</span>
+<span class="sd">    tgts : list</span>
+<span class="sd">        Each target is a dictionary with (at a minimum) a &#39;tvec&#39; and &#39;size&#39; attribute.</span>
+<span class="sd">        The &#39;tvec&#39; attribute gives the target&#39;s location and the &#39;size&#39; gives the</span>
+<span class="sd">        Euclidean distance from the center of the target to the perimeter</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nodes_in_targets : np.ndarray</span>
+<span class="sd">        Sorted array of the indices (``np.int32``) of the nodes that are inside of a</span>
+<span class="sd">        target</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Heuristic - Nodes within np.sqrt(3) * tgt[&#39;size&#39;] units of manhattan distance are</span>
+    <span class="c1">#   flagged as potential invalid nodes</span>
+    <span class="n">heuristic_invalid_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">tgts</span><span class="p">:</span>
+        <span class="n">manhattan_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">nodes</span> <span class="o">-</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="nb">ord</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">heuristic_invalid_nodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">manhattan_dist</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">buffer_thickness_in</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="n">heuristic_invalid_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">heuristic_invalid_nodes</span><span class="p">)</span>
+
+    <span class="c1"># Final Check - Of the nodes flagged, check if any are within of euclidean distance</span>
+    <span class="n">invalid_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">tgts</span><span class="p">:</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="n">heuristic_invalid_nodes</span><span class="p">]</span> <span class="o">-</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">invalid_nodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">heuristic_invalid_nodes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">dist</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">buffer_thickness_in</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">invalid_nodes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="patchFiducials"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.patchFiducials">[docs]</a><span class="k">def</span> <span class="nf">patchFiducials</span><span class="p">(</span><span class="n">fiduals_visible</span><span class="p">,</span> <span class="n">inp_img</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Patches clusters in the `inp_img`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fiduals_visible : list</span>
+<span class="sd">        Each fiducial is a dict with (at a minimum) &#39;tvec&#39; and &#39;target_type&#39; attributes.</span>
+<span class="sd">        The &#39;tvec&#39; attribute gives the fiducial&#39;s location and &#39;target_type&#39; is a string</span>
+<span class="sd">        denoting the type of fiducial (most commonly &#39;dot&#39; or &#39;kulite&#39;)</span>
+<span class="sd">    inp_img : np.ndarray, np.uint8</span>
+<span class="sd">        Input image to be patched. `rmat` and `tvec` should be aligned to image</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        Rotation matrix from camera to object</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        Translation vector from camera to object</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3x3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        Thickness of boundary (in pixels)</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out_img : np.ndarray, float</span>
+<span class="sd">        Image with patched fiducials</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions</span>
+<span class="sd">        for the input fiducial</span>
+<span class="sd">    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels</span>
+<span class="sd">        for the input cluster</span>
+<span class="sd">    polyfit2D : Finds the polynomial fit using the boundary pixels</span>
+<span class="sd">    polyval2D : Finds the value for the internal pixels using the polynomial fit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create an output copy of the input image to work with</span>
+    <span class="n">out_img</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">inp_img</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Cluster the fiducials</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">clusterFiducials</span><span class="p">(</span><span class="n">fiduals_visible</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+
+    <span class="c1"># Patch every cluster in the output image</span>
+    <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+        <span class="c1"># Get the internal and boundary points of the cluster</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">internals</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">get_fiducial_internal_and_boundary</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">internals</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">get_cluster_internal_and_boundary</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+
+        <span class="c1"># Skip if there are too few points to perform patching</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">((</span><span class="n">degree</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">degree</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)):</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Convert the positions to local positions</span>
+        <span class="n">min_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">local_internals</span> <span class="o">=</span> <span class="n">internals</span> <span class="o">-</span> <span class="n">min_bounds</span>
+        <span class="n">local_bounds</span> <span class="o">=</span> <span class="n">bounds</span> <span class="o">-</span> <span class="n">min_bounds</span>
+
+        <span class="c1"># Get the intensities of the boundary intensities</span>
+        <span class="n">Is</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp_img</span><span class="p">[</span><span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">]</span>
+
+        <span class="c1"># Fit a 2D polynomial to the boundary intensities</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">polyfit2D</span><span class="p">(</span><span class="n">local_bounds</span><span class="p">,</span> <span class="n">Is</span><span class="p">)</span>
+
+        <span class="c1"># Using the fit, find values for the internal intensities</span>
+        <span class="n">new_internal_intensities</span> <span class="o">=</span> <span class="n">polyval2D</span><span class="p">(</span><span class="n">local_internals</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+
+        <span class="c1"># Enter the new intensity values into the array</span>
+        <span class="n">internals</span> <span class="o">=</span> <span class="n">internals</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+        <span class="n">out_img</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">internals</span><span class="o">.</span><span class="n">T</span><span class="p">)]</span> <span class="o">=</span> <span class="n">new_internal_intensities</span>
+
+    <span class="k">return</span> <span class="n">out_img</span></div>
+
+
+<div class="viewcode-block" id="clusterFiducials"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.clusterFiducials">[docs]</a><span class="k">def</span> <span class="nf">clusterFiducials</span><span class="p">(</span><span class="n">fiduals_visible</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clusters input fiducials based on image location and image size</span>
+
+<span class="sd">    A cluster is made of all fiducials with a path of overlap between them, i.e. A is</span>
+<span class="sd">    overlapping B which is overlapping C and D, therefore A, B, C, and D are all in the</span>
+<span class="sd">    same cluster. It is considered overlap if the internal pixels to one fiducial</span>
+<span class="sd">    overlap the internal or boundary pixels of another fiducial. A cluster can be a</span>
+<span class="sd">    single fiducial if there is no overlap.</span>
+
+<span class="sd">    This function clusters targets, then returns the clusters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fiduals_visible : list</span>
+<span class="sd">        Each fiducial is a dict with (at a minimum) &#39;tvec&#39; and &#39;target_type&#39; attributes.</span>
+<span class="sd">        The &#39;tvec&#39; attribute gives the fiducial&#39;s location and &#39;target_type&#39; is a string</span>
+<span class="sd">        denoting the type of fiducial (most commonly &#39;dot&#39; or &#39;kulite&#39;)</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        Rotation matrix from camera to object</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        Translation vector from camera to object</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        Thickness of boundary (in pixels)</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    clusters : list</span>
+<span class="sd">        List of clusters, where each cluster is a list of fiducials from</span>
+<span class="sd">        `fiducials_visible`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Represent fiducials as circles with center and radius</span>
+    <span class="n">unclustered_fiducial_sets</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#deleteme?</span>
+    <span class="c1"># unclustered_image_fiducials = [] #deleteme?</span>
+    <span class="k">for</span> <span class="n">fiducial</span> <span class="ow">in</span> <span class="n">fiduals_visible</span><span class="p">:</span>
+        <span class="n">internals</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">get_fiducial_internal_and_boundary</span><span class="p">(</span><span class="n">fiducial</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+        <span class="n">internal_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">internal</span><span class="p">)</span> <span class="k">for</span> <span class="n">internal</span> <span class="ow">in</span> <span class="n">internals</span><span class="p">)</span>
+        <span class="n">internal_and_boundary_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span> <span class="k">for</span> <span class="n">boundary</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">))</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">internal_set</span><span class="p">)</span>
+        <span class="n">unclustered_fiducial_sets</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">internal_set</span><span class="p">,</span> <span class="n">internal_and_boundary_set</span><span class="p">])</span>
+
+        <span class="c1"># tgt_proj, targ_size_px, __, __ = get_fiducial_pixel_properties(fiducial, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)</span>
+        <span class="c1"># # tgt_proj[&#39;proj&#39;] is center, targ_size_px is diameter</span>
+        <span class="c1"># unclustered_image_fiducials.append((tgt_proj[&#39;proj&#39;], targ_size_px / 2))</span>
+
+    <span class="c1"># unclustered_image_fiducials_orig = copy.deepcopy(unclustered_image_fiducials)</span>
+    <span class="n">unclustered_fiducial_sets_orig</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">unclustered_fiducial_sets</span><span class="p">)</span>
+
+    <span class="c1"># Represent fiducals as nodes on a graph (the abstract data structure)</span>
+    <span class="c1"># Nodes are connected if the set of pixels internal to the fiducial overlap with the</span>
+    <span class="c1">#   set of internal or set of boundary pixels of another</span>
+    <span class="c1"># Clusters are connected components of that graph</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># 1) Add the an unclustered fiducal to a cluster. Remove it from the</span>
+    <span class="c1">#     unclustered list</span>
+    <span class="c1"># 2) For each unclusted fiducial, find the distance to each fiducial in the</span>
+    <span class="c1">#     cluster (not the center of the fidcual, the perimieter of the fiducial)</span>
+    <span class="c1"># 3) If any of the distances is small enough that the boundaries of one can overlap</span>
+    <span class="c1">#    with the internals of another, add it to the cluster. Additionally, remove</span>
+    <span class="c1">#    it from the unclustered and go back to step 2.</span>
+    <span class="c1">#       (This is defined as the distance being less than the boundary_thickness plus</span>
+    <span class="c1">#       sqrt(2). If the distance is larger than this it cannot overlap. Anything</span>
+    <span class="c1">#       less than that is possible)</span>
+    <span class="c1"># 4) Once an iteration has been completed without adding an unclustered fiducial,</span>
+    <span class="c1">#     add this cluster to the clusters list. If there are unclustered fiducials,</span>
+    <span class="c1">#       go back to step 1.</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">unclustered_fiducial_sets</span><span class="p">):</span>
+        <span class="n">cluster</span> <span class="o">=</span> <span class="p">[</span><span class="n">unclustered_fiducial_sets</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="c1"># Repeat until nothing is added to the cluster</span>
+        <span class="n">was_added</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="n">was_added</span><span class="p">:</span>
+            <span class="n">was_added</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">unclustered</span> <span class="ow">in</span> <span class="n">unclustered_fiducial_sets</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">clustered</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+                    <span class="c1"># If the internals of the targets overlap, add the unclustered to</span>
+                    <span class="c1">#   the cluster</span>
+                    <span class="k">if</span> <span class="n">clustered</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">unclustered</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="n">cluster</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unclustered</span><span class="p">)</span>
+                        <span class="n">unclustered_fiducial_sets</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">unclustered</span><span class="p">)</span>
+                        <span class="n">was_added</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+
+                    <span class="c1"># If the boundaries of one overlap the internals of thee other, add</span>
+                    <span class="c1">#   the unclustered to the cluster</span>
+                    <span class="k">if</span> <span class="n">clustered</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">unclustered</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="n">clustered</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">unclustered</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">cluster</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unclustered</span><span class="p">)</span>
+                        <span class="n">unclustered_fiducial_sets</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">unclustered</span><span class="p">)</span>
+                        <span class="n">was_added</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+
+                <span class="k">if</span> <span class="n">was_added</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="n">clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+
+    <span class="c1"># Repackage as fiducial cluster</span>
+    <span class="n">fiducial_clusters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+        <span class="n">fiducial_cluster</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">image_fiducial</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">unclustered_fiducial_sets_orig</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">image_fiducial</span><span class="p">)</span>
+            <span class="n">fiducial_cluster</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fiduals_visible</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">fiducial_clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fiducial_cluster</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fiducial_clusters</span></div>
+
+
+<span class="c1"># TODO: automatically find fiducials that are close together to group into clusters</span>
+<div class="viewcode-block" id="get_cluster_internal_and_boundary"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.get_cluster_internal_and_boundary">[docs]</a><span class="k">def</span> <span class="nf">get_cluster_internal_and_boundary</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list of internal and boundary pixels for the input cluster</span>
+
+<span class="sd">    An internal pixel is either directly a part of the fiducials or in between</span>
+<span class="sd">    fiducials. A boundary pixel is any pixel within buffer pixels of an internal pixel</span>
+<span class="sd">    and is not an internal itself</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cluster : list</span>
+<span class="sd">        List of fiducials in the cluster. Each fiducial is a dict with (at a minimum)</span>
+<span class="sd">        &#39;tvec&#39; and &#39;target_type&#39; attributes.  The &#39;tvec&#39; attribute gives the fiducial&#39;s</span>
+<span class="sd">        location and &#39;target_type&#39; is a string denoting the type of fiducial (most</span>
+<span class="sd">        commonly &#39;dot&#39; or &#39;kulite&#39;)</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        Rotation matrix from camera to object</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        Translation vector from camera to object</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3x3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        thickness of boundary (in pixels)</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    internals : np.ndarray, shape (n, 2)</span>
+<span class="sd">        Positions (x, y) of the ``n`` internal points</span>
+<span class="sd">    bounds : np.ndarray, shape (m, 2)</span>
+<span class="sd">        Positions (x, y) of the ``m`` boundary pixels</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_fiducial_boundary_map_from_internal_map : Determines boundary pixels from bit</span>
+<span class="sd">        mask of internal pixels</span>
+<span class="sd">    get_fiducial_pixel_properties : Returns the pixel properties of the input fiducial</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># First stage: Get the minimum, axis aligned rectangle that contains all fiducials</span>
+    <span class="c1">#   of this cluster</span>
+    <span class="n">t_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">t_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="c1"># Iterate over every fiducial, and take the leftmost, topmost, rightmost, and</span>
+    <span class="c1">#   bottommost fiducial point. Save them in t_min and t_max respectively</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+        <span class="c1"># Get the minimum, axis-aligned bounding box for this fiducial</span>
+        <span class="n">tgt_proj</span><span class="p">,</span> <span class="n">targ_size_px</span><span class="p">,</span> <span class="n">t_min_temp</span><span class="p">,</span> <span class="n">t_max_temp</span> <span class="o">=</span> <span class="n">get_fiducial_pixel_properties</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+
+        <span class="c1"># Update t_min and t_max</span>
+        <span class="n">t_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">t_min</span><span class="p">,</span> <span class="n">t_min_temp</span><span class="p">)</span>
+        <span class="n">t_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">t_max</span><span class="p">,</span> <span class="n">t_max_temp</span><span class="p">)</span>
+
+    <span class="c1"># Second Stage: make a mini images the size of that minimum axis aligned rectangle</span>
+    <span class="c1">#   and mark internal and boundary pixels. An internal pixel is either directly a</span>
+    <span class="c1">#   part of the fiducials or in between fiducials. A boundary pixel is any pixel within</span>
+    <span class="c1">#   buffer pixels of an internal pixel and is not an internal itself</span>
+
+    <span class="c1"># Mini image to contain the internal points</span>
+    <span class="n">internal_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="c1"># Mark all points that are directly a part of the fiducials as internal</span>
+    <span class="k">for</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+        <span class="n">internal_points</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">get_fiducial_internal_and_boundary</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+
+        <span class="c1"># Mark every internal point as internal</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">internal_points</span><span class="p">:</span>
+            <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">x</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Mark all points between fiducials as internal</span>
+
+    <span class="c1"># Start with a dilation then erosion to fill in any small gaps between fiducials</span>
+    <span class="c1">#   that might not otherwise get filled. If there are no gaps, this is an identity</span>
+    <span class="c1">#   operation</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">internal_map</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">dilate</span><span class="p">(</span><span class="n">internal_map</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="n">internal_map</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">erode</span><span class="p">(</span><span class="n">internal_map</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+
+    <span class="c1"># For each column, find the topmost and bottommost internal pixel. Fill in</span>
+    <span class="c1">#   everything between them</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">min_y</span> <span class="o">=</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">max_y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Find the topmost internal pixel of this row</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]:</span>
+                <span class="n">min_y</span> <span class="o">=</span> <span class="n">y</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Find the bottommost internal pixel of this row</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]:</span>
+                <span class="n">max_y</span> <span class="o">=</span> <span class="n">y</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Fill in everything in between</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_y</span><span class="p">,</span> <span class="n">max_y</span><span class="p">):</span>
+            <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># For each row, find the leftmost and rightmost internal pixel. Fill in everything</span>
+    <span class="c1">#   between them</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">min_x</span> <span class="o">=</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">max_x</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Find the topmost internal pixel of this row</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]:</span>
+                <span class="n">min_x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Find the bottommost internal pixel of this row</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]:</span>
+                <span class="n">max_x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Fill in everything in between</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_x</span><span class="p">,</span> <span class="n">max_x</span><span class="p">):</span>
+            <span class="n">internal_map</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Get all pixels that are not internal and are within boundary_thickness of an internal</span>
+    <span class="n">boundary_map</span> <span class="o">=</span> <span class="n">get_fiducial_boundary_map_from_internal_map</span><span class="p">(</span><span class="n">internal_map</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">)</span>
+
+    <span class="c1"># Third Stage: Turn those maps into a list of points</span>
+
+    <span class="c1"># Get all internal and boundary points</span>
+    <span class="n">internals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">internal_map</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">boundary_map</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="c1"># Offset by the region corner to get absolute image coordinates</span>
+    <span class="n">internals</span> <span class="o">+=</span> <span class="p">(</span><span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">bounds</span> <span class="o">+=</span> <span class="p">(</span><span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">internals</span><span class="p">,</span> <span class="n">bounds</span></div>
+
+
+<div class="viewcode-block" id="get_fiducial_internal_and_boundary"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.get_fiducial_internal_and_boundary">[docs]</a><span class="k">def</span> <span class="nf">get_fiducial_internal_and_boundary</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return internal and boundary pixel positions for the input fiducial</span>
+
+<span class="sd">    An internal pixel a part of the fiducials (minimum axis aligned bounding rectangle).</span>
+<span class="sd">    A boundary pixel is any pixel within buffer pixels of an internal pixel and is not</span>
+<span class="sd">    an internal itself</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgt : dict</span>
+<span class="sd">        dict with (at a minimum) &#39;tvec&#39; and &#39;target_type&#39; attributes. The &#39;tvec&#39;</span>
+<span class="sd">        attribute gives the fiducial&#39;s location and &#39;target_type&#39; is a string denoting</span>
+<span class="sd">        the type of fiducial (most commonly &#39;dot&#39; or &#39;kulite&#39;)</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        Rotation matrix from camera to object</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        Translation vector from camera to object</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3x3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        thickness of boundary (in pixels)</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    internals : np.ndarray, shape (n, 2)</span>
+<span class="sd">        Positions (x, y) of the ``n`` internal points</span>
+<span class="sd">    bounds : np.ndarray, shape (m, 2)</span>
+<span class="sd">        Positions (x, y) of the ``m`` boundary pixels</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_fiducial_boundary_map_from_internal_map :</span>
+<span class="sd">        Determines boundary pixels from bit mask of internal pixels</span>
+<span class="sd">    get_fiducial_pixel_properties :</span>
+<span class="sd">        Returns the pixel properties of the input fiducial</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">boundary_thickness</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="c1"># delteme</span>
+
+    <span class="c1"># Get the tgt_proj and the minimum, axis-aligned bounding box for this fiducial</span>
+    <span class="n">tgt_proj</span><span class="p">,</span> <span class="n">targ_size_px</span><span class="p">,</span> <span class="n">t_min</span><span class="p">,</span> <span class="n">t_max</span> <span class="o">=</span> <span class="n">get_fiducial_pixel_properties</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">)</span>
+
+    <span class="c1"># Make a mini image the size of the region covered by the fiducial</span>
+    <span class="c1"># In this image, 0 is safe and 1 is internals</span>
+    <span class="n">internal_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+    <span class="c1"># Get the fiducial center location within the local map</span>
+    <span class="n">tgt_proj_local</span> <span class="o">=</span> <span class="p">[</span><span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="c1"># For each pixel, find the point on the pixel closest to the center of the fiducial</span>
+    <span class="c1"># The expression to find the x coordinate of that point is max(X1, min(Xc, X2))</span>
+    <span class="c1">#   where X1 is the left edge of the pixel, X2 is the right edge, and Xc is the</span>
+    <span class="c1">#   center of the circle. Similar for the y coordinate</span>
+    <span class="c1"># The x coordinate of that point can be one of three things:</span>
+    <span class="c1">#   1) If the center of the fiducial is to the right of the pixel, then</span>
+    <span class="c1">#       min(Xc, X2) will return X2 and max(X1, X2) will also return X2</span>
+    <span class="c1">#   2) If the center of the fiducial is inside pixel, then min(Xc, X2) will return</span>
+    <span class="c1">#       Xc and max(X1, Xc) will also return Xc</span>
+    <span class="c1">#   3) If the center of the fiducial is to the left of the pixel, then min(Xc, X2)</span>
+    <span class="c1">#       will return Xc but max(X1, Xc) will return X1</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">t_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+    <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ys</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">Xns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">xs</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">tgt_proj_local</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xs</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">))</span>
+    <span class="n">Yns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ys</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">tgt_proj_local</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ys</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">))</span>
+
+    <span class="c1"># For each of the closest points, if it is within the radius of the center it is</span>
+    <span class="c1">#   internal and needs to be marked as such in the internal_map</span>
+    <span class="n">closest_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">([</span><span class="n">Xns</span> <span class="o">-</span> <span class="n">tgt_proj_local</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Yns</span> <span class="o">-</span> <span class="n">tgt_proj_local</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">internals_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">closest_distances</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">targ_size_px</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">internals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">ys</span><span class="p">[</span><span class="n">internals_idxs</span><span class="p">],</span> <span class="n">xs</span><span class="p">[</span><span class="n">internals_idxs</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">internal_map</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">internals</span><span class="o">.</span><span class="n">T</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Get all pixels that are not internal and are within boundary_thickness of an internal</span>
+    <span class="n">boundary_map</span> <span class="o">=</span> <span class="n">get_fiducial_boundary_map_from_internal_map</span><span class="p">(</span><span class="n">internal_map</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">)</span>
+
+    <span class="c1"># Get all internal and boundary points</span>
+    <span class="n">internals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">internal_map</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">boundary_map</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="c1"># Offset by the region corner to get absolute image coordinates</span>
+    <span class="n">internals</span> <span class="o">+=</span> <span class="p">(</span><span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">bounds</span> <span class="o">+=</span> <span class="p">(</span><span class="n">t_min</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_min</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">internals</span><span class="p">,</span> <span class="n">bounds</span></div>
+
+
+<div class="viewcode-block" id="get_fiducial_boundary_map_from_internal_map"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.get_fiducial_boundary_map_from_internal_map">[docs]</a><span class="k">def</span> <span class="nf">get_fiducial_boundary_map_from_internal_map</span><span class="p">(</span><span class="n">internal_map</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determines boundary pixels from bit mask of internal pixels</span>
+
+<span class="sd">    `internal_map` is a bitwise mask (image) where 1 is an internal and 0 is not.</span>
+<span class="sd">    `internal_map` needs to be big enough to contain all boundary pixels. That means it</span>
+<span class="sd">    needs to have a buffer of 0&#39;s around it that is `boundary_thickness` thick on all</span>
+<span class="sd">    sides (a number of columns of 0&#39;s left of leftmost internal equal to</span>
+<span class="sd">    `boundary_thickness`. Same for rightmost. And similarly rows above and below)</span>
+
+<span class="sd">    Performs ``n`` dilation operations on the internal_map with a 3x3 square kernel</span>
+<span class="sd">    where ``n`` is equal to boundary_thickness. `boundary_map` (return value) is the</span>
+<span class="sd">    result minus `internal_map`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    internal_map : np.ndarray</span>
+<span class="sd">        Bitwise mask of internal pixels</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        thickness of boundary (in pixels)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    boundary_map : np.ndarray</span>
+<span class="sd">        Bitmask of boundary pixels. Same shape as `internal_map` input</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions</span>
+<span class="sd">        for the input fiducial</span>
+<span class="sd">    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels</span>
+<span class="sd">        for the input cluster</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Dilate the internals image to get an image of the internals and boundary</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">internals_and_boundary_map</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">internal_map</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">boundary_thickness</span><span class="p">):</span>
+        <span class="n">internals_and_boundary_map</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">dilate</span><span class="p">(</span><span class="n">internals_and_boundary_map</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+
+    <span class="c1"># Get the boundary by subtracting the internals</span>
+    <span class="n">boundary_map</span> <span class="o">=</span> <span class="n">internals_and_boundary_map</span> <span class="o">-</span> <span class="n">internal_map</span>
+    <span class="k">return</span> <span class="n">boundary_map</span></div>
+
+
+<div class="viewcode-block" id="get_fiducial_pixel_properties"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.get_fiducial_pixel_properties">[docs]</a><span class="k">def</span> <span class="nf">get_fiducial_pixel_properties</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">boundary_thickness</span><span class="p">,</span> <span class="n">buffer_thickness_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the pixel properties of the input fiducial</span>
+
+<span class="sd">    Pixel properties refers to projected location, pixel size (adjusted for focal</span>
+<span class="sd">    length, distance to camera, and diameter), and minimum axis-aligned bounding box</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tgt : dict</span>
+<span class="sd">        dict with (at a minimum) &#39;tvec&#39; and &#39;target_type&#39; attributes. The &#39;tvec&#39;</span>
+<span class="sd">        attribute gives the fiducial&#39;s location and &#39;target_type&#39; is a string denoting</span>
+<span class="sd">        the type of fiducial (most commonly &#39;dot&#39; or &#39;kulite&#39;)</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        Rotation matrix from camera to object</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        Translation vector from camera to object</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    boundary_thickness : int</span>
+<span class="sd">        thickness of boundary (in pixels)</span>
+<span class="sd">    buffer_thickness_in : float</span>
+<span class="sd">        Buffer (in inches) to add to fiducials when determining internals applied</span>
+<span class="sd">        radially (increases effective radius of fiducial by `buffer_thickness_in`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tgt_proj : dict</span>
+<span class="sd">        Fiducial projection which is a dict with keys &#39;target_type&#39;, and &#39;proj&#39; which</span>
+<span class="sd">        map to a string and list of positions (length 2, (x, y)) respectively.</span>
+<span class="sd">        &#39;target_type&#39; matches the input &#39;target_type&#39;.</span>
+<span class="sd">    targ_size_px : float</span>
+<span class="sd">        Fiducial size in pixels accounting for the focal length, distance to camera, and</span>
+<span class="sd">        diameter. Does not take model geometry into account, and is either exactly</span>
+<span class="sd">        accurate or an over estimate (likely a mild overestimate).</span>
+<span class="sd">    t_min : np.ndarray, shape (2,), int</span>
+<span class="sd">        Upper left corner of the minimum axis aligned bounding box of the fiducial plus</span>
+<span class="sd">        boundary pixels.</span>
+<span class="sd">    t_max : np.ndarray, shape (2,), int</span>
+<span class="sd">        Bottom right corner for the bounding box.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions</span>
+<span class="sd">        for the input fiducial</span>
+<span class="sd">    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels</span>
+<span class="sd">        for the input cluster</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Effective size of fiducial in inches</span>
+    <span class="n">targ_size_in</span> <span class="o">=</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">buffer_thickness_in</span>
+
+    <span class="c1"># Calculate pixel size of fiducial (assuming planar fiducial normal to camera)</span>
+    <span class="c1">#   This pixel size is &gt;= the actual pixel size (likely a mild overestimate)</span>
+    <span class="n">rmat_model2camera</span><span class="p">,</span> <span class="n">tvec_model2camera</span> <span class="o">=</span> <span class="n">photogrammetry</span><span class="o">.</span><span class="n">invTransform</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">)</span>
+    <span class="n">cam2tgt_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tvec_model2camera</span> <span class="o">-</span> <span class="n">tgt</span><span class="p">[</span><span class="s1">&#39;tvec&#39;</span><span class="p">])</span>
+    <span class="n">targ_size_px</span> <span class="o">=</span> <span class="n">cameraMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">targ_size_in</span> <span class="o">/</span> <span class="n">cam2tgt_dist</span>
+
+    <span class="c1"># Get the tgt projection</span>
+    <span class="n">tgt_proj</span> <span class="o">=</span> <span class="n">photogrammetry</span><span class="o">.</span><span class="n">project_targets</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="p">[</span><span class="n">tgt</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Get the an axis aligned minimum rectangle for this fiducial (plus buffer)</span>
+    <span class="n">t_min</span> <span class="o">=</span> <span class="p">[</span><span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">targ_size_px</span> <span class="o">-</span> <span class="n">boundary_thickness</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">targ_size_px</span> <span class="o">-</span> <span class="n">boundary_thickness</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">t_max</span> <span class="o">=</span> <span class="p">[</span><span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">targ_size_px</span> <span class="o">+</span> <span class="n">boundary_thickness</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">tgt_proj</span><span class="p">[</span><span class="s1">&#39;proj&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">targ_size_px</span> <span class="o">+</span> <span class="n">boundary_thickness</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Take the floor and ceiling respectively to convert to an integer</span>
+    <span class="n">t_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">t_min</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">t_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">t_max</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tgt_proj</span><span class="p">,</span> <span class="n">targ_size_px</span><span class="p">,</span> <span class="n">t_min</span><span class="p">,</span> <span class="n">t_max</span></div>
+
+
+<div class="viewcode-block" id="polyfit2D"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.polyfit2D">[docs]</a><span class="k">def</span> <span class="nf">polyfit2D</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">Is</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Finds the polynomial fit using the boundary pixels</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bounds : np.ndarray, shape (n, 2) of floats</span>
+<span class="sd">        (x, y) position of boundary pixels in local coordinates (i.e. leftmost boundary</span>
+<span class="sd">        pixel has x coordinate of 0. Topmost has coordinate of 0). ``bounds[n]``</span>
+<span class="sd">        corresponds to ``Is[n]``</span>
+<span class="sd">    Is : np.ndarray, shape (n,) of floats</span>
+<span class="sd">        Intensity value of boundary pixels pixels. ``Is[n]`` corresponds to</span>
+<span class="sd">        ``bounds[n]``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coeffs : np.ndarray, shape (n, 1)</span>
+<span class="sd">        Polynomial fit coefficients</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    polyval2D : Finds the value for the internal pixels using the polynomial fit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">Is</span><span class="p">)))</span>
+
+    <span class="c1"># Determine the number of coefficients</span>
+    <span class="c1"># Terms are 1 constant, 2 linear (x, y), 3 quadratic (xx, xy, yy), ...</span>
+    <span class="c1"># Equivalent to 1 + 2 + ... + degree + (degree+1) = (degree+2)*(degree+1)/2</span>
+    <span class="n">num_coeffs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Number of boundary terms must be greater than or equal to the number of coefficients</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">num_coeffs</span><span class="p">),</span> <span class="s2">&quot;Not enough boundary terms, please increase boundary_thickness or decrease degree&quot;</span>
+
+    <span class="c1"># Initialize the least squares input matrix</span>
+    <span class="c1">#   Ax ~= b where ~= is least squares solution</span>
+    <span class="c1"># Can turn least squares polynomial fit into linear solution by solving linearly</span>
+    <span class="c1">#   w.r.t. poly terms. I.e. [1, x, xx, xy, yy, ...] where (x, y) is pixel position</span>
+    <span class="c1">#   and b is pixel intensity</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">),</span> <span class="n">num_coeffs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">degree</span><span class="p">:</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Solution to linear equation is just pixel values</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Is</span><span class="p">)</span>
+
+    <span class="c1"># Initialize polynomial coefficient output vector</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_coeffs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Solve least squares problem</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="polyval2D"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.patching.html#upsp.intensity_mapping.patching.polyval2D">[docs]</a><span class="k">def</span> <span class="nf">polyval2D</span><span class="p">(</span><span class="n">internals</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Finds the value for the internal pixels using the polynomial fit</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    internals : np.ndarray, shape (n, 2) of floats</span>
+<span class="sd">        (x, y) position of internal pixels in local coordinates (i.e. leftmost boundary</span>
+<span class="sd">        pixel has x coordinate of 0. Topmost has y coordinate of 0)</span>
+<span class="sd">    coeffs : np.ndarray, shape (n,)</span>
+<span class="sd">        Polynomial fit coefficients</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Is : np.ndarray, shape (n,)</span>
+<span class="sd">        Estimated intensity for internals</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    polyfit2D : Finds the polynomial fit using the boundary pixels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Determine the number of coefficients</span>
+    <span class="c1"># Terms are 1 constant, 2 linear (x, y), 3 quadratic (xx, xy, yy), ...</span>
+    <span class="c1"># Equivalent to 1 + 2 + ... + degree + (degree+1) = (degree+2)*(degree+1)/2</span>
+    <span class="n">num_coeffs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the input matrix</span>
+    <span class="c1">#   Ax = b where A is the polynomial terms, x is the coefficients, and b are the</span>
+    <span class="c1">#   resulting intensity estimates</span>
+    <span class="c1"># Can polynomial function into linear solution by solving linearly w.r.t. poly terms</span>
+    <span class="c1">#   I.e. [1, x, xx, xy, yy, ...] where (x, y) is pixel position</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">internals</span><span class="p">),</span> <span class="n">num_coeffs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">degree</span><span class="p">:</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="n">internals</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(</span><span class="n">internals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">Is</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Is</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

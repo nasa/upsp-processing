@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.intensity_mapping.node_pixel_mapping &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.intensity_mapping.patching" href="upsp.intensity_mapping.patching.html" />
+    <link rel="prev" title="upsp.intensity_mapping" href="upsp.intensity_mapping.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a><ul>
+      <li>Previous: <a href="upsp.intensity_mapping.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+      <li>Next: <a href="upsp.intensity_mapping.patching.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping.patching</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.intensity_mapping.node_pixel_mapping">
+<span id="upsp-intensity-mapping-node-pixel-mapping"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping.node_pixel_mapping</span></code><a class="headerlink" href="#module-upsp.intensity_mapping.node_pixel_mapping" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe">
+<span class="sig-name descname"><span class="pre">node_to_pixel_mapping_keyframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_checker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/node_pixel_mapping.html#node_to_pixel_mapping_keyframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data on the projected visible nodes for a keyframe</p>
+<p>Returns a numpy array of the pixel positions of the projected locations of the
+visible nodes. Additionally returns the gradient of the pixel position with respect
+to the rotation vector and translation vector. Non-visible nodes are given a pixel
+position and gradient value of NAN. Additionally returns a sorted numpy array of the
+indices of the nodes that are visible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The rotation matrix from the camera to the model</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The translation vector from the camera to the model</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>vis_checker</strong> (<a class="reference internal" href="upsp.cam_cal_utils.visibility.html#upsp.cam_cal_utils.visibility.VisibilityChecker" title="upsp.cam_cal_utils.visibility.VisibilityChecker"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisibilityChecker</span></code></a>) – <code class="docutils literal notranslate"><span class="pre">VisibilityChecker</span></code> object with the relevant BVH and oblique viewing angle</p></li>
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – A numpy array of the X, Y, and Z values of the nodes. <code class="docutils literal notranslate"><span class="pre">nodes[n]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">normals[n]</span></code></p></li>
+<li><p><strong>normals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – A numpy array of the i, j, and k values of the node normals. <code class="docutils literal notranslate"><span class="pre">normals[n]</span></code> is
+associated with <code class="docutils literal notranslate"><span class="pre">nodes[n]</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>projections</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Pixel locations of the projected nodes. Non-visibles nodes will be NAN.
+<code class="docutils literal notranslate"><span class="pre">projections[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">nodes[i]</span></code> and <code class="docutils literal notranslate"><span class="pre">jacobian[i]</span></code></p></li>
+<li><p><strong>jacobians</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">6)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Jacobian of pixel locations of the projected nodes. Non-visibles nodes will
+be NAN. Jacobian axis 2 refers to (<cite>rvec</cite> | <cite>tvec</cite>). <code class="docutils literal notranslate"><span class="pre">jacobian[i]</span></code> is
+associated with <code class="docutils literal notranslate"><span class="pre">nodes[i]</span></code> and <code class="docutils literal notranslate"><span class="pre">projections[i]</span></code></p></li>
+<li><p><strong>visible_indices</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(V,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – Sorted numpy array of the indices of the visibles nodes</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe" title="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_to_pixel_mapping_non_keyframe</span></code></a></dt><dd><p>use outputs to quickly map non-keyframes</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe">
+<span class="sig-name descname"><span class="pre">node_to_pixel_mapping_non_keyframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmat_curr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec_curr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jacs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_idxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/node_pixel_mapping.html#node_to_pixel_mapping_non_keyframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data on the projected visible nodes for a non-keyframe</p>
+<p>Returns a numpy array of the pixel positions of the projected locations of the
+visible nodes. Non-visible nodes are given a pixel position of NAN. Assumes set of
+nodes visible in keyframe is same for nearby non-keyframes. Uses the Jacobian to
+quickly approximate the projected location</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat_key</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The rotation matrix from the camera to the model of the keyframe</p></li>
+<li><p><strong>tvec_key</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The translation vector from the camera to the model of the keyframe</p></li>
+<li><p><strong>rmat_curr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The rotation matrix from the camera to the model of the current non-keyframe</p></li>
+<li><p><strong>tvec_curr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(3,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The translation vector from the camera to the model of the current non-keyframe</p></li>
+<li><p><strong>projs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Projected locations of the nodes in the keyframe</p></li>
+<li><p><strong>jacs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">6)</span></code>,  float) – Jacobians of the projected locations</p></li>
+<li><p><strong>vis_idxs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(V,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Indices of the visible nodes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>updated_projections</strong> – Approximate pixel locations of the projected nodes. Non-visibles nodes will be
+NAN. <code class="docutils literal notranslate"><span class="pre">updated_projections[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">projs[i]</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe" title="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_to_pixel_mapping_keyframe</span></code></a></dt><dd><p>create keyframe inputs</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe_full">
+<span class="sig-name descname"><span class="pre">node_to_pixel_mapping_non_keyframe_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tvec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameraMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distCoeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_idxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/intensity_mapping/node_pixel_mapping.html#node_to_pixel_mapping_non_keyframe_full"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe_full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data on the projected visible nodes for a non-keyframe</p>
+<p>Returns a numpy array of the pixel positions of the projected locations of the
+visible nodes. Non-visible nodes are given a pixel position of NAN. Assumes set of
+nodes visible in keyframe is same for nearby non-keyframes. Fully computes the
+projection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rmat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The rotation matrix from the camera to the model of the current non-keyframe</p></li>
+<li><p><strong>tvec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The translation vector from the camera to the model of the current non-keyframe</p></li>
+<li><p><strong>cameraMatrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) camera matrix for the camera</p></li>
+<li><p><strong>distCoeffs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(5</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(5,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – The (openCV formatted) distortion coefficients for the camera</p></li>
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – A numpy array of the X, Y, and Z values of the nodes. <code class="docutils literal notranslate"><span class="pre">nodes[n]</span></code> is associated
+with <code class="docutils literal notranslate"><span class="pre">normals[n]</span></code></p></li>
+<li><p><strong>vis_idxs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(V,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Indices of the visible nodes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>updated_projections</strong> – Pixel locations of the projected nodes. Non-visibles nodes will be NAN.
+<code class="docutils literal notranslate"><span class="pre">updated_projections[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">nodes[i]</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">2)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe" title="upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_to_pixel_mapping_keyframe</span></code></a></dt><dd><p>create <cite>vis_idxs</cite> based on a keyframe</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.intensity_mapping.node_pixel_mapping.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

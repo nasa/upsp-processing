@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Quick Start &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Applications" href="applications.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#producing-surface-pressure-time-history-for-one-test-condition">Producing surface pressure time history for one test condition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-processing-multiple-test-conditions">Batch processing multiple test conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#guidelines-for-setting-nas-pbs-job-parameters">Guidelines for setting NAS PBS job parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="applications.html" title="next chapter">Applications</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>In general, there are two ways to run the uPSP processing applications:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#sec-single-processing"><span class="std std-ref">Processing one test condition</span></a>: Useful for initial checkout of raw
+data from a wind tunnel test setup. The user manually runs each step
+in the pipeline.</p></li>
+<li><p><a class="reference internal" href="#sec-batch-processing"><span class="std std-ref">Batch processing multiple test conditions</span></a>: Useful after initial
+checkout. A framework auto-generates scripts that will invoke each
+pipeline step for each wind tunnel test condition. The user controls
+the pipeline via top-level “launcher” scripts.</p></li>
+</ul>
+<section id="producing-surface-pressure-time-history-for-one-test-condition">
+<span id="sec-single-processing"></span><h2>Producing surface pressure time history for one test condition<a class="headerlink" href="#producing-surface-pressure-time-history-for-one-test-condition" title="Permalink to this headline">¶</a></h2>
+<p>The following instructions allow a user to process a single test
+conditions with the uPSP software. The steps will use bracketed
+shorthand like <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> to refer to the path to input files on
+disk (for more details concerning file formats, see <a class="reference internal" href="file-formats.html"><span class="doc">File Formats</span></a>).</p>
+<ol class="arabic">
+<li><p>Acquire the following input files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;video-file&gt;</span></code>: High-speed video of your test subject (<a class="reference internal" href="file-formats.html#sec-video-file"><span class="std std-ref">High-speed camera video formats</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;grid-file&gt;</span></code>: Test subject 3D model (<a class="reference internal" href="file-formats.html#sec-grid-file"><span class="std std-ref">Surface grid definition</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;tgts-file&gt;</span></code>: Registration targets and fiducials (<a class="reference internal" href="file-formats.html#sec-tgts-file"><span class="std std-ref">“Targets” file (*.tgts)</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;steady-file&gt;</span></code>: Steady-state surface pressure (<a class="reference internal" href="file-formats.html#sec-steady-file"><span class="std std-ref">Steady-state surface pressure file</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;wtd-file&gt;</span></code>: Time-averaged wind tunnel conditions (<a class="reference internal" href="file-formats.html#sec-wtd-file"><span class="std std-ref">Wind Tunnel Data (*.wtd)</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;paint-file&gt;</span></code>: Unsteady gain paint calibration coefficients (<a class="reference internal" href="file-formats.html#sec-upsp-gain-file"><span class="std std-ref">Unsteady PSP gain calibration</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;cal-file&gt;</span></code>: Camera calibration parameters (one file per camera) (<a class="reference internal" href="file-formats.html#sec-cam-cal-file"><span class="std std-ref">Camera-to-tunnel calibration</span></a>)</p></li>
+</ul>
+</li>
+<li><p>Create the following processing configuration files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;excal-cfg-file&gt;</span></code>: Configuration for <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code> (<a class="reference internal" href="file-formats.html#sec-excal-file"><span class="std std-ref">External camera calibration configuration parameters</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;inp-file&gt;</span></code>: Input deck for <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> (<a class="reference internal" href="file-formats.html#sec-input-deck"><span class="std std-ref">psp_process configuration (*.inp)</span></a>)</p></li>
+</ul>
+</li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code> to extract the first frame from the camera video file as a PNG.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+upsp-extract-frames <span class="se">\</span>
+  -input<span class="o">=</span>&lt;video-file&gt; <span class="se">\</span>
+  -output<span class="o">=</span>first-frame.png <span class="se">\</span>
+  -start<span class="o">=</span><span class="m">1</span> <span class="se">\</span>
+  -count<span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<p>Run <code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span> <span class="pre">-h</span></code> for more usage details.</p>
+<p>The output file <code class="docutils literal notranslate"><span class="pre">first-frame.00001.png</span></code> contains the first frame
+from the input <code class="docutils literal notranslate"><span class="pre">&lt;video-file&gt;</span></code>, scaled to 8-bit depth.</p>
+</li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code> to compute the external camera
+calibration relative to the model position in the first frame (this
+step accounts for “wind-on” deflection of the model position that
+is not accounted for in the time-averaged model position reported by
+the wind tunnel data systems):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+upsp-external-calibration <span class="se">\</span>
+  --tgts &lt;tgts-file&gt; <span class="se">\</span>
+  --grd &lt;grid-file&gt; <span class="se">\</span>
+  --wtd &lt;wtd-file&gt; <span class="se">\</span>
+  --cfg &lt;excal-cfg-file&gt; <span class="se">\</span>
+  --cal_dir &lt;cal-dir&gt; <span class="se">\</span>
+  --out_dir . <span class="se">\</span>
+  --img first-frame.00001.png
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;cal-dir&gt;</span></code> refers to the name of the directory containing
+<code class="docutils literal notranslate"><span class="pre">&lt;cal-file&gt;</span></code>. Run <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span> <span class="pre">-h</span></code> for more usage
+details.</p>
+<p>The output file <code class="docutils literal notranslate"><span class="pre">cam01-to-model.json</span></code> contains the external
+calibration parameters that will be fed to <code class="docutils literal notranslate"><span class="pre">psp_proces</span></code> in the next
+step.</p>
+</li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> to produce a (usually quite large) time history of
+the surface pressure at each point on the model grid. This can take
+significant time and memory if run on a personal computer; we recommend
+instead that the application be run in parallel on a compute cluster.
+The application is best run so that one MPI rank runs on each compute node,
+and then thread-level parallelism is leveraged by each MPI rank to scale
+across cores on a given node.</p>
+<p>An example PBS job script for running <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> on the Pleaides cluster at the
+NASA Advanced Supercomputing (NAS) Division is shown below. For more details
+about PBS syntax and uPSP-specific rules of thumb for sizing the job allocation,
+see <a class="reference internal" href="#sec-nas-parameters"><span class="std std-ref">Guidelines for setting NAS PBS job parameters</span></a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#PBS -q normal</span>
+<span class="c1">#PBS -l select=40:model=ivy</span>
+<span class="c1">#PBS -l walltime=00:20:00</span>
+<span class="nb">export</span> <span class="nv">MPI_DSM_DISTRIBUTE</span><span class="o">=</span>off
+<span class="nb">export</span> <span class="nv">OMP_STACKSIZE</span><span class="o">=</span>250M
+<span class="nb">export</span> <span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">16</span>
+<span class="nb">source</span> /usr/local/lib/global.profile
+module purge
+module load mpi-hpe/mpt.2.25
+mpiexec psp_process <span class="se">\</span>
+  -input_file<span class="o">=</span>&lt;inp-file&gt; <span class="se">\</span>
+  -h5_out<span class="o">=</span>&lt;out-dir&gt;/output.h5 <span class="se">\</span>
+  -paint_cal<span class="o">=</span>&lt;paint-file&gt; <span class="se">\</span>
+  -steady_p3d<span class="o">=</span>&lt;steady-file&gt;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;out-dir&gt;</span></code> refers to the value of the <code class="docutils literal notranslate"><span class="pre">&#64;output/dir</span></code> variable
+specified in the <code class="docutils literal notranslate"><span class="pre">&lt;inp-file&gt;</span></code>. Run <code class="docutils literal notranslate"><span class="pre">psp_process</span> <span class="pre">-h</span></code> for more
+usage details.</p>
+<p>The output <code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code> file contains the surface pressure
+time history for each node on the model grid (see <a class="reference internal" href="file-formats.html#sec-pressure-transpose-file"><span class="std std-ref">Pressure-time history raw binary outputs</span></a>).
+Several diagnostic images are printed to verify the external calibration and (optional)
+fiducial patches align well with the position of the model in the
+first video frame.</p>
+</li>
+<li><p>(Optional) post-processing steps</p>
+<ul>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">add_field</span></code> to add the <code class="docutils literal notranslate"><span class="pre">pressure_transpose</span></code> data into the
+HDF5 file produced by <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>. For some of its command
+line arguments, <code class="docutils literal notranslate"><span class="pre">add_field</span></code> must be provided with the number of
+vertices in the 3D model and the number of frames that were
+processed. Example usage below shows how to obtain these values
+from inspecting files output by <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> in the BASH script
+language. <code class="docutils literal notranslate"><span class="pre">&lt;out-dir&gt;</span></code> should be replaced with the same directory
+as <code class="docutils literal notranslate"><span class="pre">&lt;out-dir&gt;</span></code> in the previous step (the directory containing
+outputs from <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+
+<span class="c1"># Set output_dir to the folder containing outputs from `psp_process`</span>
+<span class="c1"># in previous step.</span>
+<span class="nv">output_dir</span><span class="o">=</span>&lt;out-dir&gt;
+<span class="nv">trans_h5_file</span><span class="o">=</span><span class="nv">$output_dir</span>/output.h5
+
+<span class="c1"># Inspect the &#39;X&#39; file, which is a flat binary dump of the</span>
+<span class="c1"># X-coordinates of the input wind tunnel model grid vertices.</span>
+<span class="c1"># The number of coordinates in the file gives the size of the model.</span>
+<span class="nv">data_item_size</span><span class="o">=</span><span class="m">4</span> <span class="c1"># coordinates stored as 4-byte float&#39;s</span>
+<span class="nv">model_size</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>expr <span class="k">$(</span>stat --printf<span class="o">=</span><span class="s2">&quot;%s&quot;</span> <span class="nv">$output_dir</span>/X<span class="k">)</span> <span class="s1">&#39;/&#39;</span> <span class="nv">$data_item_size</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">trans_flat_file</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>find <span class="nv">$output_dir</span> -type f -name <span class="s1">&#39;pressure_transpose&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">trans_flat_file_size</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>stat --printf<span class="o">=</span><span class="s2">&quot;%s&quot;</span> <span class="nv">$trans_flat_file</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">trans_flat_file_number_frames</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>expr <span class="nv">$trans_flat_file_size</span> <span class="s1">&#39;/&#39;</span> <span class="s1">&#39;(&#39;</span> <span class="nv">$model_size</span> <span class="s1">&#39;*&#39;</span> <span class="nv">$data_item_size</span> <span class="s1">&#39;)&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; number of model nodes: </span><span class="nv">$model_size</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; data item size: </span><span class="nv">$data_item_size</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; time history flat file: &#39;</span><span class="nv">$trans_flat_file</span><span class="s2">&#39;&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; time history flat file size: </span><span class="nv">$trans_flat_file_size</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; time history flat file number of frames: </span><span class="nv">$trans_flat_file_number_frames</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; adding flat-file data to &#39;</span><span class="nv">$trans_h5_file</span><span class="s2">&#39;&quot;</span>
+
+<span class="nv">ex</span><span class="o">=</span><span class="s2">&quot;add_field </span><span class="nv">$trans_h5_file</span><span class="s2"> frames </span><span class="nv">$trans_flat_file</span><span class="s2"> </span><span class="nv">$trans_flat_file_number_frames</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; running: &#39;</span><span class="nv">$ex</span><span class="s2">&#39;&quot;</span>
+<span class="nv">t_start</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>date +%s.%N<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; started at: </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">$ex</span>
+<span class="nv">t_end</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>date +%s.%N<span class="k">)</span><span class="s2">&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; elapsed time: </span><span class="k">$(</span>python -c <span class="s2">&quot;print(&#39;%4.1f&#39; % (</span><span class="nv">$t_end</span><span class="s2"> - </span><span class="nv">$t_start</span><span class="s2">))&quot;</span><span class="k">)</span><span class="s2"> seconds&quot;</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;&gt;&gt;&gt; run-add-field DONE.&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="batch-processing-multiple-test-conditions">
+<span id="sec-batch-processing"></span><h2>Batch processing multiple test conditions<a class="headerlink" href="#batch-processing-multiple-test-conditions" title="Permalink to this headline">¶</a></h2>
+<p>The following instructions allow a user to batch process one or more
+test conditions from a wind tunel test with the uPSP software.</p>
+<p>Batch processing is configured by <code class="docutils literal notranslate"><span class="pre">upsp-make-processing-tree</span></code>, a tool
+that auto-generates a file tree and associated command-line scripts that
+the user can then run to execute each step in the uPSP pipeline for one
+or more datapoints. The configuration process is illustrated in
+<a class="reference internal" href="#flowchart-batch-processing"><span class="std std-numref">Fig. 2</span></a> and consists of the following steps:</p>
+<ol class="arabic simple">
+<li><p>The user locates raw data files from a wind tunnel test on disk</p></li>
+<li><p>The user prepares four Javascript Object Notation (JSON) configuration files:</p>
+<ul class="simple">
+<li><p>A <strong>datapoint index</strong>, listing the path to each raw input file for
+each datapoint</p>
+<ul>
+<li><p>This often consists of writing test-specific scripts/tools to
+grok each input file on disk</p></li>
+</ul>
+</li>
+<li><p>A <strong>processing parameters file</strong>, containing parameter settings
+for each step in the pipeline</p></li>
+<li><p>A <strong>PBS job parameters file</strong>, containing PBS scheduler
+settings (group ID, reservation wall time, number of nodes, etc.)</p></li>
+<li><p>A <strong>plotting parameters file</strong>, containing parameters for plotting
+steps in the pipeline</p></li>
+</ul>
+</li>
+<li><p>The user runs <code class="docutils literal notranslate"><span class="pre">upsp-make-processing-tree</span></code> and provides it with each
+configuration file. The script will autogenerate a file tree on disk
+to store all artifacts for batch processing</p></li>
+</ol>
+<p>Once the processing tree is generated and saved to disk, the user
+can navigate to the <code class="docutils literal notranslate"><span class="pre">03_launchers</span></code> subfolder and trigger each step
+in the pipeline as follows:</p>
+<ol class="arabic simple">
+<li><p>Each step in the pipeline is launched using a script named
+<code class="docutils literal notranslate"><span class="pre">step+&lt;step-name&gt;&lt;+optional-subtask-name&gt;</span></code>.</p>
+<ul class="simple">
+<li><p>They should be run in the order given here (some steps use outputs
+from previous steps):</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">step+extract-first-frame</span></code>: extract the first frame from each
+camera video file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step+external-calibration</span></code>: run the wind-on, first-frame
+external calibration for each camera.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step+psp_process+psp-process</span></code>: run <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> -
+image-to-grid projection and calibration to units of pressure.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step+psp_process+add-field</span></code>: post-process <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>
+outputs; add largest pressure-time history dataset into the
+HDF5 output file.</p></li>
+</ol>
+</li>
+<li><p>Each step launcher script can be invoked as follows:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">./&lt;step-launcher-script&gt;</span> <span class="pre">&lt;datapoint-id-1&gt;</span> <span class="pre">&lt;datapoint-id-2&gt;</span> <span class="pre">...</span></code>
+to process a specific subset of datapoints. By default, all
+datapoints are processed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">./qsub-step</span> <span class="pre">&lt;step-launcher-script&gt;</span> <span class="pre">&lt;datapoint-id-1&gt;</span> <span class="pre">&lt;datapoint-id-2&gt;</span> <span class="pre">...</span></code>
+to launch the step on the cluster as one or more jobs (uses
+<code class="docutils literal notranslate"><span class="pre">qsub</span></code>). The jobs can then be monitored using
+<code class="docutils literal notranslate"><span class="pre">qstat</span> <span class="pre">-u</span> <span class="pre">$USER</span></code>. The jobs reservations are configured using
+the PBS job parameters supplied in the PBS job parameters JSON file.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Once complete, data products for each datapoint will be available
+under <code class="docutils literal notranslate"><span class="pre">04_products/00_data/&lt;step-name&gt;/&lt;datapoint-id&gt;</span></code>.</p></li>
+</ol>
+<p>The JSON file format was chosen for batch processing configuration files
+due to its ubiquitous usage in industry and broad
+cross-platform/cross-language support. Users should be familiar with
+plain-text editing of JSON files and can reference the official JSON
+syntax <a class="reference external" href="https://www.json.org/json-en.html">here</a>.</p>
+<figure class="align-default" id="fig-flowchart">
+<span id="flowchart-batch-processing"></span><a class="reference internal image-reference" href="_images/flowchart-batch-processing.png"><img alt="uPSP NAS batch processing flowchart." src="_images/flowchart-batch-processing.png" style="width: 100.0%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">uPSP NAS batch processing flowchart.</span><a class="headerlink" href="#fig-flowchart" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="guidelines-for-setting-nas-pbs-job-parameters">
+<span id="sec-nas-parameters"></span><h2>Guidelines for setting NAS PBS job parameters<a class="headerlink" href="#guidelines-for-setting-nas-pbs-job-parameters" title="Permalink to this headline">¶</a></h2>
+<p>For complete details and tutorials, see the HECC wiki, <a class="reference external" href="https://www.nas.nasa.gov/hecc/support/kb/running-jobs-with-pbs-121/">“Running Jobs with
+PBS”</a>.</p>
+<p>Specific to the current implementation of the uPSP processing code, the following
+is rationale for practical “rules of thumb” for scaling the size of the PBS job to
+your input data size. Trial-and-error may be required to define these parameters
+correctly after initial best-guesses.</p>
+<p>Given the following variable definitions:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(N_R\)</span>: Number of MPI ranks</p></li>
+<li><p><span class="math notranslate nohighlight">\(N_C\)</span>: Number of cameras</p></li>
+<li><p><span class="math notranslate nohighlight">\(F_R\)</span>: Camera resolution (pixels)</p></li>
+<li><p><span class="math notranslate nohighlight">\(N_M\)</span>: Number of 3D model grid nodes</p></li>
+<li><p><span class="math notranslate nohighlight">\(N_T\)</span>: Number of time samples</p></li>
+</ul>
+<p>Then, tl;dr a rule-of-thumb is to ensure each MPI rank has access to at least
+<span class="math notranslate nohighlight">\(M_T = M_C + M_1 + M_2\)</span> bytes of local memory, where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(M_C = O\left(K_C (N_T N_C F_R)/N_R\right)\)</span> accounts for storage of camera frames</p></li>
+<li><p><span class="math notranslate nohighlight">\(M_1 = O\left(K_1 (N_T N_M)/N_R\right)\)</span> accounts for storage of the 3D-projected data (pixel counts)</p></li>
+<li><p><span class="math notranslate nohighlight">\(M_2 = O\left(K_2 (N_T N_M)/N_R\right)\)</span> accounts for storage of the calibrated, 3D-projected data (physical pressure units)</p></li>
+</ul>
+<p>and <span class="math notranslate nohighlight">\(K_C = 2\)</span>, <span class="math notranslate nohighlight">\(K_1 = 8\)</span>, and <span class="math notranslate nohighlight">\(K_2 = 8\)</span> are reasonable constant “fudge factors” accounting for
+variability in camera bit depth and intermediate storage of elements of the solution in memory.</p>
+<p>A practical application of this rule of thumb is as follows:</p>
+<ul>
+<li><p>At NASA, for one example test condition, we collected 60K frames from 4x cameras, each approximately 1MP resolution</p></li>
+<li><p>The wind tunnel 3D model had approximately 1M vertices</p></li>
+<li><p>So:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(M_C \approx 2 \cdot 60K \cdot 4 \cdot 1M / N_R \approx 5E11 / N_R\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(M_1 \approx 8 \cdot 60K \cdot 1M / N_R \approx 5E11 / N_R\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(M_2 \approx 8 \cdot 60K \cdot 1M / N_R \approx 5E11 / N_R\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(M_T \approx 1.5E12 / N_R\)</span> (bytes)</p></li>
+</ul>
+</li>
+<li><p>We can use 40 MPI ranks, one per compute node, so the memory requirement per
+compute node is approximately 1.5E12 / 40 = 3.75E10 bytes, or 37.5GB. The NAS
+Ivy nodes each have <a class="reference external" href="https://www.nas.nasa.gov/hecc/support/kb/preparing-to-run-on-pleiades-ivy-bridge-nodes_446.html">64GB of memory available</a>,
+so we can fit our job into a PBS session with 40 Ivy nodes and 40 MPI ranks.
+From practical experience, we know this job takes less than 10 minutes of wall clock time,
+so we can use the following PBS directive to allocate the job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#PBS -lselect=40:model=ivy:walltime:00:10:00</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Rationale for the rule of thumb is based on complexity analysis of the current algorithm implementation,
+described in more detail in <a class="reference internal" href="swdd.html"><span class="doc">Software Design</span></a>.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/quick-start.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

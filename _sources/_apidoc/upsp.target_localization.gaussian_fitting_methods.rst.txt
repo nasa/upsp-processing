@@ -1,0 +1,7 @@
+``upsp.target_localization.gaussian_fitting_methods``
+=====================================================
+
+.. automodule:: upsp.target_localization.gaussian_fitting_methods
+   :members:
+   :undoc-members:
+   :show-inheritance:

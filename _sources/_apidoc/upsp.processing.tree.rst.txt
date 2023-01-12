@@ -1,0 +1,7 @@
+``upsp.processing.tree``
+========================
+
+.. automodule:: upsp.processing.tree
+   :members:
+   :undoc-members:
+   :show-inheritance:

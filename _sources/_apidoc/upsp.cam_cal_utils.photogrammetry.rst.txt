@@ -1,0 +1,7 @@
+``upsp.cam_cal_utils.photogrammetry``
+=====================================
+
+.. automodule:: upsp.cam_cal_utils.photogrammetry
+   :members:
+   :undoc-members:
+   :show-inheritance:

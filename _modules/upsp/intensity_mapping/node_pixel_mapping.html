@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.intensity_mapping.node_pixel_mapping &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.intensity_mapping.node_pixel_mapping</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="kn">from</span> <span class="nn">upsp.cam_cal_utils</span> <span class="kn">import</span> <span class="n">photogrammetry</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="node_to_pixel_mapping_keyframe"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.node_pixel_mapping.html#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_keyframe">[docs]</a><span class="k">def</span> <span class="nf">node_to_pixel_mapping_keyframe</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">vis_checker</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">normals</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns data on the projected visible nodes for a keyframe</span>
+
+<span class="sd">    Returns a numpy array of the pixel positions of the projected locations of the</span>
+<span class="sd">    visible nodes. Additionally returns the gradient of the pixel position with respect</span>
+<span class="sd">    to the rotation vector and translation vector. Non-visible nodes are given a pixel</span>
+<span class="sd">    position and gradient value of NAN. Additionally returns a sorted numpy array of the</span>
+<span class="sd">    indices of the nodes that are visible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The rotation matrix from the camera to the model</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        The translation vector from the camera to the model</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    vis_checker : ~upsp.cam_cal_utils.visibility.VisibilityChecker</span>
+<span class="sd">        ``VisibilityChecker`` object with the relevant BVH and oblique viewing angle</span>
+<span class="sd">    nodes : np.ndarray, shape (N, 3), float</span>
+<span class="sd">        A numpy array of the X, Y, and Z values of the nodes. ``nodes[n]`` is associated</span>
+<span class="sd">        with ``normals[n]``</span>
+<span class="sd">    normals : np.ndarray, shape (N, 3), float</span>
+<span class="sd">        A numpy array of the i, j, and k values of the node normals. ``normals[n]`` is</span>
+<span class="sd">        associated with ``nodes[n]``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    projections : np.ndarray, shape (N, 2), float</span>
+<span class="sd">        Pixel locations of the projected nodes. Non-visibles nodes will be NAN.</span>
+<span class="sd">        ``projections[i]`` is associated with ``nodes[i]`` and ``jacobian[i]``</span>
+<span class="sd">    jacobians : np.ndarray, shape (N, 2, 6), float</span>
+<span class="sd">        Jacobian of pixel locations of the projected nodes. Non-visibles nodes will</span>
+<span class="sd">        be NAN. Jacobian axis 2 refers to (`rvec` | `tvec`). ``jacobian[i]`` is</span>
+<span class="sd">        associated with ``nodes[i]`` and ``projections[i]``</span>
+<span class="sd">    visible_indices : np.ndarray, shape (V,), int</span>
+<span class="sd">        Sorted numpy array of the indices of the visibles nodes</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    node_to_pixel_mapping_non_keyframe : use outputs to quickly map non-keyframes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get the visible nodes</span>
+    <span class="n">rmat_model2camera</span><span class="p">,</span> <span class="n">tvec_model2camera</span> <span class="o">=</span> <span class="n">photogrammetry</span><span class="o">.</span><span class="n">invTransform</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">)</span>
+    <span class="n">vis_idxs</span> <span class="o">=</span> <span class="n">vis_checker</span><span class="o">.</span><span class="n">is_visible</span><span class="p">(</span><span class="n">tvec_model2camera</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">normals</span><span class="p">)</span>
+    <span class="n">vis_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">vis_idxs</span><span class="p">)</span>
+    <span class="n">vis_nodes</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span>
+
+    <span class="c1"># Project all visible nodes</span>
+    <span class="n">projs</span><span class="p">,</span> <span class="n">jacs</span> <span class="o">=</span> <span class="n">photogrammetry</span><span class="o">.</span><span class="n">project_3d_point</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">vis_nodes</span><span class="p">,</span> <span class="n">ret_jac</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">jacs_swapped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">jacs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Initialize an output of all NANs</span>
+    <span class="n">projs_fin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">NAN</span><span class="p">)</span>
+    <span class="n">jacs_fin</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">NAN</span><span class="p">)</span>
+
+    <span class="c1"># For visible nodes, replace the NANs with data</span>
+    <span class="n">projs_fin</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">projs</span>
+    <span class="n">jacs_fin</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacs</span>
+
+    <span class="k">return</span> <span class="n">projs_fin</span><span class="p">,</span> <span class="n">jacs_fin</span><span class="p">,</span> <span class="n">vis_idxs</span></div>
+
+
+<div class="viewcode-block" id="node_to_pixel_mapping_non_keyframe"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.node_pixel_mapping.html#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe">[docs]</a><span class="k">def</span> <span class="nf">node_to_pixel_mapping_non_keyframe</span><span class="p">(</span><span class="n">rmat_key</span><span class="p">,</span> <span class="n">tvec_key</span><span class="p">,</span> <span class="n">rmat_curr</span><span class="p">,</span> <span class="n">tvec_curr</span><span class="p">,</span> <span class="n">projs</span><span class="p">,</span> <span class="n">jacs</span><span class="p">,</span> <span class="n">vis_idxs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns data on the projected visible nodes for a non-keyframe</span>
+
+<span class="sd">    Returns a numpy array of the pixel positions of the projected locations of the</span>
+<span class="sd">    visible nodes. Non-visible nodes are given a pixel position of NAN. Assumes set of</span>
+<span class="sd">    nodes visible in keyframe is same for nearby non-keyframes. Uses the Jacobian to</span>
+<span class="sd">    quickly approximate the projected location</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmat_key : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The rotation matrix from the camera to the model of the keyframe</span>
+<span class="sd">    tvec_key : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        The translation vector from the camera to the model of the keyframe</span>
+<span class="sd">    rmat_curr : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The rotation matrix from the camera to the model of the current non-keyframe</span>
+<span class="sd">    tvec_curr : np.ndarray, shape (3, 1) or (3,), float</span>
+<span class="sd">        The translation vector from the camera to the model of the current non-keyframe</span>
+<span class="sd">    projs : np.ndarray, shape (N, 2), float</span>
+<span class="sd">        Projected locations of the nodes in the keyframe</span>
+<span class="sd">    jacs : np.ndarray, shape (N, 2, 6),  float</span>
+<span class="sd">        Jacobians of the projected locations</span>
+<span class="sd">    vis_idxs : np.ndarray, shape (V,), float</span>
+<span class="sd">        Indices of the visible nodes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    updated_projections : np.ndarray, shape (N, 2), float</span>
+<span class="sd">        Approximate pixel locations of the projected nodes. Non-visibles nodes will be</span>
+<span class="sd">        NAN. ``updated_projections[i]`` is associated with ``projs[i]``</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    node_to_pixel_mapping_keyframe : create keyframe inputs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Convert the rotation matrix to a rotation vector</span>
+    <span class="n">rvec_key</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">Rodrigues</span><span class="p">(</span><span class="n">rmat_key</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">rvec_curr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">Rodrigues</span><span class="p">(</span><span class="n">rmat_curr</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Get the delta Transformation</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">rvec_curr</span> <span class="o">-</span> <span class="n">rvec_key</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">tvec_curr</span> <span class="o">-</span> <span class="n">tvec_key</span>
+    <span class="n">dT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">dr</span><span class="p">,</span> <span class="n">dt</span><span class="p">))</span>
+
+    <span class="n">projs_partial</span> <span class="o">=</span> <span class="n">projs</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span>
+    <span class="n">jacs_partial</span>  <span class="o">=</span> <span class="n">jacs</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span>
+
+    <span class="c1"># Get the pixel updates</span>
+    <span class="n">projs_updated</span> <span class="o">=</span> <span class="n">projs_partial</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jacs_partial</span> <span class="o">*</span> <span class="n">dT</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">projs_fin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">projs</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">NAN</span><span class="p">)</span>
+    <span class="n">projs_fin</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">projs_updated</span>
+
+    <span class="k">return</span> <span class="n">projs_fin</span></div>
+
+
+<div class="viewcode-block" id="node_to_pixel_mapping_non_keyframe_full"><a class="viewcode-back" href="../../../_apidoc/upsp.intensity_mapping.node_pixel_mapping.html#upsp.intensity_mapping.node_pixel_mapping.node_to_pixel_mapping_non_keyframe_full">[docs]</a><span class="k">def</span> <span class="nf">node_to_pixel_mapping_non_keyframe_full</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">vis_idxs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns data on the projected visible nodes for a non-keyframe</span>
+
+<span class="sd">    Returns a numpy array of the pixel positions of the projected locations of the</span>
+<span class="sd">    visible nodes. Non-visible nodes are given a pixel position of NAN. Assumes set of</span>
+<span class="sd">    nodes visible in keyframe is same for nearby non-keyframes. Fully computes the</span>
+<span class="sd">    projection</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rmat : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The rotation matrix from the camera to the model of the current non-keyframe</span>
+<span class="sd">    tvec : np.ndarray, shape (3, 1), float</span>
+<span class="sd">        The translation vector from the camera to the model of the current non-keyframe</span>
+<span class="sd">    cameraMatrix : np.ndarray, shape (3, 3), float</span>
+<span class="sd">        The (openCV formatted) camera matrix for the camera</span>
+<span class="sd">    distCoeffs : np.ndarray, shape (5, 1) or (5,), float</span>
+<span class="sd">        The (openCV formatted) distortion coefficients for the camera</span>
+<span class="sd">    nodes : np.ndarray, shape (N, 3), float</span>
+<span class="sd">        A numpy array of the X, Y, and Z values of the nodes. ``nodes[n]`` is associated</span>
+<span class="sd">        with ``normals[n]``</span>
+<span class="sd">    vis_idxs : np.ndarray, shape (V,), float</span>
+<span class="sd">        Indices of the visible nodes</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    updated_projections : np.ndarray, shape (N, 2), float</span>
+<span class="sd">        Pixel locations of the projected nodes. Non-visibles nodes will be NAN.</span>
+<span class="sd">        ``updated_projections[i]`` is associated with ``nodes[i]``</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    node_to_pixel_mapping_keyframe : create `vis_idxs` based on a keyframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get just the visible nodes</span>
+    <span class="n">vis_nodes</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span>
+
+    <span class="c1"># Project all visible nodes</span>
+    <span class="n">projs</span> <span class="o">=</span> <span class="n">photogrammetry</span><span class="o">.</span><span class="n">project_3d_point</span><span class="p">(</span><span class="n">rmat</span><span class="p">,</span> <span class="n">tvec</span><span class="p">,</span> <span class="n">cameraMatrix</span><span class="p">,</span> <span class="n">distCoeffs</span><span class="p">,</span> <span class="n">vis_nodes</span><span class="p">,</span> <span class="n">ret_jac</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Initialize an output of all NANs</span>
+    <span class="n">projs_fin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">NAN</span><span class="p">)</span>
+    <span class="n">projs_fin</span><span class="p">[</span><span class="n">vis_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">projs</span>
+
+    <span class="k">return</span> <span class="n">projs_fin</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

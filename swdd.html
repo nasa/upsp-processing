@@ -1,0 +1,697 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Software Design &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Known Issues" href="known-issues.html" />
+    <link rel="prev" title="Third-Party Dependencies" href="dependencies.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Software Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#software-architecture">Software Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline-application-design-details">Pipeline Application Design Details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choice-of-software-language-s">Choice of software language(s)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="dependencies.html" title="previous chapter">Third-Party Dependencies</a></li>
+      <li>Next: <a href="known-issues.html" title="next chapter">Known Issues</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="software-design">
+<h1>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">¶</a></h1>
+<p>The following sections describe the overall software
+design and architecture, including design rationale.
+We especially highlight impacts on computational performance and complexity.</p>
+<section id="software-architecture">
+<h2>Software Architecture<a class="headerlink" href="#software-architecture" title="Permalink to this headline">¶</a></h2>
+<p>The primary function of the unsteady Pressure-Sensitive Paint (uPSP)
+software is to process raw wind tunnel test data to produce time
+histories of flowfield pressure measurements on the surface of a wind
+tunnel model. This function is implemented using a set of software
+applications that can be run from a UNIX command-line interface (CLI):</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code>: Dumps individual frames from, or transcode
+video format of, high-speed camera video files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code>: Computes external camera calibration
+relative to the model position and orientation as viewed in a single
+camera frame. The first frame from each video file (dumped using
+<code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code>) is used to calibrate each camera’s
+positioning relative to the model at the start time of the test
+condition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">psp_process</span></code>: Projects image pixel values from each video frame
+onto a 3D grid representation of the wind tunnel test model
+surface, and convert into surface pressure values</p></li>
+</ol>
+<p>The computationally-intensive processing is primarily within
+<code class="docutils literal notranslate"><span class="pre">psp_process</span></code>, which is a monolithic, highly-parallelized C++
+application (<code class="docutils literal notranslate"><span class="pre">psp_process</span></code>).</p>
+<p>In addition to the primary processing applications, a Python-based
+preprocessing application, <code class="docutils literal notranslate"><span class="pre">upsp-make-processing-tree</span></code>, is provided to
+allow users to configure inputs to <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> for batch processing
+in the NAS environment.</p>
+</section>
+<section id="pipeline-application-design-details">
+<h2>Pipeline Application Design Details<a class="headerlink" href="#pipeline-application-design-details" title="Permalink to this headline">¶</a></h2>
+<p>The following section describes each pipeline application in more
+detail, including:</p>
+<ul class="simple">
+<li><p><strong>Functional flow</strong>: Flow of data into, throughout, and out of the
+application</p></li>
+<li><p><strong>Algorithms</strong>: Algorithms used by the application</p></li>
+<li><p><strong>Implementation details</strong>: Details related to requirements imposed
+on target compute systems — memory management, disk usage,
+parallelization considerations</p></li>
+<li><p><strong>Design rationale</strong>: Context for architectural/design decisions
+related to the application</p></li>
+</ul>
+<section id="upsp-extract-frames">
+<h3><code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code><a class="headerlink" href="#upsp-extract-frames" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code> application helps extract individual frames
+from supported high-speed camera video files and save them in more portable
+image file format(s). It can also encode segments of the video file into more
+portable video format(s). It makes use of the OpenCV <code class="docutils literal notranslate"><span class="pre">VideoWriter</span></code> and <code class="docutils literal notranslate"><span class="pre">imsave</span></code>
+API elements, meaning it can encode images and video in formats supported by the
+OpenCV installation.</p>
+<p>The application’s primary use in the processing pipeline is to extract the
+first frame from the video file, which is then used by <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code>.</p>
+</section>
+<section id="upsp-external-calibration">
+<h3><code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code><a class="headerlink" href="#upsp-external-calibration" title="Permalink to this headline">¶</a></h3>
+<p>The external calibration pipeline implements a coarse and refined stage to
+iteratively improve the calibration quality. For both stages, the goal
+is to match 3D target positions with image locations and optimize the
+extrinsic parameters such that the re-projection error is minimized. The
+coarse stage takes an initial guess for the position and orientation
+(pose) based on the wind-off model position and updates the guess. The
+refined stage uses the coarse solution and further refines it.
+Typically, the initial guess has a re-projection error &gt; 5 pixels, the
+coarse solution has an error of ~1 pixels, and the refined solution is &lt;
+1 pixel.</p>
+<section id="coarse-stage">
+<h4>Coarse Stage<a class="headerlink" href="#coarse-stage" title="Permalink to this headline">¶</a></h4>
+<p>The coarse stage begins with the inputs described in the uPSP User
+Manual. The process is outlined in <a class="reference internal" href="#flowchart-external-calibrate-coarse"><span class="std std-numref">Fig. 3</span></a>.
+The first steps of the coarse stage are to get the wind-off visible targets, and detect image targets.
+Targets must be detected since the re-projection error from the wind-off
+external calibration guess is typically high, and the expected image
+positions can be far enough that the expected location is not within the
+associated target. This can cause ambiguity with matching, or errors in
+matching to image noise.</p>
+<figure class="align-default" id="id1">
+<span id="flowchart-external-calibrate-coarse"></span><a class="reference internal image-reference" href="_images/flowchart-external-calibrate-coarse.png"><img alt="_images/flowchart-external-calibrate-coarse.png" src="_images/flowchart-external-calibrate-coarse.png" style="width: 100%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">External Calibrate (Coarse) Functional Flowchart.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>To get the wind-off visible targets, the wind-off camera-to-model
+extrinsics must be found. The wind-off camera-to-model extrinsics are
+obtained by generating a model-to-tunnel transform, and combing it with
+the camera-to-tunnel transform found in the camera-to-tunnel calibration
+file. The model-to-tunnel transform is generated from the WTD file and
+tunnel/model properties in the external camera calibration parameters.
+With the wind-off extrinsics known, the Bounding Volume Hierarchy (BVH)
+visibility checker module is used to find the wind-off visible targets.
+See <a class="reference internal" href="#bvh-visibility-checker"><span class="std std-ref">BVH Visibility Checker</span></a> for details on how the visibility check is
+performed.</p>
+<p>The detected image targets are found using <a class="reference external" href="https://docs.opencv.org/3.4/d0/d7a/classcv_1_1SimpleBlobDetector.html">OpenCV’s blob
+detection</a>.
+The parameters for blob detection are saved in the external camera
+calibration parameters. The image is first pre-processed by scaling the
+image intensity between 0 and the largest inlier pixel intensity.
+Details on the pre-processing algorithm are available in <a class="reference internal" href="#image-pre-processing"><span class="std std-ref">Image Pre-Processing</span></a>.</p>
+<p>The wind-off visible targets, and the detected image targets can then be
+matched and filtered. Details on the matching and filtering process are
+available in <a class="reference internal" href="#matching-and-filtering"><span class="std std-ref">Matching and Filtering</span></a>.</p>
+<p>Once matched and filtered, the remaining matches have the detected image
+target sub-pixel localized. Details on the sub-pixel localization
+algorithm are available in <a class="reference internal" href="#sub-pixel-localization"><span class="std std-ref">Sub-Pixel Localization</span></a>. The resulting
+targets and sub-pixel image locations are processed with OpenCV’s
+PnPRansac to determine the extrinsic parameters that minimize the
+re-projection error. These first stage extrinsic parameters are known as
+the coarse external calibration.</p>
+</section>
+<section id="refined-stage">
+<h4>Refined Stage<a class="headerlink" href="#refined-stage" title="Permalink to this headline">¶</a></h4>
+<p>The refined stage begins with the same inputs, but the added benefit of
+having the coarse external calibration. The process is outlined in
+<a class="reference internal" href="#flowchart-external-calibrate-refined"><span class="std std-numref">Fig. 4</span></a>. The refined stage has the
+same general steps as the coarse stage: get the visible targets and
+image locations, match and filter them, sub-pixel localize, and
+PnPRansac. However, instead of using blob detection, projection is used
+for the image locations. Projection is used here since the re-projection
+error from the coarse external calibration is typically small, and the
+projected locations almost always lie within the associated target.</p>
+<figure class="align-default" id="id2">
+<span id="flowchart-external-calibrate-refined"></span><a class="reference internal image-reference" href="_images/flowchart-external-calibrate-refined.png"><img alt="_images/flowchart-external-calibrate-refined.png" src="_images/flowchart-external-calibrate-refined.png" style="width: 100%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">External Calibrate (Refined) Functional Flowchart.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The first steps of the refined stage are to find the visible targets,
+and the projected locations of those visible targets based on the coarse
+external calibration. The same BVH as used in the coarse stage is used
+in the refined stage. The matching stage is trivial since the projected
+locations are generated 1:1 from the visible targets. Projection is done
+using <a class="reference external" href="https://docs.opencv.org/3.4/d9/d0c/group__calib3d.html#ga1019495a2c8d1743ed5cc23fa0daff8c">OpenCV’s
+projectPoints</a>.</p>
+<p>With the visible targets and their projected locations, the same
+filtering process used in the coarse stage is used here. The image
+locations are then sub-pixel localized, and <a class="reference external" href="https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#solvepnpransac">OpenCV’s
+PnPRansac</a>
+is used on the visible targets and sub-pixel localized image locations.
+The second stage external calibration parameters are known as the
+refined external calibration, and are written to the external
+calibration output file to be used in <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>.</p>
+<section id="algorithms">
+<span id="algorithms-1"></span><h5>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h5>
+<p>The algorithms used in the external calibration are the image
+pre-processing, BVH visibility checker, matching and filtering, and
+sub-pixel localization.</p>
+</section>
+</section>
+<section id="image-pre-processing">
+<h4>Image Pre-Processing<a class="headerlink" href="#image-pre-processing" title="Permalink to this headline">¶</a></h4>
+<p>The image pre-processing is used in an attempt to normalize the pixel
+intensity of the model across all data points. Due to variations in wind
+speed, and degradation of the paint due to UV exposure, the model can be
+significantly brighter or darker day to day or tunnel condition to
+tunnel condition. To normalize this, the image intensity is scaled from
+0 to the largest inlier pixel intensity. This is done by converting the
+image to a floating point <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> (rather than a <code class="docutils literal notranslate"><span class="pre">uint8</span></code> or <code class="docutils literal notranslate"><span class="pre">uint16</span></code>),
+dividing by the largest inlier pixel intensity, clipping the maximum
+value to 1, then multiplying by 255 (or 4095 if using 16-bit).</p>
+<p>The largest inlier pixel intensity is defined as the largest value in
+the sorted list of pixel intensities where a substantially far pixel
+must is at least 90% the intensity as the current pixel. Substantially
+far is defined as 0.001 * the current pixel’s index.</p>
+<p>It is easier to see in the code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_flat_sorted</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="k">while</span> <span class="p">(</span><span class="mf">0.9</span> <span class="o">*</span> <span class="n">img_flat_sorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">img_flat_sorted</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">0.999</span><span class="p">))]):</span>
+   <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+<span class="n">max_val</span> <span class="o">=</span> <span class="n">img_flat_sorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>So in a 1024 x 512 image with 524,288 pixels, in order for the brightest
+pixel to be considered an inlier (position 524,287 in the sorted list),
+the value at position 523,763 must be at least 90% of its intensity. If
+it is not, the second brightest pixel is checked, and this continues
+down until an inlier is found.</p>
+<p>This intensity check relative to other pixel intensities ensures that a
+small number of very bright pixels do not cause the scaling of the image
+to be controlled by that small group. Should a small number of pixels be
+very high due to saturation from glare, or hot pixels due to sensor
+error, those will be deemed outliers and have their intensity clipped to
+256 (or 4095).</p>
+</section>
+<section id="bvh-visibility-checker">
+<h4>BVH Visibility Checker<a class="headerlink" href="#bvh-visibility-checker" title="Permalink to this headline">¶</a></h4>
+<p>The Bounding Volume Hierarchy (BVH) checks the visibility of a point
+with known position and normal vector. This can be a grid node, target,
+or other point of interest so long as it has a position and normal
+vector.</p>
+<p>To determine if a point is visible, the BVH visibility checker first
+checks if that point has an oblique viewing angle greater than that
+specified in the external calibration parameters. Typically, a value of
+70° is used for the maximum allowable oblique viewing angle since points
+with oblique viewing angles greater than that become difficult to view
+due to perspective distortion. Points that pass the check are then
+passed to the BVH to check for occlusions.</p>
+<p>The oblique viewing angle is defined as the angle between the point’s
+normal vector, and the vector from the point to the camera. If the point
+fails that check, it is immediately deemed not visible. In reality, it
+may be visible if the oblique viewing angle is between 70°, and 90°.
+However, above 70° and the point experiences significant perspective
+distortion. For grid nodes, this means poor pixel intensity association
+and thus a pressure with large uncertainty. For targets, this means a
+large sub-pixel localization error. This operation is similar to
+back-face culling, and would be identical the back-face culling if the
+oblique viewing angle was set to 90°. Just as with back-face culling,
+the oblique viewing angle check is significantly less expensive than the
+occlusion checks. Therefore, oblique viewing angle is checked first
+since any points removed will not have to undergo the expensive
+occlusion checks. With 70°, on average about 60% of the points will be
+rejected.</p>
+<p>Points that pass the oblique viewing angle check are passed to the
+bounding volume hierarchy to check for occlusions. The BVH is a
+recursive data structure that can efficiently check for the intersection
+between a mesh and a ray (O(logn) where n is the number of mesh nodes).
+The mesh in this case is the model grid, and the ray is the ray between
+the point and the camera. The ray origin is actually taken to be the
+point location, plus a small distance (1e-4”) along the point’s normal
+vector rather than the point’s location directly. This ensures that if
+the point is exactly on the model surface (or even inside the model by a
+small amount), it is not wrongfully deemed occluded.</p>
+<p>Points that pass both the oblique viewing angle check and the occlusion
+check are deemd visible. Note, for target the point is typically taken
+to be the center location. This assumes that the if the center of the
+target is visible, then all of the target is visible. For mesh nodes,
+usually all vertices of the node are checked. If all are visible, it is
+assumed that the entire 2D surface of the node is visible. These are
+reasonable assumptions since the targets, and especially the mesh nodes,
+are relatively small. So if the center is visible it is very likely that
+the entire target/node is visible.</p>
+</section>
+<section id="matching-and-filtering">
+<h4>Matching and Filtering<a class="headerlink" href="#matching-and-filtering" title="Permalink to this headline">¶</a></h4>
+<p>The matching process matches 3D targets to detected image locations. To
+do this, the 3D targets are projected into the image. Each projected
+location is then matched to the nearest detected image target. Once all
+visible targets are matched, any matches that are not one-to-one
+(detected image targets matched to multiple projected locations) are
+thrown out. Additionally, matches are thrown out if the pixel distance
+between the projected location and detection image target location is
+over the max_dist threshold (specified in the external camera
+calibration parmeters). Matches are further filtered if any 2 image
+locations are closer than the min_dist threshold (specified in the
+external camera calibration parmeters).</p>
+<!---
+TODO: Update Documentation (UPSP-417): Matches will be filtered if they are near the model contour (where the background meets the model), or on the visual boundary between model surfaces (where the booster meets the core, or the core meets the booster)
+
+TODO: Update Documentation (UPSP-603): Min dist filtering should be the first operation performed
+
+TODO: Update Documentation (UPSP-620): Bi-filter was lost. The 1:1 filter should operate in both directions, currently it only operates in one direction
+--></section>
+<section id="sub-pixel-localization">
+<h4>Sub-Pixel Localization<a class="headerlink" href="#sub-pixel-localization" title="Permalink to this headline">¶</a></h4>
+<p>The sub-pixel localization fits a <a class="reference external" href="https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function">2D
+Super-Gaussian</a>
+distribution to a cropped region around an image target. The idea being
+to improve a rough localization found with blob detection or 3D
+projection. A 2D Super-Gaussian approximate the form of an image target,
+and therefore the 2D mean location can be taken to be the target’s
+center location. For (ideal) sharpie targets with diameter ~4-5 pixels,
+the median error is ~0.05 pixels, and is within 0.265 pixels 99.9% of
+the time.</p>
+<p>The algorithm is performed by defining a 2D Super Gaussian function,
+then optimizing the gaussian function parameters to the cropped image
+region using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html">Scipy’s
+curvefit</a>
+module.</p>
+<section id="design-rationale">
+<h5>Design Rationale<a class="headerlink" href="#design-rationale" title="Permalink to this headline">¶</a></h5>
+<p>Ideally, the external calibration routine would begin with a very close
+initial guess. Close here can refer to a max re-projection error of ~1
+pixel. With a low re-projection error, the targets could be projected
+into the image, then the region around the projected location could be
+passed through the sub-pixel localization algorithm. The targets and
+sub-pixel localized image locations could then be passes to OpenCV’s
+PnPRansac. This would be akin to performing just the refined external
+calibration stage from the initial guess. However, using the wind-off
+pose yields a max re-projection error &gt; 3 pixels and &gt; 5 pixels in some
+cases.</p>
+<p>The radius of the sharpie targets is ~2.5 pixels, so in many cases the
+projected locations are not even inside the sharpie target. In order for
+the cropped region of the image passed to the sub-pixel localization to
+contain the entire target, the radius of the cropped region would have
+to be ~9 pixels (5 pixels to contain the center of the sharpie target
+plus 2.5 pixels to contain the whole target, plus 1.5 pixels to have a
+pixel between the edge and the target). A region that large is likely to
+pick up noise, image background, or other features that would cause the
+sub-pixel localization routine to produce bad results. Therefore, a two-
+stage, iterative method is used instead.</p>
+<p>The first stage (coarse optimization) uses blob detection to find the
+target image locations rather than projection. The projected locations
+will still be close to the detected locations to likely be correct and
+unambiguous. The goal of the first stage is to set up the ‘ideal’
+initial guess previously mentioned. The blob detection typically has a
+recall of ~90%, and a precision of ~30%. This means ~90% of the targets
+are found, and for every target found there are ~2 false positives.
+While this seems high, most of the false positives are in the background
+or far from the sharpie targets. This means that most false positives do
+not interfere with the matching to real image targets. After the
+matching, typically ~60% of the sharpie targets are correctly matched.</p>
+<p>The second stage (refined optimization) uses the external calibration
+from the first stage, and uses projection as if it was the ‘ideal’ case.
+Typically, the second stage makes use of &gt; 95% of the sharpie targets.
+Some filtering is still implemented for situations where the image is
+particularly dark, or makes particularly bad use of the camera’s dynamic
+range. Monte Carlo simulations of the external calibration routine have
+shown that the use of a second stage typically cuts the external
+calibration uncertainty in half. Since the second stage is not
+particularly expensive, the trade-off of additional processing time is
+well worth it.</p>
+<p>It was decided to not combine sharpie targets and unpainted Kulites as
+targets since the addition of Kulites did not significantly reduce
+uncertainty, significantly increases computation time, and opens the
+door for significant errors. The Kulites have worse sub-pixel
+localization error than the sharpie targets since they roughly 1/4 the
+pixel area. Therefore, even with many of them, combining ~50 Kulites
+with ~20 sharpie targets only decreases the uncertainty by ~6%
+(according to the Monte Carlo simultations). However, computation time
+scales roughly linearly (or can be slightly super-linear due to PnP
+RANSAC) and so it roughly triples the refined stage’s computation time.
+Additionally, it is common for the sub-pixel localization routine to
+optimize on the wrong image feature since noise or a scratch on the
+model only has to be ~2 pixels in diameter to be the same size as the
+Kulite. With all this considered, when sharpie targets are present it is
+highly recommended to only use sharpie targets.</p>
+</section>
+</section>
+</section>
+<section id="psp-process">
+<h3><code class="docutils literal notranslate"><span class="pre">psp_process</span></code><a class="headerlink" href="#psp-process" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#flowchart-psp-process"><span class="std std-numref">Fig. 5</span></a> presents the functional data flow for the
+<code class="docutils literal notranslate"><span class="pre">psp_process</span></code> application. The processing is divided into three “phases”:</p>
+<ul class="simple">
+<li><p>Phase 0: initialization; camera calibration.</p></li>
+<li><p>Phase 1: camera image pixel values projected onto 3D wind tunnel
+model grid; conversion from image pixel values into intensity ratios;
+image registration.</p></li>
+<li><p>Phase 2: conversion from intensity ratios to pressure ratios; write
+final unsteady pressure ratio time-histories to file.</p></li>
+</ul>
+<figure class="align-default" id="id3">
+<span id="flowchart-psp-process"></span><a class="reference internal image-reference" href="_images/flowchart-psp-process.png"><img alt="_images/flowchart-psp-process.png" src="_images/flowchart-psp-process.png" style="width: 100%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> functional flowchart.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<section id="phase-1-processing">
+<h4>Phase 1 processing<a class="headerlink" href="#phase-1-processing" title="Permalink to this headline">¶</a></h4>
+<p>Phase 1 processing maps the camera intensity data onto the model grid
+using the camera-to-model registration information. Before projection, it
+also interpolates the intensity data over “patches” identified in the
+image plane corresponding to small, unpainted regions on the model surface.</p>
+<p>The output data from Phase 1 is essentially a large matrix, or
+“solution”, containing the intensity value at each model node, at each
+frame (<em>i.e.</em>, time step). The intensity solution is maintained
+in-memory between Phase 1 and Phase 2 processing, distributed across one
+or more computational nodes.</p>
+<p>Steps involved are as follows:</p>
+<ol class="arabic simple">
+<li><p>A projection matrix is developed for each camera that maps pixels
+from the first camera frame onto the model grid nodes, starting with
+the camera-to-model registration solution from Phase 0.</p>
+<ol class="arabic simple">
+<li><p>A ray-tracing process is executed to identify and exclude portions
+of the model grid that are:</p>
+<ul class="simple">
+<li><p>not visible to the camera, or</p></li>
+<li><p>too oblique-facing relative to the camera line of sight
+(obliqueness threshold angle between the model normal and the
+camera line of sight is configurable in the Input Deck)</p></li>
+</ul>
+</li>
+<li><p>For every grid node with data from multiple cameras, combine
+camera data using one of the following strategies:</p>
+<ul class="simple">
+<li><p>use a linear-weighted combination of the measured value from
+each camera; the sum of the weights is normalized to one, and
+each weight is linearly proportional to the angle between the
+surface normal and the ray from the camera to the grid node
+(<code class="docutils literal notranslate"><span class="pre">average_view</span></code>)</p></li>
+<li><p>use the measured value from the camera with the best view angle
+(<code class="docutils literal notranslate"><span class="pre">best_view</span></code>)</p></li>
+</ul>
+</li>
+<li><p>Any grid nodes that are not visible in any camera’s first frame
+will be marked with <code class="docutils literal notranslate"><span class="pre">NaN</span></code> in the output solution.</p></li>
+</ol>
+</li>
+<li><p>For each camera, and for each camera frame:</p>
+<ol class="arabic simple">
+<li><p>Because the model may have some small amount of motion between
+frames, first “warp” the image to align with the first camera
+frame. The warping process uses a pixel-based image registration
+scheme assuming affine transformations.</p></li>
+<li><p>Fill in “fiducial” marking regions with polynomial patches from
+Phase 0. Note that the same pixel coordinates can be used for the
+polynomial patches for all frames because the previous step aligns
+each frame with the first frame.</p></li>
+<li><p>Apply the projection matrix to the aligned-and-patched image
+frame, to obtain the model grid node intensity values.</p></li>
+<li><p>For each time frame, sum the intensity values over each camera
+using the previously established weighting strategy.</p></li>
+</ol>
+</li>
+</ol>
+</section>
+<section id="phase-2-processing">
+<h4>Phase 2 processing<a class="headerlink" href="#phase-2-processing" title="Permalink to this headline">¶</a></h4>
+<p>Phase 2 processing maps the Phase 1 intensity solution to an equivalent
+solution in physical pressure units.</p>
+<p>Currently the only method for converting intensity to pressure that has
+been implemented in the software is the <a class="reference external" href="https://doi.org/10.2514/6.2017-1402">method devised at Arnold
+Engineering Development Complex
+(AEDC)</a> that uses pre-test paint
+calibrations and the steady state PSP solutions.</p>
+<p>The gain is computed at each grid node with Equation <a class="reference internal" href="#equation-gain">(1)</a>, where
+<span class="math notranslate nohighlight">\(T\)</span> is the surface temperature in <span class="math notranslate nohighlight">\(^{\circ}F\)</span> and
+<span class="math notranslate nohighlight">\(P_{ss}\)</span> is the steady state PSP pressure in psf. The coefficients
+(a-f) are specified in the paint calibration file.</p>
+<div class="math notranslate nohighlight" id="equation-gain">
+<span class="eqno">(1)<a class="headerlink" href="#equation-gain" title="Permalink to this equation">¶</a></span>\[Gain = a + bT + cT^2 + (d + eT + fT^2) P_{ss}\]</div>
+<p>The surface temperature is estimated to be the equilibrium temperature.
+This calculation is shown in Equation <a class="reference internal" href="#equation-recoverytemp">(2)</a>, where
+<span class="math notranslate nohighlight">\(T_0\)</span> is the stagnation temperature, <span class="math notranslate nohighlight">\(T_{\infty}\)</span> is the
+freestream temperature, and <span class="math notranslate nohighlight">\(r\)</span> is the turbulent boundary-layer
+recovery factor (0.896), given by Schlichting.</p>
+<div class="math notranslate nohighlight" id="equation-recoverytemp">
+<span class="eqno">(2)<a class="headerlink" href="#equation-recoverytemp" title="Permalink to this equation">¶</a></span>\[T = r(T_0 - T_{\infty}) + T_{\infty}\]</div>
+<p>Before applying the gain, the data is detrended by fitting a
+6<span class="math notranslate nohighlight">\(^{th}\)</span>-order polynomial curve to the ratio of the average
+intensity over intensity for each grid node. Then, the pressure is just
+the AC signal times the <span class="math notranslate nohighlight">\(Gain\)</span>. This process is shown in
+Equations <a class="reference internal" href="#equation-intensity2pressure">(3)</a>, where <span class="math notranslate nohighlight">\(f\)</span> is a frame number,
+<span class="math notranslate nohighlight">\(n\)</span> is a grid node, <span class="math notranslate nohighlight">\(I\)</span> is the intensity, and
+<span class="math notranslate nohighlight">\(\bar{q}\)</span> is the dynamic pressure in psf.</p>
+<div class="math notranslate nohighlight" id="equation-intensity2pressure">
+<span class="eqno">(3)<a class="headerlink" href="#equation-intensity2pressure" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+\bar{I}_n &amp;= \sum_{f=1}^F I_{f,n} \\ \nonumber
+I_{f,n}\prime &amp;= \bar{I}_n / I_{f,n} \\ \nonumber
+I_{fit}(n) &amp;= poly\_fit(I_n\prime) \\ \nonumber
+I_{fit}(f,n) &amp;= poly\_val(I_{fit}(n), f) \\ \nonumber
+P_{f,n} &amp;= (I_{f,n}\prime - I_{fit}(f,n)) * Gain \\ \nonumber
+\Delta C_p(f,n) &amp;= P_{f,n} * 12 * 12 / \bar{q} \\ \nonumber
+\end{aligned}\end{split}\]</div>
+<p>FIDUCIAL PATCHING</p>
+<ol class="arabic">
+<li><p>Interpolate the camera pixel data to “patch” over small, unpainted
+areas on the model surface. These small areas are referred to as
+“fiducials” and may correspond to registration targets from the
+previous step as well as to other known visible elements such as
+blemishes, mechanical fasteners, etc.</p>
+<p>The interpolation process relies on the following inputs:</p>
+<ul class="simple">
+<li><p>Known locations and circular diameters for each fiducial on the
+model surface</p></li>
+<li><p>An updated camera calibration from the previous step</p></li>
+</ul>
+<p>The interpolation process is defined as follows:</p>
+<ol class="arabic simple">
+<li><p>Using the updated camera calibration, project all fiducials onto
+the first camera frame. Ignore any points that are either:</p>
+<ul class="simple">
+<li><p>Occluded by other features</p></li>
+<li><p>Oblique by more than <span class="math notranslate nohighlight">\(oblique\_angle + 5^{\circ}\)</span> (i.e.,
+the angle between the surface normal and the ray from the
+camera to the node is less than
+<span class="math notranslate nohighlight">\(180^{\circ} - (oblique\_angle + 5^{\circ})\)</span>)</p></li>
+</ul>
+</li>
+<li><p>Estimate the size of the fiducial in pixels using projection and
+the defined 3D fiducial size.</p></li>
+<li><p>Cluster fiducials so that no coverage patch overlaps another
+fiducial.</p></li>
+<li><p>Define the boundary of each cluster as <span class="math notranslate nohighlight">\(bound\_pts\)</span> rows of
+pixels outside the cluster with <span class="math notranslate nohighlight">\(buffer\_pts\)</span> row of pixel
+as a buffer.</p></li>
+<li><p>Define a threshold below which the data is either background or
+very poor:</p>
+<ol class="arabic simple">
+<li><p>Compute a histogram of intensities for frame 1.</p></li>
+<li><p>Find the first local minimum after the first local maximum in
+the histogram. This plus <span class="math notranslate nohighlight">\(5^{\circ}\)</span> is the threshold.</p></li>
+</ol>
+</li>
+<li><p>Remove any boundary pixels that are within 2 pixels of a pixel
+that is below the threshold.</p></li>
+<li><p>Fit a 3<span class="math notranslate nohighlight">\(^{rd}\)</span> order 2D polynomial to the boundary pixels
+of each cluster, then the interior (patched pixels) are set by
+evaluating the polynomial.</p></li>
+</ol>
+</li>
+</ol>
+<section id="memory-usage-and-scalability">
+<h5>Memory usage and scalability<a class="headerlink" href="#memory-usage-and-scalability" title="Permalink to this headline">¶</a></h5>
+<p>The intensity-time history and pressure-time history data are usually
+prohibitively large to be loaded in their entirety into the memory of a
+single computer (for example, for approximately 1 million grid nodes and
+40,000 camera frames, each time history solution requires approximately
+150 GB). Without usage of parallel processing over multiple
+computational nodes, the processing would need to process “blocks” of
+the solution and write the output to disk periodically to operate within
+the constraints of a single computer’s available memory.</p>
+<p>Instead, to greatly increase speed of processing, the <code class="docutils literal notranslate"><span class="pre">psp_process</span></code>
+application is designed to execute across an arbitrary number of
+computational nodes. In practice, for current test data sets, the
+application is executed across approximately 20-50 computational nodes
+using the NASA Advanced Supercomputing (NAS) Pleiades cluster. The
+software leverages the Message Passing Toolkit (MPT) implementation
+provided by the Pleiades cluster, and its execution environment is
+controlled by the NAS-maintained Portable Batch System (PBS).</p>
+<p>The conceptual layout of the data items manipulated during the three
+processing phases is shown in <a class="reference internal" href="#memory-model-psp-process"><span class="std std-numref">Fig. 6</span></a>. Each large
+time history is divided into a series of “blocks” based on the number of
+available computational nodes, or “ranks.” MPT is leveraged for
+communication between ranks for the following operations:</p>
+<ul class="simple">
+<li><p>Computing sums or averages over the entire time history.</p></li>
+<li><p>Computing the transpose of each time history.</p></li>
+</ul>
+<figure class="align-default" id="id4">
+<span id="memory-model-psp-process"></span><a class="reference internal image-reference" href="_images/memory-model-psp-process.png"><img alt="``psp_process`` memory model." src="_images/memory-model-psp-process.png" style="width: 100.0%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code> memory model.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Phase 0 processing operations are duplicated identically across each
+rank for simplicity, because they do not scale with the number of camera
+frames.</p>
+<p>The design decision to divide the processing into three phases was
+driven primarily by considerations of computational complexity and
+ease-of-validation. Previously, the uPSP software prototype phases were
+divided into separate applications to facilitate partial processing and
+caching of intermediate data products. The operations performed in Phase
+0 could be run standalone in order to check camera registration outputs,
+and the intensity ratio outputs from Phase 1 could be analyzed prior to
+Phase 2 operations for qualitative checks of frequency content of the
+uPSP measurement data (conversion to pressure ratios is a scaling
+operation that does not affect time-varying or frequency content). In
+addition, the Phase 1 and Phase 2 operations are computationally
+intense; previous software versions were deployable to a personal laptop
+or desktop computer without massive parallelization, however, the
+processing required several orders of magnitude more time to complete
+than with the current parallelized code.</p>
+<!-- todo-mshawlec From NASA Software Engineering Handbook. Leaving as a reference.
+a. CSCI -wide design decisions/trade decisions.
+b. CSCI architectural design.
+c. CSCI decomposition and interrelationship between components:
+    - CSCI components:
+        - Description of how the software item satisfies the software requirements, including algorithms, data structures, and functional decomposition.
+        - Software item I/O description.
+        - Static/architectural relationship of the software units.
+        - Concept of execution, including data flow, control flow, and timing.
+        - Requirements, design and code traceability.
+        - CSCI's planned utilization of computer hardware resources.
+        - Rationale for software item design decisions/trade decisions including assumptions, limitations, safety and reliability related items/concerns or constraints in design documentation.
+        - Interface design.
+        - The documentation of the architectural design of a software system identifies and describes the architectural elements of the software, the external interfaces, and the interfaces between elements. The description includes element responsibilities (constraints on inputs and guarantees on outputs), and constraints on how the elements interact (such as message and data sharing protocols). The architectural design documentation includes multiple views of the architecture and identifies and supports the evaluation of the key quality attributes of the planned software product. The key quality attributes of the software will depend on the mission in which the software is to be used and the manner in which it is to be developed and deployed. They will usually include: performance, availability, maintainability, modifiability, security, testability and usability (operability.)
+--></section>
+</section>
+</section>
+</section>
+<section id="choice-of-software-language-s">
+<h2>Choice of software language(s)<a class="headerlink" href="#choice-of-software-language-s" title="Permalink to this headline">¶</a></h2>
+<p>All aspects of the external calibration pipeline were written in Python,
+with the exception of the BVH which uses legacy C++ code (written by Tim
+Sandstrom) and a Python binding for ease of use.</p>
+<p>Python 3 was selected due to developer expertise and the availability
+and maturity of scientific and image processing modules such as OpenCV,
+Tensorflow, Numpy, and Scipy. These modules are primarily written in C,
+C++, and Fortran with Python bindings. This allows for a user-friendly
+development environment where developers have expertise for quick
+turnaround time, while retaining fast underlying operations.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/swdd.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

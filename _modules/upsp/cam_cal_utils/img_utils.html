@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.cam_cal_utils.img_utils &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.cam_cal_utils.img_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.interpolate</span>
+
+
+<div class="viewcode-block" id="convert_12bit_to_8bit"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.img_utils.html#upsp.cam_cal_utils.img_utils.convert_12bit_to_8bit">[docs]</a><span class="k">def</span> <span class="nf">convert_12bit_to_8bit</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proportionally scales image values from (0, 4095) to (0, 255)</span>
+
+<span class="sd">    Scales input image values from (0, 4095) to (0, 255). Values in input image that</span>
+<span class="sd">    are greater than scale will be clipped to 255 in the output image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray, shape (y, x), np.uint8</span>
+<span class="sd">        Input image</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scaled_img : np.ndarray, shape (y, x), np.uint8</span>
+<span class="sd">        8 bit scaled version of input image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">scale_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">12</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="scale_image"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.img_utils.html#upsp.cam_cal_utils.img_utils.scale_image">[docs]</a><span class="k">def</span> <span class="nf">scale_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">12</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proportionally scales image values from (0, `scale`) to (0, 255)</span>
+
+<span class="sd">    Scales input image values from (0, `scale`) to (0, 255). Values in input image that</span>
+<span class="sd">    are greater than `scale` will be clipped to 255 in the output image</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img : np.ndarray, shape (y, x)</span>
+<span class="sd">        Input image</span>
+<span class="sd">    scale : float or int, optional</span>
+<span class="sd">        Maximum value for scaling input image. Default=4095 (max int for 12 bit)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scaled_img : np.ndarray, shape (y, x), np.uint8</span>
+<span class="sd">        8 bit scaled version of input image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Clip the image to the max value</span>
+    <span class="n">img_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="c1"># Normalize the image</span>
+    <span class="n">img_temp</span> <span class="o">=</span> <span class="n">img_temp</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">img_temp</span> <span class="o">=</span> <span class="n">img_temp</span> <span class="o">/</span> <span class="n">scale</span>
+
+    <span class="c1"># Convert to an 8 bit image</span>
+    <span class="n">img_temp</span> <span class="o">=</span> <span class="n">img_temp</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span><span class="o">**</span><span class="mi">8</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">img_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">img_temp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img_temp</span></div>
+
+
+<div class="viewcode-block" id="scale_image_max_inlier"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.img_utils.html#upsp.cam_cal_utils.img_utils.scale_image_max_inlier">[docs]</a><span class="k">def</span> <span class="nf">scale_image_max_inlier</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proportionally scales image values from (0, `max_inlier`) to (0, 255)</span>
+
+<span class="sd">    Scales input image values from (0, `max_inlier`) to (0, 255). Values in input image</span>
+<span class="sd">    that are greater than the max inlier will be clipped to 255 in the output image</span>
+
+<span class="sd">    In a sorted list of the pixel intensities, the max inlier is the largest value that</span>
+<span class="sd">    satisfies the following condition: ``intensity[i] * 0.9 &lt;= intensity[i*0.999]``</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : np.ndarray, shape (y, x), np.unit8</span>
+<span class="sd">        Input image</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scaled_img : np.ndarray, shape (y, x), np.unit8</span>
+<span class="sd">        8 bit scaled version of input image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get the maximum value, ignoring outliers</span>
+    <span class="n">img_flat</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">img_flat</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="c1"># Find the maximum, inlier value</span>
+    <span class="c1">#   Considered an inlier if a pixel substantially far down the sorted list is still</span>
+    <span class="c1">#       within 90% of the the current value</span>
+    <span class="c1">#    Substantially far is defined as int_round(i * 0.999)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_flat</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mf">0.9</span> <span class="o">*</span> <span class="n">img_flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">img_flat</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">0.999</span><span class="p">)),</span> <span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)]):</span>
+        <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">scale_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">img_flat</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="interp"><a class="viewcode-back" href="../../../_apidoc/upsp.cam_cal_utils.img_utils.html#upsp.cam_cal_utils.img_utils.interp">[docs]</a><span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate values for `pts` from `img`</span>
+
+<span class="sd">    Interpolates `img` at the locations defined by `pts` using the given method</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pts : np.ndarray, shape (n, 2), float</span>
+<span class="sd">        n points to be interpolated</span>
+<span class="sd">    img : np.ndarray, shape (y, x), np.unit8</span>
+<span class="sd">        Input image</span>
+<span class="sd">    method : {&#39;linear&#39;, &#39;nearest&#39;, &#39;slinear&#39;, &#39;cubic&#39;, &#39;quintic&#39;}, optional</span>
+<span class="sd">        Interpolation method. See :class:`scipy.interpolate.RegularGridInterpolator` for</span>
+<span class="sd">        details</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out : np.ndarray, shape (n, 2), float</span>
+<span class="sd">        Value of pts interpolated from img</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure the method is one supported by scipy</span>
+    <span class="k">assert</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="s1">&#39;slinear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="s1">&#39;quintic&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Define the X and Y domains</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Define the scipy interpolation function</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">),</span> <span class="n">img</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+
+    <span class="c1"># Return the interpolated values for the points</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

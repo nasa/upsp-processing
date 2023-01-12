@@ -1,0 +1,7 @@
+``upsp.processing.grids``
+=========================
+
+.. automodule:: upsp.processing.grids
+   :members:
+   :undoc-members:
+   :show-inheritance:

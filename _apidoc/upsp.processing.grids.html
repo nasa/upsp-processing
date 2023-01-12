@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.processing.grids &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.processing.io" href="upsp.processing.io.html" />
+    <link rel="prev" title="upsp.processing.context" href="upsp.processing.context.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a><ul>
+      <li>Previous: <a href="upsp.processing.context.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.processing.context</span></code></a></li>
+      <li>Next: <a href="upsp.processing.io.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.processing.io</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.processing.grids">
+<span id="upsp-processing-grids"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.processing.grids</span></code><a class="headerlink" href="#module-upsp.processing.grids" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">StructGrid</span></span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Manage plot3d-style structured grid and write formatted to file</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.sz">
+<span class="sig-name descname"><span class="pre">sz</span></span><a class="headerlink" href="#upsp.processing.grids.StructGrid.sz" title="Permalink to this definition">¶</a></dt>
+<dd><p>sizes of each grid [3xN]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#upsp.processing.grids.StructGrid.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>x-position [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#upsp.processing.grids.StructGrid.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>y-position [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">array_like,</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.z">
+<span class="sig-name descname"><span class="pre">z</span></span><a class="headerlink" href="#upsp.processing.grids.StructGrid.z" title="Permalink to this definition">¶</a></dt>
+<dd><p>z-position [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">array_like,</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.zones">
+<span class="sig-name descname"><span class="pre">zones</span></span><a class="headerlink" href="#upsp.processing.grids.StructGrid.zones" title="Permalink to this definition">¶</a></dt>
+<dd><p>vertices ordered by zones [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.load_grid">
+<span class="sig-name descname"><span class="pre">load_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.load_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.load_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a formatted p3d file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grid_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – formatted plot3d file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.num_faces">
+<span class="sig-name descname"><span class="pre">num_faces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.num_faces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.num_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of faces in a zone</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>zone</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <em>optional</em>) – zone number (0-based)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>n_faces</strong> – Number of faces in the given <cite>zone</cite> (if provided), otherwise the total
+number of faces in the grid.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.11)"><strong>RuntimeError</strong></a> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.num_zones">
+<span class="sig-name descname"><span class="pre">num_zones</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.num_zones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.num_zones" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of grids (or zones)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of grid nodes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.write_p3d">
+<span class="sig-name descname"><span class="pre">write_p3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.write_p3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.write_p3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write formatted p3d file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fileout</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – output file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.StructGrid.write_zones_mapping">
+<span class="sig-name descname"><span class="pre">write_zones_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#StructGrid.write_zones_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.StructGrid.write_zones_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out the binary vertex zones mapping from a plot3d grid</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fileout</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – output file</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">UnstructGrid</span></span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Manages triangulated unstructured grid</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.n_comps">
+<span class="sig-name descname"><span class="pre">n_comps</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.n_comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>number of components</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.tris">
+<span class="sig-name descname"><span class="pre">tris</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.tris" title="Permalink to this definition">¶</a></dt>
+<dd><p>node ids in each triangle [3,T]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.comps">
+<span class="sig-name descname"><span class="pre">comps</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>component id for each node [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>x-position of each node [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>y-position of each node [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.z">
+<span class="sig-name descname"><span class="pre">z</span></span><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.z" title="Permalink to this definition">¶</a></dt>
+<dd><p>z-position of each node [N]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.24)"><span class="xref std std-term">array_like</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.extract_comp">
+<span class="sig-name descname"><span class="pre">extract_comp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid.extract_comp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.extract_comp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract a sub-grid containing just the component of interest</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>comp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – component id</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>g</strong> (<a class="reference internal" href="#upsp.processing.grids.UnstructGrid" title="upsp.processing.grids.UnstructGrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnstructGrid</span></code></a>) – New unstructured grid with just the selected component</p></li>
+<li><p><strong>n2n</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>) – mapping of old nodes to new nodes</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.get_area">
+<span class="sig-name descname"><span class="pre">get_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid.get_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.get_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the area of a triangle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – triangle index</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>area of the triangle</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+<p>:raises RuntimeError : <code class="xref py py-class docutils literal notranslate"><span class="pre">The</span> <span class="pre">triangle</span> <span class="pre">index</span> <span class="pre">is</span> <span class="pre">invalid</span></code>:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.num_comps">
+<span class="sig-name descname"><span class="pre">num_comps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid.num_comps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.num_comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of components</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.num_faces">
+<span class="sig-name descname"><span class="pre">num_faces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid.num_faces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.num_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of faces in a component</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>comp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <em>optional</em>) – component number (id)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>n_faces</strong> – Number of faces in the given <cite>comp</cite> (if provided), otherwise the total
+number of faces in the grid.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.processing.grids.UnstructGrid.num_nodes">
+<span class="sig-name descname"><span class="pre">num_nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/processing/grids.html#UnstructGrid.num_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.processing.grids.UnstructGrid.num_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of nodes</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.processing.grids.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

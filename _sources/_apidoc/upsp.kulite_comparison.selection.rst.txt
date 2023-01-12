@@ -1,0 +1,7 @@
+``upsp.kulite_comparison.selection``
+====================================
+
+.. automodule:: upsp.kulite_comparison.selection
+   :members:
+   :undoc-members:
+   :show-inheritance:

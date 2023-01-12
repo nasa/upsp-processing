@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Applications &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="File Formats" href="file-formats.html" />
+    <link rel="prev" title="Quick Start" href="quick-start.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#upsp-extract-frames"><code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upsp-external-calibration"><code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psp-process"><code class="docutils literal notranslate"><span class="pre">psp_process</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="quick-start.html" title="previous chapter">Quick Start</a></li>
+      <li>Next: <a href="file-formats.html" title="next chapter">File Formats</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Permalink to this headline">¶</a></h1>
+<p>The following sections provide an overview of the applications
+distributed as part of the <cite>upsp</cite> software package.</p>
+<p>Running each application with the <code class="docutils literal notranslate"><span class="pre">-h</span></code> option will also provide
+brief usage instructions to <code class="docutils literal notranslate"><span class="pre">stdout</span></code>.</p>
+<section id="upsp-extract-frames">
+<h2><code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code><a class="headerlink" href="#upsp-extract-frames" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">upsp-extract-frames</span></code> application is a utility to dump high-speed
+camera video frames to “friendlier” formats. Video frames can be output
+to common image formats (e.g., jpg, png) or video formats (e.g., avi,
+mp4).</p>
+</section>
+<section id="upsp-external-calibration">
+<h2><code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code><a class="headerlink" href="#upsp-external-calibration" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code> application locates model targets in
+the first frame, then finds the position and orientation of the wind
+tunnel model relative to the camera using photogrammetry techniques.</p>
+</section>
+<section id="psp-process">
+<h2><code class="docutils literal notranslate"><span class="pre">psp_process</span></code><a class="headerlink" href="#psp-process" title="Permalink to this headline">¶</a></h2>
+<p>The majority of “computational heavy lifting” is performed by the
+<code class="docutils literal notranslate"><span class="pre">psp_process</span></code> application. Conceptually, the processing is split into
+three steps:</p>
+<ul class="simple">
+<li><p><strong>Initialization</strong>: Video files are opened; first-frame camera
+calibration parameters are loaded from file; fiducial patching is
+initialized (see <a class="reference external" href="mailto:+&#37;&#52;&#48;sec">+<span>&#64;</span>sec</a>:fiducial-patching); diagnostic images for each
+camera are saved; first-frame image-to-grid projections are
+initialized</p></li>
+<li><p><strong>Phase 1</strong>: For each time step, pixel (“intensity”) data from each
+camera frame is projected to its corresponding vertex of the model
+grid. Intensity data from multiple cameras are combined.</p></li>
+<li><p><strong>Phase 2</strong>: The intensity time series at each grid vertex is
+detrended and converted to a surface pressure measurement, using the
+provided unsteady gain calibration and the reference steady-state
+pressure.</p></li>
+</ul>
+<p>For more detail on the algorithms used in each step, please see the uPSP
+SwDD.</p>
+<section id="fiducial-patching">
+<span id="sec-fiducial-patching"></span><h3>Fiducial Patching<a class="headerlink" href="#fiducial-patching" title="Permalink to this headline">¶</a></h3>
+<p>In many cases, wind tunnel test models will have surface area not
+covered by pressure-sensitive paint. Particularly troublesome cases are
+small regions within larger painted areas, referred to as “fiducials.”
+Example fiducials could be:</p>
+<ul class="simple">
+<li><p>masking tape to protect transducer heads from paint spray (often
+circular regions around a transducer head)</p></li>
+<li><p>unpainted points on the model used for wind-on external calibration
+by <code class="docutils literal notranslate"><span class="pre">upsp-external-calibration</span></code></p></li>
+<li><p>fasteners used to add/remove portions of test model between runs</p></li>
+<li><p>oil stains from lubrication of test model articles</p></li>
+</ul>
+<p>While larger regions can be excluded manually from downstream analysis,
+these smaller areas are much harder to manually exclude. In this case,
+<code class="docutils literal notranslate"><span class="pre">psp_process</span></code> can automatically “patch” over known fiducial points on
+the model if they are provided in the input <code class="docutils literal notranslate"><span class="pre">tgts</span></code> file. The position
+and diameter of the fiducial must be supplied; a patch is applied in the
+image plane prior to projecting to the model grid, where the patched
+pixels are replaced by a 3rd-order, 2D-interpolation of the patch
+boundary pixels. For fiducials that are closely-spaced such that their
+patches would overlap, one larger patch is applied to the set of
+fiducials (to cover use cases such as a shock array of closely-spaced
+transducer heads on the model in a streamwise line). Diagnostic images
+written out by <code class="docutils literal notranslate"><span class="pre">psp_process</span></code> include an example of the patching output
+for the first frame from each video file, and can be used to manually
+tune the patch algorithm parameters for best performance on a
+per-wind-tunnel-test basis.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/applications.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

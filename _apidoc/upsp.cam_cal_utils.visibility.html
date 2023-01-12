@@ -1,0 +1,519 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>upsp.cam_cal_utils.visibility &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upsp.cam_cal_utils.visualization" href="upsp.cam_cal_utils.visualization.html" />
+    <link rel="prev" title="upsp.cam_cal_utils.target_bumping" href="upsp.cam_cal_utils.target_bumping.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citing.html">Citing this work</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.intensity_mapping.html"><code class="docutils literal notranslate"><span class="pre">upsp.intensity_mapping</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.kulite_comparison.html"><code class="docutils literal notranslate"><span class="pre">upsp.kulite_comparison</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.processing.html"><code class="docutils literal notranslate"><span class="pre">upsp.processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsp.target_localization.html"><code class="docutils literal notranslate"><span class="pre">upsp.target_localization</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a><ul>
+  <li><a href="upsp.cam_cal_utils.html"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils</span></code></a><ul>
+      <li>Previous: <a href="upsp.cam_cal_utils.target_bumping.html" title="previous chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.target_bumping</span></code></a></li>
+      <li>Next: <a href="upsp.cam_cal_utils.visualization.html" title="next chapter"><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.visualization</span></code></a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-upsp.cam_cal_utils.visibility">
+<span id="upsp-cam-cal-utils-visibility"></span><h1><code class="docutils literal notranslate"><span class="pre">upsp.cam_cal_utils.visibility</span></code><a class="headerlink" href="#module-upsp.cam_cal_utils.visibility" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">VisibilityChecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oblique_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">70</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_nogrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Visibilty object class for occlusion and viewing angle checking</p>
+<p>This class creates an object for checking visibility of a list of points with
+associated normals. The intended use is for the external calibration to check target
+visibility, and to check visibility of the the model mesh nodes for node-pixel
+mapping.</p>
+<p>For the visibility check, it is assumes that the entire model is within the field of
+view of the camera. This simplifies the check for 2 reasons:</p>
+<ol class="arabic">
+<li><p>We don’t need to check if a node is within the field of view</p></li>
+<li><p>We don’t need to check if an intersection is behind the camera</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A ray is drawn from a given point to the camera. If that ray intersects a
+node, it is deemed not visible. However, if there is a node behind the camera
+that intersects with the ray, this will still be seen as an intersection and
+flagged as not visible. Even though the intersection behind the camera does
+not truly occlude the given point.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grid_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Filepath to the grid file</p></li>
+<li><p><strong>oblique_angle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Maximum allowable oblique viewing angle. Viewing angle for a node pointed
+directly at the camera and in the center of the field of view of the camera
+is 0 degrees</p></li>
+<li><p><strong>epsilon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <em>optional</em>) – Intersection tolerance. For the ray tracing intersection check, the origin of
+the ray is offset from the model by a distance of epsilon in the direction of
+the normal</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Debug parameter to speed up grid loading. It is suggested to use this debug for
+all development, and to leave it False for all non-development case.  If True,
+looks for <code class="docutils literal notranslate"><span class="pre">'{{filename}}_primitives.npy'</span></code> in ‘.cache’, where <code class="docutils literal notranslate"><span class="pre">filename</span></code>
+is the filename from <cite>grid_path</cite>. If it finds it, loads from the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file
+rather than reading and processing the grid file. If it doesn’t find it, it will
+read and process the grid file as normal, and save the numpy array as
+<code class="docutils literal notranslate"><span class="pre">'{{filename}}_primitives.npy'</span></code> in ‘.cache’</p></li>
+<li><p><strong>debug_nogrid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Debug parameter to speed up computation. It is suggested to use this debug for
+development if occlusions are not needed for development work. There is no
+reason to leave this parameter for any non-development work. If True, instead of
+loading a real grid file, it loads a fake one with a single, extremely small
+primitive (effectively having ‘no grid’). This makes BVH operations much faster.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between">
+<span class="sig-name descname"><span class="pre">angle_between</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.angle_between"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the angle in radians between vectors <cite>v1</cite> and <cite>v2</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Vector 1</p></li>
+<li><p><strong>v2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Vector 2</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>angle</strong> – Angle (in radians) between <cite>v1</cite> and <cite>v2</cite></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.unit_vector" title="upsp.cam_cal_utils.visibility.VisibilityChecker.unit_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_vector</span></code></a></dt><dd><p>Returns the unit vector of the vector</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing</span></code></a></dt><dd><p>This is the ‘slow’ version of the back face culling check</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.does_intersect">
+<span class="sig-name descname"><span class="pre">does_intersect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.does_intersect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.does_intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that determines if a point is occluded by the object mesh</p>
+<p>Creates a ray from origin with given direction. Checks for intersection of ray
+with the BVH</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>origin</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – start of ray</p></li>
+<li><p><strong>direction</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – direction of ray</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>result</strong> – True if node is occluded and False if node is not occluded</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.get_faces_and_face_normals">
+<span class="sig-name descname"><span class="pre">get_faces_and_face_normals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.get_faces_and_face_normals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.get_faces_and_face_normals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the faces and face normals of all grid nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>faces</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Each face is a (3, 3) with (i, 3) corresponding to a node, and each node
+having an (x, y, z). Faces are ordered counter-clockwise.</p></li>
+<li><p><strong>face_normals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – The face normal is (x, y, z). <code class="docutils literal notranslate"><span class="pre">face_normals[i]</span></code> corresponds to <code class="docutils literal notranslate"><span class="pre">face[i]</span></code></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.get_tvecs_and_norms">
+<span class="sig-name descname"><span class="pre">get_tvecs_and_norms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.get_tvecs_and_norms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.get_tvecs_and_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the tvecs and tvec normals of all grid nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>tvecs</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Each tvec is corresponds to the (x, y, z) of a node.</p></li>
+<li><p><strong>norms</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>) – Each norm is an (x, y, z) of the node’s normal vector <code class="docutils literal notranslate"><span class="pre">norms[i]</span></code>
+corresponds to <code class="docutils literal notranslate"><span class="pre">tvecs[i]</span></code>. The norm is the normal of the first face to
+contain the tvec. Each tvec can appear in multiple faces, so the first is
+used. In practice, each face that contains the node will have a different
+normal vector, but in general the difference is a relatively small angle.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing">
+<span class="sig-name descname"><span class="pre">is_back_facing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.is_back_facing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the ‘slow’ version of the back face culling check</p>
+<p>This function is mostly for legacy/regression purposes</p>
+<p>TODO: This does not filter points on the horizon of the model (~90 degrees
+oblique viewing angle). It does seem to filter those above 70 degrees (might not
+though, very little testing was done). It might have something to do with the
+clip in angle between</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">n)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to node</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">n)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Normal of the node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>back_facing</strong> – True if the node is back facing. False if it is not back facing</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between" title="upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angle_between</span></code></a></dt><dd><p>Returns the angle in radians between vectors ‘v1’ and ‘v2’</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing</span></code></a></dt><dd><p>This is the ‘slow’ version of the back face culling check</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing_fast_vectorized</span></code></a></dt><dd><p>Returns array of booleans for which nodes are back facing</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast">
+<span class="sig-name descname"><span class="pre">is_back_facing_fast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.is_back_facing_fast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the node is back facing, otherwise returns False</p>
+<p>This re-write is significantly faster than the naive approach, but not as fast
+as the vectorized approach. This function is mostly for legacy/regression
+purposes</p>
+<p>The node is back facing if angle between vectors &lt; oblique angle</p>
+<p>Mathematically this is done as:</p>
+<div class="math notranslate nohighlight">
+\[\arccos\left(\frac{t \cdot n}{\|t\| \|n\|}\right) &lt; \textrm{oblique angle}\]</div>
+<p>Since <code class="docutils literal notranslate"><span class="pre">arccos</span></code> is an expensive operation, re-write as:</p>
+<div class="math notranslate nohighlight">
+\[\frac{t \cdot n}{\|t\| \|n\|} &lt; \cos(\textrm{oblique angle})\]</div>
+<p>Since division is more expensive than multiplication, re-write as:</p>
+<div class="math notranslate nohighlight">
+\[t \cdot n &lt; \|t\| \|n\| \cos(\textrm{oblique angle})\]</div>
+<p>Using <span class="math notranslate nohighlight">\(\|a\|^2 = a \cdot a\)</span>, we get:</p>
+<div class="math notranslate nohighlight">
+\[(t \cdot n) (|t \cdot n|) &lt;
+(t \cdot t) (n \cdot n) \cos^2(\textrm{oblique angle})\]</div>
+<p>Where the absolute value  is required on the LHS to preserve sign. All elements
+of RHS are positive since <code class="docutils literal notranslate"><span class="pre">t</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code> contain only real numbers</p>
+<p><span class="math notranslate nohighlight">\(\cos^2(\textrm{oblique angle})\)</span> is calculated and cached when the oblique
+angle changes, giving an additional speedup</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(3,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Translation vector from camera to node</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">(3,)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Normal of the node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>back_facing</strong> – True if input is back facing (viewing angle &gt; maximum oblique angle). False
+if input is not back facing (viewing angle &lt;= maximum oblique angle)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing</span></code></a></dt><dd><p>This is the ‘slow’ version of the back face culling check</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing_fast_vectorized</span></code></a></dt><dd><p>Returns array of booleans for which nodes are back facing</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized">
+<span class="sig-name descname"><span class="pre">is_back_facing_fast_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.is_back_facing_fast_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array of booleans for which nodes are back facing</p>
+<p>See <a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_back_facing_fast()</span></code></a> for explaination of math. To vectorize
+<span class="math notranslate nohighlight">\(a \cdot b\)</span> we use <code class="docutils literal notranslate"><span class="pre">np.sum(a*b,</span> <span class="pre">axis=1)</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Array of translation vectors from camera to nodes</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Array of normal vectors of the nodes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>back_facing</strong> – <code class="docutils literal notranslate"><span class="pre">output[i]</span></code> is True if <code class="docutils literal notranslate"><span class="pre">node[i]</span></code> is backfacing (viewing angle &gt; maximum
+oblique angle). <code class="docutils literal notranslate"><span class="pre">output[i]</span></code> is False if <code class="docutils literal notranslate"><span class="pre">node[i]</span></code> is not backfacing
+(viewing angle &lt;= maximum oblique angle).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing</span></code></a></dt><dd><p>This is the ‘slow’ version of the back face culling check</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing_fast</span></code></a></dt><dd><p>Returns True if the node is back facing, otherwise returns False</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.is_visible">
+<span class="sig-name descname"><span class="pre">is_visible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tvec_model_to_camera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.is_visible"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_visible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of nodes that are visible</p>
+<p>Currently only checks for oblique viewing angle and occlusion, assumes all nodes
+are within FOV of camera</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tvec_model_to_camera</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">1)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – translation vector from model to camera</p></li>
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – X, Y, Z position of nodes to be checked. <code class="docutils literal notranslate"><span class="pre">nodes[i]</span></code> is associated with
+<code class="docutils literal notranslate"><span class="pre">normals[i]</span></code></p></li>
+<li><p><strong>normals</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(N</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Normal vectors. <code class="docutils literal notranslate"><span class="pre">normals[i]</span></code> is associated with <code class="docutils literal notranslate"><span class="pre">nodes[i]</span></code></p></li>
+<li><p><strong>return_angles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – If True, return angles for each visible node as well.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>visible</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – Numpy array of the indices of the nodes that are visible</p></li>
+<li><p><strong>angles</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – Angles of visible nodes. Only returned when <code class="docutils literal notranslate"><span class="pre">return_angles=True</span></code></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized" title="upsp.cam_cal_utils.visibility.VisibilityChecker.is_back_facing_fast_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_back_facing_fast_vectorized</span></code></a></dt><dd><p>Returns array of booleans for which nodes are back facing</p>
+</dd>
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.does_intersect" title="upsp.cam_cal_utils.visibility.VisibilityChecker.does_intersect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">does_intersect</span></code></a></dt><dd><p>Function that determines if a point is occluded by the object mesh</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.load_mesh">
+<span class="sig-name descname"><span class="pre">load_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.load_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.load_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the grid file into vertices and indices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grid_path</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">string</span></code>) – Filepath to the grid file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>t</strong> – Dict with keys “vertices” and “indices”. <code class="docutils literal notranslate"><span class="pre">t[&quot;vertices&quot;]</span></code> is a (N, 3) array
+of the model vertices. <code class="docutils literal notranslate"><span class="pre">t[&quot;indices&quot;]</span></code> is a (N, 3) array of ints where each
+row refers to a model face <code class="docutils literal notranslate"><span class="pre">i</span></code>. The vertices that make up face <code class="docutils literal notranslate"><span class="pre">i</span></code> are
+<code class="docutils literal notranslate"><span class="pre">t[&quot;vertices&quot;][n]</span></code>, where <code class="docutils literal notranslate"><span class="pre">n</span></code> is (3, 1) from <code class="docutils literal notranslate"><span class="pre">t[&quot;indices&quot;][i]</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.package_primitives">
+<span class="sig-name descname"><span class="pre">package_primitives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.package_primitives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.package_primitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Packages the primitives of the grid file into the BVH format</p>
+<p>Converts the vertices and indices into a list of primitives in the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">t0p0x</span><span class="p">,</span> <span class="n">t0p0y</span><span class="p">,</span> <span class="n">t0p0z</span><span class="p">,</span> <span class="n">t0p1x</span><span class="p">,</span> <span class="n">t0p1y</span><span class="p">,</span> <span class="n">t0p1z</span><span class="p">,</span> <span class="n">t0p2x</span><span class="p">,</span> <span class="n">t0p2y</span><span class="p">,</span> <span class="n">t0p2z</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Dict with keys “vertices” and “indices” from <a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.load_mesh" title="upsp.cam_cal_utils.visibility.VisibilityChecker.load_mesh"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load_mesh()</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>primitives</strong> – Packaged primitives</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.tri_normal">
+<span class="sig-name descname"><span class="pre">tri_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.tri_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.tri_normal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the normal of a face with vertices ordered counter-clockwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>face</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – X, Y, Z positions of the face vertices. <code class="docutils literal notranslate"><span class="pre">face[i]</span></code> contains x, y, z of
+vertex <code class="docutils literal notranslate"><span class="pre">i</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>normal</strong> – Normal vector of input face</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(3,)</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.unit_vector">
+<span class="sig-name descname"><span class="pre">unit_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.unit_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.unit_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the unit vector of the vector</p>
+<p>Helper function for <a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between" title="upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between"><code class="xref py py-meth docutils literal notranslate"><span class="pre">angle_between()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>vector</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">shape</span> <span class="pre">(n</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">3)</span> <span class="pre">float</span></code>) – Array of vectors</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>unit_vector</strong> – Unit vector(s) corresponding to <cite>vector</cite></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between" title="upsp.cam_cal_utils.visibility.VisibilityChecker.angle_between"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angle_between</span></code></a></dt><dd><p>Returns the angle in radians between vectors ‘v1’ and ‘v2’</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upsp.cam_cal_utils.visibility.VisibilityChecker.update_oblique_angle">
+<span class="sig-name descname"><span class="pre">update_oblique_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oblique_angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/upsp/cam_cal_utils/visibility.html#VisibilityChecker.update_oblique_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#upsp.cam_cal_utils.visibility.VisibilityChecker.update_oblique_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates object elements related to the oblique viewing angle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>oblique_angle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) – Maximum allowable oblique viewing angle. Viewing angle for a node pointed
+directly at the camera and in the center of the field of view of the camera
+is 0 degrees</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_apidoc/upsp.cam_cal_utils.visibility.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

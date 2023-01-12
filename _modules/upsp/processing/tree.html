@@ -1,0 +1,936 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.processing.tree &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.processing.tree</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">collections.abc</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">upsp</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">io</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_datapoint_processing_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">][</span><span class="n">run_number</span><span class="p">][</span><span class="n">step_name</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_camera_filenames</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">exts</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.cine&quot;</span><span class="p">,</span> <span class="s2">&quot;.dyn&quot;</span><span class="p">,</span> <span class="s2">&quot;.mraw&quot;</span><span class="p">]):</span>
+    <span class="c1"># Finds individual camera video files for this run number in its &quot;camera_video_dir&quot;.</span>
+    <span class="c1"># Valid camera video file extensions are supplied via the &quot;exts&quot; parameter.</span>
+    <span class="c1"># Assumes camera files are named as &quot;&lt;datapoint&gt;&lt;camera number&gt;.&lt;extension&gt;&quot;</span>
+    <span class="n">camera_dir</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="n">run_number</span><span class="p">][</span><span class="s2">&quot;camera_video_dir&quot;</span><span class="p">]</span>
+    <span class="n">candidate_filenames</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">camera_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">*&quot;</span> <span class="o">%</span> <span class="n">run_number</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">exts</span>
+    <span class="p">]</span>
+    <span class="c1"># sort all files into a list per camera number</span>
+    <span class="n">camera_candidate_filenames</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">candidate_filenames</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">_camera_number_from_filename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">camera_candidate_filenames</span><span class="p">:</span>
+            <span class="n">camera_candidate_filenames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">camera_candidate_filenames</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="c1"># then, return first file from list for each camera.</span>
+    <span class="c1"># warn if there&#39;s more than one element (ambiguous which one to use)</span>
+    <span class="n">nlst</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">camera_candidate_filenames</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nlst</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nlst</span><span class="p">):</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Missing one or more camera files (found </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">nlst</span><span class="p">)</span>
+    <span class="n">camera_filenames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">nlst</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">lst</span> <span class="ow">in</span> <span class="n">camera_candidate_filenames</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;More than one file found for </span><span class="si">%s</span><span class="s2">, camera </span><span class="si">%02d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">lst</span>
+            <span class="p">)</span>
+        <span class="n">camera_filenames</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">camera_filenames</span>
+
+
+<span class="k">def</span> <span class="nf">_camera_number_from_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="c1"># &lt;datapoint&gt;&lt;camera number&gt;.&lt;extension&gt;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">6</span><span class="p">:])</span>
+
+
+<span class="k">def</span> <span class="nf">_camera_name</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;cam</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_camera_number_from_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+
+<span class="n">_ADD_FIELD_EXE</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;add_field&quot;</span><span class="p">)</span>
+
+<span class="n">_DEFAULT_TASK_EXE_NAME</span> <span class="o">=</span> <span class="s2">&quot;task.sh&quot;</span>
+
+<span class="n">_NAS_NCPUS_BY_MODEL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;cas_ait&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="s2">&quot;sky_ele&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+    <span class="s2">&quot;bro_ele&quot;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+    <span class="s2">&quot;bro&quot;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+    <span class="s2">&quot;has&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="s2">&quot;ivy&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="s2">&quot;san&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Error"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.tree.html#upsp.processing.tree.Error">[docs]</a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ensure_unique"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.tree.html#upsp.processing.tree.ensure_unique">[docs]</a><span class="k">def</span> <span class="nf">ensure_unique</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">prefixes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Ensure a list of strings is unique. If not, add prefixes to non-unique elements.</span>
+    <span class="c1"># If prefixes is not specified, the list index (0, 1, 2, ...) is used.</span>
+    <span class="n">prefixes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span> <span class="k">if</span> <span class="n">prefixes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">prefixes</span>
+    <span class="n">prefixes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">]</span>
+
+    <span class="n">add_prefix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">uniq_values</span><span class="p">,</span> <span class="n">inv_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq_values</span><span class="p">)):</span>
+        <span class="n">duplicate_check</span> <span class="o">=</span> <span class="n">inv_idxs</span> <span class="o">==</span> <span class="n">ii</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">duplicate_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">add_prefix</span><span class="p">[</span><span class="n">duplicate_check</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">new_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">add_prefix</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prefixes</span><span class="p">,</span> <span class="n">values</span><span class="p">))),</span> <span class="n">values</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_values</span></div>
+
+
+<div class="viewcode-block" id="copy_files_ensure_unique_names"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.tree.html#upsp.processing.tree.copy_files_ensure_unique_names">[docs]</a><span class="k">def</span> <span class="nf">copy_files_ensure_unique_names</span><span class="p">(</span><span class="n">src_filenames</span><span class="p">,</span> <span class="n">dst_dir</span><span class="p">,</span> <span class="n">src_prefixes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">src_basenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">src_filenames</span><span class="p">]</span>
+    <span class="n">dst_basenames</span> <span class="o">=</span> <span class="n">ensure_unique</span><span class="p">(</span><span class="n">src_basenames</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="n">src_prefixes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">src_fn</span><span class="p">,</span> <span class="n">dst_bn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_filenames</span><span class="p">,</span> <span class="n">dst_basenames</span><span class="p">):</span>
+        <span class="n">dst_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_dir</span><span class="p">,</span> <span class="n">dst_bn</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_fn</span><span class="p">,</span> <span class="n">dst_fn</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Copied:&quot;</span><span class="p">,</span> <span class="n">src_fn</span><span class="p">,</span> <span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="n">dst_fn</span><span class="p">)</span></div>
+
+<span class="c1"># Create a processing tree for uPSP raw data.</span>
+<span class="c1">#</span>
+<span class="c1"># The processing tree is a hierarchy to contain</span>
+<span class="c1"># - Launcher scripts to run portions (or all of) the processing steps</span>
+<span class="c1"># - Logs and diagnostics from processing steps</span>
+<span class="c1"># - Output data artifacts from processing steps</span>
+<span class="c1">#</span>
+<span class="c1"># The create() routine is not itself intended to run</span>
+<span class="c1"># any &quot;heavyweight&quot; processing, but rather to create the *environment*</span>
+<span class="c1"># for performing the processing.</span>
+<span class="c1">#</span>
+<div class="viewcode-block" id="create"><a class="viewcode-back" href="../../../_apidoc/upsp.processing.tree.html#upsp.processing.tree.create">[docs]</a><span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">data_config_filename</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">user_config_filename</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">proc_config_filename</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">plot_config_filename</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">json_load_or_die</span><span class="p">(</span><span class="n">data_config_filename</span><span class="p">)</span>
+    <span class="n">usr</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">json_load_or_die</span><span class="p">(</span><span class="n">user_config_filename</span><span class="p">)</span>
+    <span class="n">swr</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">json_load_or_die</span><span class="p">(</span><span class="n">proc_config_filename</span><span class="p">)</span>
+    <span class="n">plt</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">json_load_or_die</span><span class="p">(</span><span class="n">plot_config_filename</span><span class="p">)</span>
+
+    <span class="n">proc</span> <span class="o">=</span> <span class="n">_resolve_parameter_overlays</span><span class="p">(</span><span class="n">swr</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">],</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">])</span>
+    <span class="n">nas</span> <span class="o">=</span> <span class="n">_resolve_nas_config</span><span class="p">(</span><span class="n">usr</span><span class="p">[</span><span class="s2">&quot;nas&quot;</span><span class="p">])</span>
+
+    <span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;datapoints&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;nas&quot;</span><span class="p">:</span> <span class="n">nas</span><span class="p">,</span>
+        <span class="s2">&quot;root&quot;</span><span class="p">:</span> <span class="n">output_dir</span><span class="p">,</span>
+        <span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="n">proc</span><span class="p">,</span>
+        <span class="s2">&quot;plotting&quot;</span><span class="p">:</span> <span class="n">plt</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;__meta__&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;datapoints&quot;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;nas&quot;</span><span class="p">:</span> <span class="n">usr</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="n">swr</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;plotting&quot;</span><span class="p">:</span> <span class="n">plt</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;__date__&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%b-</span><span class="si">%d</span><span class="s2">-%Y&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="n">dirname</span> <span class="o">=</span> <span class="n">_create</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="c1"># Write the final cfg state out to an index file</span>
+    <span class="n">ctx_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s2">&quot;context.json&quot;</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">json_write_or_die</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">ctx_filename</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Write the origin JSON files to the config directory</span>
+    <span class="c1"># ... if their basenames aren&#39;t unique, MAKE them unique</span>
+    <span class="c1"># (to avoid overwriting eachother. It&#39;s possible they have</span>
+    <span class="c1"># the same basename but are located in different folders)</span>
+    <span class="n">_cfgs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;data-&quot;</span><span class="p">:</span> <span class="n">data_config_filename</span><span class="p">,</span> <span class="s2">&quot;user-&quot;</span><span class="p">:</span> <span class="n">user_config_filename</span><span class="p">,</span>
+        <span class="s2">&quot;proc-&quot;</span><span class="p">:</span> <span class="n">proc_config_filename</span><span class="p">,</span> <span class="s2">&quot;plot-&quot;</span><span class="p">:</span> <span class="n">plot_config_filename</span>
+    <span class="p">}</span>
+    <span class="n">copy_files_ensure_unique_names</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">_cfgs</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+        <span class="n">_configuration_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span>
+        <span class="n">src_prefixes</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">_cfgs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_resolve_nas_config</span><span class="p">(</span><span class="n">nas</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="c1"># Resolve NAS launch parameters for each pipeline step</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Output is a dictionary containing launch parameters for each pipeline step</span>
+    <span class="c1"># - Input is the dictionary containing config JSON</span>
+    <span class="c1">#</span>
+    <span class="c1"># Applies defaults to each step, then overlays step-specific values.</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">nas</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;__defaults__&quot;</span><span class="p">]:</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nas</span><span class="p">[</span><span class="s2">&quot;__defaults__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">o</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">nas</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">_resolve_parameter_overlays</span><span class="p">(</span><span class="n">processing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">datapoints</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="c1"># Resolve processing parameters for each datapoint</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Output is a dictionary containing the parameter values for each</span>
+    <span class="c1">#   datapoint.</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Inputs are the processing JSON and the datapoint index.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Example showing how to override one parameter for pipeline &#39;appA&#39; based on</span>
+    <span class="c1"># whether the datapoint grid file matches a given naming convention.</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Processing JSON:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     ```json</span>
+    <span class="c1">#     {</span>
+    <span class="c1">#       &quot;defaults&quot;: {&quot;appA&quot;: {&quot;pa1&quot;: 1, &quot;pa2&quot;: 2}, &quot;appB&quot;: {&quot;pb1&quot;: 3, &quot;pb2&quot;: 4}},</span>
+    <span class="c1">#       &quot;config1&quot;: {&quot;appA&quot;: {&quot;pa1&quot;: 7}},</span>
+    <span class="c1">#       &quot;__overlays__&quot;: [</span>
+    <span class="c1">#         (&quot;defaults&quot;, {&quot;.*&quot;: &quot;.*&quot;}),</span>
+    <span class="c1">#         (&quot;config1&quot;, {&quot;grid_file&quot;: &quot;.*config1.grid&quot;})</span>
+    <span class="c1">#       ]</span>
+    <span class="c1">#     }</span>
+    <span class="c1">#     ```</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Datapoint index JSON</span>
+    <span class="c1">#</span>
+    <span class="c1">#     ```json</span>
+    <span class="c1">#     {</span>
+    <span class="c1">#       &quot;000000&quot;: {&quot;grid_file&quot;: &quot;/path/to/config0.grid&quot;, ...},</span>
+    <span class="c1">#       &quot;111111&quot;: {&quot;grid_file&quot;: &quot;/path/to/config1.grid&quot;, ...}</span>
+    <span class="c1">#     }</span>
+    <span class="c1">#     ```</span>
+    <span class="c1">#</span>
+    <span class="c1"># - Output context JSON:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     ```json</span>
+    <span class="c1">#     {</span>
+    <span class="c1">#      &quot;000000&quot;: {&quot;appA&quot;: {&quot;pa1&quot;: 1, &quot;pa2&quot;: 2}, &quot;appB&quot;: {&quot;pb1&quot;: 3, &quot;pb2&quot;: 4}},</span>
+    <span class="c1">#      &quot;111111&quot;: {&quot;appA&quot;: {&quot;pa1&quot;: 7, &quot;pa2&quot;: 2}, &quot;appB&quot;: {&quot;pb1&quot;: 3, &quot;pb2&quot;: 4}}</span>
+    <span class="c1">#     }</span>
+    <span class="c1">#     ```</span>
+    <span class="c1">#</span>
+    <span class="k">def</span> <span class="nf">_match_all_patterns</span><span class="p">(</span><span class="n">patterns</span><span class="p">,</span> <span class="n">dp_name</span><span class="p">,</span> <span class="n">dp</span><span class="p">):</span>
+        <span class="c1"># Return True if ALL patterns match</span>
+        <span class="c1"># A pattern matches if:</span>
+        <span class="c1"># - its key matches at least one input name, AND</span>
+        <span class="c1"># - for each key match, its value matches the input value</span>
+        <span class="k">def</span> <span class="nf">_match_pattern</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pkey</span><span class="p">,</span> <span class="n">pval</span><span class="p">):</span>
+            <span class="n">pattern_key_matched_once</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">dkey</span><span class="p">,</span> <span class="n">dval</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">pkey</span><span class="p">,</span> <span class="n">dkey</span><span class="p">):</span>
+                    <span class="n">pattern_key_matched_once</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">pval</span><span class="p">,</span> <span class="n">dval</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern_key_matched_once</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Overlay pattern &#39;</span><span class="si">%s</span><span class="s2">&#39; does not match any input names (</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                    <span class="n">dp_name</span><span class="p">,</span>
+                    <span class="n">pkey</span><span class="p">,</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">_match_pattern</span><span class="p">(</span><span class="n">dp</span><span class="p">,</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">patterns</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_update</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{}),</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">_validate_overlay_syntax</span><span class="p">(</span><span class="n">overlays</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_validate_re</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;In __overlays__: invalid regular expression &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">s</span><span class="p">,</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">Error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ov</span> <span class="ow">in</span> <span class="n">overlays</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pkey</span><span class="p">,</span> <span class="n">pval</span> <span class="ow">in</span> <span class="n">ov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">_validate_re</span><span class="p">(</span><span class="n">pkey</span><span class="p">)</span>
+                <span class="n">_validate_re</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span>
+
+    <span class="n">param_sets</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">processing</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;__overlays__&quot;</span><span class="p">}</span>
+    <span class="n">overlays</span> <span class="o">=</span> <span class="n">processing</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;__overlays__&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">proc</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">datapoints</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+    <span class="n">_validate_overlay_syntax</span><span class="p">(</span><span class="n">overlays</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ov</span> <span class="ow">in</span> <span class="n">overlays</span><span class="p">:</span>
+        <span class="n">overlay_matched_once</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">dp_name</span><span class="p">,</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">datapoints</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">patterns</span> <span class="o">=</span> <span class="n">ov</span>
+            <span class="k">if</span> <span class="n">_match_all_patterns</span><span class="p">(</span><span class="n">patterns</span><span class="p">,</span> <span class="n">dp_name</span><span class="p">,</span> <span class="n">dp</span><span class="p">):</span>
+                <span class="n">overlay_matched_once</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">proc</span><span class="p">[</span><span class="n">dp_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_update</span><span class="p">(</span><span class="n">proc</span><span class="p">[</span><span class="n">dp_name</span><span class="p">],</span> <span class="n">param_sets</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overlay_matched_once</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Overlay &#39;</span><span class="si">%s</span><span class="s2">&#39; matched no datapoints, will be a no-op&quot;</span><span class="p">,</span> <span class="n">ov</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">proc</span>
+
+
+<span class="k">def</span> <span class="nf">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns string containing sh environment setup commands</span>
+
+<span class="sd">    - Load any required system libraries that aren&#39;t available</span>
+<span class="sd">      by default... for example, system-provided MPI libraries.</span>
+<span class="sd">    </span>
+<span class="sd">    - Prefix the PATH with the directory of our current python</span>
+<span class="sd">      interpreter. Ensures any scripts keying off &quot;/usr/bin/env python&quot;</span>
+<span class="sd">      resolve the correct interpreter at runtime.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env_sh_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;source /usr/local/lib/global.profile&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;module purge&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;module load mpi-hpe/mpt.2.25&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;export PATH=</span><span class="si">%s</span><span class="s2">:$PATH&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">)))</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">env_sh_lines</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_qsub_step_launcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;qsub-step&quot;</span><span class="p">)</span>
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        SCRIPT_DIR=$( cd -- &quot;$( dirname -- &quot;$</span><span class="se">{{</span><span class="s2">BASH_SOURCE[0]</span><span class="se">}}</span><span class="s2">&quot; )&quot; &amp;&gt; /dev/null &amp;&amp; pwd )</span>
+<span class="s2">        STEP_LAUNCHER_FILENAME=$(realpath $1)</span>
+<span class="s2">        STEP_LAUNCHER_BASENAME=$(basename $STEP_LAUNCHER_FILENAME)</span>
+<span class="s2">        STEP_NAME=&quot;$(echo $</span><span class="se">{{</span><span class="s2">STEP_LAUNCHER_BASENAME</span><span class="se">}}</span><span class="s2"> | cut -d+ -f2)&quot;</span>
+<span class="s2">        D=$SCRIPT_DIR/../04_processing/01_exec/$STEP_NAME</span>
+<span class="s2">        ALL_DATAPOINTS=($(ls -1 $D))</span>
+<span class="s2">        INP_DATAPOINTS=(&quot;$</span><span class="se">{{</span><span class="s2">@:2</span><span class="se">}}</span><span class="s2">&quot;)</span>
+<span class="s2">        SEL_DATAPOINTS=()</span>
+<span class="s2">        if (( $</span><span class="se">{{</span><span class="s2">#INP_DATAPOINTS[@]</span><span class="se">}}</span><span class="s2"> )); then</span>
+<span class="s2">            SEL_DATAPOINTS+=( &quot;$</span><span class="se">{{</span><span class="s2">INP_DATAPOINTS[@]</span><span class="se">}}</span><span class="s2">&quot; )</span>
+<span class="s2">        else</span>
+<span class="s2">            SEL_DATAPOINTS+=( &quot;$</span><span class="se">{{</span><span class="s2">ALL_DATAPOINTS[@]</span><span class="se">}}</span><span class="s2">&quot; )</span>
+<span class="s2">        fi</span>
+<span class="s2">        readarray -t UPSP_QSUB_ARGS_OUT &lt; </span><span class="se">\</span>
+<span class="s2">            &lt;(</span><span class="si">{</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;upsp-qsub-args&quot;</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;$SCRIPT_DIR/..&quot; $STEP_NAME $</span><span class="se">{{</span><span class="s2">SEL_DATAPOINTS[@]</span><span class="se">}}</span><span class="s2">)</span>
+<span class="s2">        NLINES=&quot;$</span><span class="se">{{</span><span class="s2">#UPSP_QSUB_ARGS_OUT[@]</span><span class="se">}}</span><span class="s2">&quot;</span>
+<span class="s2">        IDX=0</span>
+<span class="s2">        while [ $IDX -lt $NLINES ]; do</span>
+<span class="s2">            THIS_QSUB_ARGS=$</span><span class="se">{{</span><span class="s2">UPSP_QSUB_ARGS_OUT[$IDX]</span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            IDX=$(( $IDX + 1 ))</span>
+<span class="s2">            THIS_DATAPOINTS=$</span><span class="se">{{</span><span class="s2">UPSP_QSUB_ARGS_OUT[$IDX]</span><span class="se">}}</span><span class="s2"></span>
+<span class="s2">            IDX=$(( $IDX + 1 ))</span>
+<span class="s2">            CMD=&quot;$STEP_LAUNCHER_FILENAME $THIS_DATAPOINTS&quot;</span>
+<span class="s2">            EX=&quot;qsub $THIS_QSUB_ARGS -- $CMD&quot;</span>
+<span class="s2">            echo &quot;$EX&quot;</span>
+<span class="s2">            $EX</span>
+<span class="s2">        done</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;qsub-step&quot;</span><span class="p">)</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pbs_sh</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_step_launcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exe_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">exe_name</span><span class="p">:</span>
+        <span class="n">exe_alias</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">exe_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run-&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;step+</span><span class="si">%s</span><span class="s2">+</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">exe_alias</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">exe_name</span> <span class="o">=</span> <span class="s2">&quot;task.sh&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;step+</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">step_name</span><span class="p">)</span>
+    <span class="n">launcher_type</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;nas&quot;</span><span class="p">][</span><span class="n">step_name</span><span class="p">][</span><span class="s2">&quot;launcher&quot;</span><span class="p">]</span>
+    <span class="n">TEMPLATE_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span>
+        <span class="s2">&quot;templates&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;run-step-</span><span class="si">%s</span><span class="s2">.sh.template&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launcher_type</span><span class="p">,),</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">TEMPLATE_FILE</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">outp</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">__pipeline_root_dir__</span><span class="o">=</span><span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span>
+        <span class="n">__pipeline_step_name__</span><span class="o">=</span><span class="n">step_name</span><span class="p">,</span>
+        <span class="n">__pipeline_step_exe_name__</span><span class="o">=</span><span class="n">exe_name</span><span class="p">,</span>
+        <span class="n">__pbs_sh__</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outp</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">_CHMOD_URWXGR_XO__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_launcher</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pbs_sh</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">TEMPLATE_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;templates&quot;</span><span class="p">,</span> <span class="s2">&quot;launcher.sh.template&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">TEMPLATE_FILE</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">outp</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">__pbs_sh__</span><span class="o">=</span><span class="n">pbs_sh</span><span class="p">,</span> <span class="n">__env_sh__</span><span class="o">=</span><span class="n">env_sh</span><span class="p">,</span> <span class="n">__exe_sh__</span><span class="o">=</span><span class="n">exe_sh</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outp</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">_CHMOD_URWXGR_XO__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_plotting_config_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_cache_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">_app_cache_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+    <span class="n">subcfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">json_write_or_die</span><span class="p">(</span><span class="n">subcfg</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filename</span>
+
+
+<span class="k">def</span> <span class="nf">_create_add_field_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exe_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># post-processing step using &#39;add_field&#39; executable, to add flat file data</span>
+    <span class="c1"># into the partially-complete H5 file. Should run AFTER psp_process finishes.</span>
+    <span class="c1"># This creates a shell script that wraps said call to &#39;add_field&#39; and writes</span>
+    <span class="c1"># useful debug info.</span>
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="n">TEMPLATE_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;templates&quot;</span><span class="p">,</span> <span class="s2">&quot;add-field.sh.template&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">TEMPLATE_FILE</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+        <span class="n">add_field_exe</span><span class="o">=</span><span class="n">_ADD_FIELD_EXE</span><span class="p">,</span>
+        <span class="n">datapoint_logs_dir</span><span class="o">=</span><span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">),</span>
+        <span class="n">datapoint_output_dir</span><span class="o">=</span><span class="n">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">add_field_filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">exe_name</span><span class="p">)</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">add_field_filename</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">add_field_filename</span>
+
+
+<span class="k">def</span> <span class="nf">_create_pbs_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exe_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate the job script for a single datapoint</span>
+<span class="sd">    Also create directories needed by the job at runtime</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">this_run</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="n">run_number</span><span class="p">]</span>
+    <span class="n">pcfg</span> <span class="o">=</span> <span class="n">_datapoint_processing_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">nas</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;nas&quot;</span><span class="p">][</span><span class="n">step_name</span><span class="p">]</span>
+    <span class="n">ncpus</span> <span class="o">=</span> <span class="n">_NAS_NCPUS_BY_MODEL</span><span class="p">[</span><span class="n">nas</span><span class="p">[</span><span class="s2">&quot;node_model&quot;</span><span class="p">]]</span>
+    <span class="n">run_name</span> <span class="o">=</span> <span class="n">_run_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">exe_prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">exe_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stdout</span> <span class="o">=</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">exe_prefix</span> <span class="o">+</span> <span class="s2">&quot;.stdout&quot;</span><span class="p">)</span>
+    <span class="n">stderr</span> <span class="o">=</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">exe_prefix</span> <span class="o">+</span> <span class="s2">&quot;.stderr&quot;</span><span class="p">)</span>
+    <span class="n">pbs_sh_rows</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;#PBS -N </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">run_name</span><span class="p">),</span>
+        <span class="s2">&quot;#PBS -q </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nas</span><span class="p">[</span><span class="s2">&quot;queue&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;#PBS -W group_list=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nas</span><span class="p">[</span><span class="s2">&quot;charge_group&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;#PBS -l select=</span><span class="si">%s</span><span class="s2">:model=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nas</span><span class="p">[</span><span class="s2">&quot;number_nodes&quot;</span><span class="p">],</span> <span class="n">nas</span><span class="p">[</span><span class="s2">&quot;node_model&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;#PBS -l walltime=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nas</span><span class="p">[</span><span class="s2">&quot;wall_time&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;#PBS -o </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">stdout</span><span class="p">,</span>
+        <span class="s2">&quot;#PBS -e </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">stderr</span><span class="p">,</span>
+        <span class="s2">&quot;export MPI_DSM_DISTRIBUTE=off&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;export OMP_STACKSIZE=250M&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;export OMP_NUM_THREADS=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ncpus</span> <span class="o">-</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">pbs_sh</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pbs_sh_rows</span><span class="p">)</span>
+
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="n">h5_filename</span> <span class="o">=</span> <span class="n">_app_products_path</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;pressure_transpose.h5&quot;</span>
+    <span class="p">)</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;psp-process.out&quot;</span><span class="p">)</span>
+
+    <span class="n">exe_rows</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# By default, core dumps are written out to the current working&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# directory of the process. We want these core dumps to be written&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# to the process logs directory.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cd </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">),</span>
+        <span class="s2">&quot;mpiexec </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;psp_process&quot;</span><span class="p">),),</span>
+        <span class="s2">&quot;  -cutoff_x_max=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;cutoff_x_max&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;  -input_file=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_inp_filename</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)),</span>
+        <span class="s2">&quot;  -h5_out=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h5_filename</span><span class="p">),</span>
+        <span class="s2">&quot;  -paint_cal=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;paint_calibration_file&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;  -steady_p3d=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;steady_psp_file&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;  -frames=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;number_frames&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;  -code_version=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">upsp</span><span class="o">.</span><span class="n">__version__</span><span class="p">),</span>
+        <span class="s2">&quot;  &gt; </span><span class="si">%s</span><span class="s2"> 2&gt;&amp;1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log_filename</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exe_rows</span><span class="p">)</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">exe_name</span><span class="p">)</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pbs_sh</span><span class="o">=</span><span class="n">pbs_sh</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">stdout</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">stderr</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">h5_filename</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">filename</span>
+
+
+<span class="k">def</span> <span class="nf">_create_input_file</span><span class="p">(</span>
+    <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">external_calibration_info</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate input deck file for run number&quot;&quot;&quot;</span>
+    <span class="n">this_run</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="n">run_number</span><span class="p">]</span>
+    <span class="n">pcfg</span> <span class="o">=</span> <span class="n">_datapoint_processing_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">camera_files</span> <span class="o">=</span> <span class="n">_camera_filenames</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">wind_tunnel_str</span> <span class="o">=</span> <span class="s2">&quot;ames_unitary&quot;</span>
+    <span class="n">frame_rate</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">fstop</span> <span class="o">=</span> <span class="mf">2.8</span>
+    <span class="n">input_rows</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">Version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">upsp</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">Date_Created: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">][</span><span class="s2">&quot;__date__&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;@general&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">test = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_test_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">run = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">run_number</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">sequence = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">run_number</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">tunnel = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">wind_tunnel_str</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">framerate = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">frame_rate</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">fstop = </span><span class="si">%4.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fstop</span><span class="p">,</span>
+        <span class="s2">&quot;@all&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">grid = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;grid_file&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">sds = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;wtd_file&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">targets = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;targets_file&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">normals = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;normals_file&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">camera_files</span><span class="p">):</span>
+        <span class="n">calibration_filename</span> <span class="o">=</span> <span class="n">external_calibration_info</span><span class="p">[</span><span class="s2">&quot;calibration_filename&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">input_rows</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s2">&quot;@camera&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">number = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,),</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">cine = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">calibration = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">calibration_filename</span><span class="p">,</span>
+        <span class="p">]</span>
+
+    <span class="n">input_rows</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="s2">&quot;@options&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">target_patcher = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;target_patcher&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">registration = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;registration&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">filter = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;filter&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">filter_size = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;filter_size&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">oblique_angle = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfg</span><span class="p">[</span><span class="s2">&quot;oblique_angle&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">number_frames = -1&quot;</span><span class="p">,</span>  <span class="c1"># number_frames will be set in PBS file cmdline args</span>
+    <span class="p">]</span>
+
+    <span class="n">input_rows</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="s2">&quot;@output&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">dir = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)),</span>
+        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">name = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">run_number</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">input_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_rows</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">_inp_filename</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
+        <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">input_str</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">_CHMOD_URW_GR__O__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_test_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">][</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="s2">&quot;test_name&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_configuration_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="c1"># The overall processing configuration name is a combination of:</span>
+    <span class="c1"># - The alias for configurable input files for each datapoint</span>
+    <span class="c1">#   (e.g., the steady-state pressure input files, or the model grid files)</span>
+    <span class="c1">#   (input files that are NOT configurable are, e.g., raw cine files)</span>
+    <span class="c1"># - The alias for the uPSP processing software parameter values</span>
+    <span class="n">alias_input_files</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">][</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="s2">&quot;config_name&quot;</span><span class="p">]</span>
+    <span class="n">alias_processing_params</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;__meta__&quot;</span><span class="p">][</span><span class="s2">&quot;processing&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">alias_input_files</span> <span class="o">==</span> <span class="n">alias_processing_params</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">alias_input_files</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;+&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">alias_input_files</span><span class="p">,</span> <span class="n">alias_processing_params</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">_version_configuration_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="c1"># Combine software version and configuration name into a single string.</span>
+    <span class="k">return</span> <span class="s2">&quot;+&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">upsp</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">_configuration_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">)])</span>
+
+
+<span class="k">def</span> <span class="nf">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;root&quot;</span><span class="p">],</span> <span class="n">_test_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span> <span class="n">_version_configuration_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_configuration_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;02_configuration&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;03_launchers&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_processing_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;04_processing&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;05_products&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_processing_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_processing_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;01_exec&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_processing_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_processing_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;02_logs&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_processing_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_processing_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;00_data&quot;</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_app_cache_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;00_data&quot;</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_inp_filename</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;psp-process.inp&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_dir_and_log</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_create_root_dir</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">root_dir</span> <span class="o">=</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">root_dir</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">user_confirm_or_exit</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; exists, force-overwrite?&quot;</span> <span class="o">%</span> <span class="n">root_dir</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">root_dir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">PermissionError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Could not create output directory.&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Check user &#39;data_processing_dir&#39; parameter.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_run_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">run_number</span><span class="p">,</span> <span class="n">_version_configuration_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">)])</span>
+
+
+<span class="k">def</span> <span class="nf">_create_task_render_images</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># - For each datapoint, step to render views of model using Tecplot</span>
+    <span class="c1">#   (uses NAS tecplot license)</span>
+    <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">][</span><span class="s2">&quot;render-images&quot;</span><span class="p">][</span><span class="s2">&quot;runtime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;table_generator_exe&quot;</span><span class="p">:</span> <span class="s2">&quot;xyz_scalar_to_tbl&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;images_dir&quot;</span><span class="p">:</span> <span class="n">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;cache_dir&quot;</span><span class="p">:</span> <span class="n">_app_cache_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;tecplot&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;root_dir&quot;</span><span class="p">:</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="c1"># TODO This file will be overwritten every time this is run per-datapoint.</span>
+    <span class="c1">#      Inefficient but not a huge deal.</span>
+    <span class="n">cfg_filename</span> <span class="o">=</span> <span class="n">_create_plotting_config_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;render-images&quot;</span><span class="p">)</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> render-images </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;upsp-plotting&quot;</span><span class="p">),</span> <span class="n">cfg_filename</span><span class="p">,</span> <span class="n">run_number</span>
+    <span class="p">)</span>
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">exe_filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">exe_filename</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_create_task_extract_first_frame</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># - For each datapoint, step to dump first frame from each camera</span>
+
+    <span class="n">img_ext</span> <span class="o">=</span> <span class="s2">&quot;png&quot;</span>
+    <span class="n">img_frame_number</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_first_frames_info</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Paths to data products - first frame from each camera video file.</span>
+
+<span class="sd">        Intermediate data product output by &quot;extract-first-frames&quot;</span>
+<span class="sd">        and used by &quot;external-calibration&quot;. Should be kept</span>
+<span class="sd">        in-sync with output naming convention of upsp-extract-frames.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">img_dir</span> <span class="o">=</span> <span class="n">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;first-frame&quot;</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;src_filename&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;img_prefix&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;img_filename&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">for</span> <span class="n">camera_filename</span> <span class="ow">in</span> <span class="n">_camera_filenames</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">):</span>
+            <span class="n">camera_name</span> <span class="o">=</span> <span class="n">_camera_name</span><span class="p">(</span><span class="n">camera_filename</span><span class="p">)</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">camera_name</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%05d</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">img_frame_number</span><span class="p">,</span> <span class="n">img_ext</span><span class="p">)</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;src_filename&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">camera_filename</span><span class="p">)</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;img_prefix&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;img_filename&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">info</span>
+
+    <span class="n">exe_sh_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# By default, core dumps are written out to the current working&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# directory of the process. We want core dumps to be written&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# to the process logs directory.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cd </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">_first_frames_info</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">src_filename</span><span class="p">,</span> <span class="n">img_prefix</span><span class="p">,</span> <span class="n">img_filename</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;src_filename&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;img_prefix&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;img_filename&quot;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">src_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src_filename</span><span class="p">)</span>
+        <span class="n">log_filename</span> <span class="o">=</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.out&quot;</span> <span class="o">%</span> <span class="n">src_name</span><span class="p">)</span>
+        <span class="n">exe_sh_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;upsp-extract-frames&quot;</span><span class="p">),),</span>
+                <span class="s2">&quot;  -input=</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">src_filename</span><span class="p">,</span>
+                <span class="s2">&quot;  -output=</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img_prefix</span><span class="p">,</span> <span class="n">img_ext</span><span class="p">),</span>
+                <span class="s2">&quot;  -start=</span><span class="si">%d</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img_frame_number</span><span class="p">),</span>
+                <span class="s2">&quot;  -count=1 </span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;  -dumpheader </span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># log additional video file info</span>
+                <span class="s2">&quot;  &gt; </span><span class="si">%s</span><span class="s2"> 2&gt;&amp;1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_filename</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exe_sh_lines</span><span class="p">)</span>
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">exe_filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">img_filename</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;img_filename&quot;</span><span class="p">]:</span>
+        <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">img_filename</span><span class="p">))</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">exe_filename</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">info</span><span class="p">,</span> <span class="p">[</span><span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_create_task_external_calibration</span><span class="p">(</span>
+    <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">first_frames_info</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">):</span>
+    <span class="n">this_run</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">][</span><span class="n">run_number</span><span class="p">]</span>
+    <span class="n">external_cal_cfg_filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;cfg.json&quot;</span><span class="p">)</span>
+    <span class="n">exe_sh_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.out&quot;</span> <span class="o">%</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">_app_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">img_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;  --img </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">first_frames_info</span><span class="p">[</span><span class="s2">&quot;img_filename&quot;</span><span class="p">]]</span>
+    <span class="n">exe_sh_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;# By default, core dumps are written out to the current working&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# directory of the process. We want core dumps to be written&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;# to the process logs directory.&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cd </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">),</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;upsp-external-calibration&quot;</span><span class="p">),),</span>
+            <span class="s2">&quot;  --tgts </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;targets_file&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;  --grd </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;grid_file&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;  --wtd </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;wtd_file&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;  --cfg </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">external_cal_cfg_filename</span><span class="p">,</span>
+            <span class="s2">&quot;  --cal_dir </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">this_run</span><span class="p">[</span><span class="s2">&quot;camera_tunnel_calibration_dir&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;  --out_dir </span><span class="si">%s</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">out_dir</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">exe_sh_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">img_lines</span><span class="p">)</span>
+    <span class="n">exe_sh_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;  &gt; </span><span class="si">%s</span><span class="s2"> 2&gt;&amp;1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_filename</span><span class="p">])</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">log_filename</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
+    <span class="n">exe_sh</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">exe_sh_lines</span><span class="p">)</span>
+    <span class="n">env_sh</span> <span class="o">=</span> <span class="n">_launcher_env_sh</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">exe_filename</span> <span class="o">=</span> <span class="n">_app_exec_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">exe_filename</span><span class="p">))</span>
+    <span class="n">_create_launcher</span><span class="p">(</span><span class="n">exe_filename</span><span class="p">,</span> <span class="n">exe_sh</span><span class="o">=</span><span class="n">exe_sh</span><span class="p">,</span> <span class="n">env_sh</span><span class="o">=</span><span class="n">env_sh</span><span class="p">)</span>
+    <span class="n">pcfg</span> <span class="o">=</span> <span class="n">_datapoint_processing_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;external-calibration&quot;</span><span class="p">,</span> <span class="n">run_number</span><span class="p">)</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">json_write_or_die</span><span class="p">(</span><span class="n">pcfg</span><span class="p">,</span> <span class="n">external_cal_cfg_filename</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;calibration_filename&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">camera_filename</span> <span class="ow">in</span> <span class="n">_camera_filenames</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_number</span><span class="p">):</span>
+        <span class="n">camera_name</span> <span class="o">=</span> <span class="n">_camera_name</span><span class="p">(</span><span class="n">camera_filename</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">-to-model.json&quot;</span> <span class="o">%</span> <span class="n">camera_name</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;calibration_filename&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">info</span><span class="p">,</span> <span class="p">[</span><span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">]</span>
+
+
+<span class="c1"># cfg: dict, step_name: str, run_number: str, first_frames_info: dict</span>
+<span class="k">def</span> <span class="nf">_create_task_psp_process</span><span class="p">(</span>
+    <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">external_calibration_info</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">):</span>
+    <span class="n">_create_input_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">external_calibration_info</span><span class="p">)</span>
+    <span class="n">_create_pbs_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;run-psp-process.pbs&quot;</span><span class="p">)</span>
+    <span class="n">_create_add_field_file</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="s2">&quot;run-add-field.sh&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;run-psp-process.pbs&quot;</span><span class="p">,</span> <span class="s2">&quot;run-add-field.sh&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_create_per_datapoint_step</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datapoints&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="n">run_number</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">inputs</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="n">run_number</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">inputs</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">run_number</span><span class="p">],</span> <span class="n">exe_names</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">exe_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_DEFAULT_TASK_EXE_NAME</span><span class="p">:</span>
+            <span class="n">_create_step_launcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_create_step_launcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">exe_name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_app_logs_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="s2">&quot;jobs&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">def</span> <span class="nf">_create</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">_create_root_dir</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_configuration_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_launchers_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_processing_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+    <span class="n">_create_dir_and_log</span><span class="p">(</span><span class="n">_products_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+
+    <span class="n">first_frame_info</span> <span class="o">=</span> <span class="n">_create_per_datapoint_step</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;extract-first-frame&quot;</span><span class="p">,</span> <span class="n">_create_task_extract_first_frame</span>
+    <span class="p">)</span>
+
+    <span class="n">external_calibration_info</span> <span class="o">=</span> <span class="n">_create_per_datapoint_step</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span>
+        <span class="s2">&quot;external-calibration&quot;</span><span class="p">,</span>
+        <span class="n">_create_task_external_calibration</span><span class="p">,</span>
+        <span class="p">{</span><span class="n">dp</span><span class="p">:</span> <span class="p">[[</span><span class="n">v</span><span class="p">],</span> <span class="p">{}]</span> <span class="k">for</span> <span class="n">dp</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">first_frame_info</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+    <span class="p">)</span>
+
+    <span class="n">_create_per_datapoint_step</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span>
+        <span class="s2">&quot;psp_process&quot;</span><span class="p">,</span>
+        <span class="n">_create_task_psp_process</span><span class="p">,</span>
+        <span class="p">{</span><span class="n">dp</span><span class="p">:</span> <span class="p">[[</span><span class="n">v</span><span class="p">],</span> <span class="p">{}]</span> <span class="k">for</span> <span class="n">dp</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">external_calibration_info</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># TODO: re-enable this task, which is a step to render views of the</span>
+    <span class="c1">#       model colored by certain scalars output by psp_process (the</span>
+    <span class="c1">#       demo application made use of the NAS-provided TecPlot install,</span>
+    <span class="c1">#       but has not been made general enough to include in the batch</span>
+    <span class="c1">#       processing autogeneration tools). We will likely want to rewrite</span>
+    <span class="c1">#       the step to make use of the PyTecplot interface, which is a</span>
+    <span class="c1">#       lightweight Python package that connects to a Tecplot backend</span>
+    <span class="c1">#       provided it is running and then provides an API for plotting.</span>
+    <span class="c1"># _create_per_datapoint_step(</span>
+    <span class="c1">#     cfg,</span>
+    <span class="c1">#     &quot;render-images&quot;,</span>
+    <span class="c1">#     _create_task_render_images,</span>
+    <span class="c1"># )</span>
+
+    <span class="n">_create_qsub_step_launcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_root_path</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

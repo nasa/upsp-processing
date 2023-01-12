@@ -1,0 +1,7 @@
+``upsp.processing.plot3d``
+==========================
+
+.. automodule:: upsp.processing.plot3d
+   :members:
+   :undoc-members:
+   :show-inheritance:

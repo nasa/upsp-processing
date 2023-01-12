@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>upsp.kulite_comparison.selection &#8212; uPSP  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">uPSP</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../file-formats.html">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Third-Party Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../swdd.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../known-issues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_apidoc/upsp.html"><code class="docutils literal notranslate"><span class="pre">upsp</span></code> Python API</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for upsp.kulite_comparison.selection</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.spatial.transform</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">..processing</span> <span class="kn">import</span> <span class="n">plot3d</span>
+<span class="kn">from</span> <span class="nn">..processing</span> <span class="kn">import</span> <span class="n">kulite_utilities</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">spatial_queries</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="KuliteNeighborhoodSearch"><a class="viewcode-back" href="../../../_apidoc/upsp.kulite_comparison.selection.html#upsp.kulite_comparison.selection.KuliteNeighborhoodSearch">[docs]</a><span class="k">class</span> <span class="nc">KuliteNeighborhoodSearch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">plot3d</span><span class="o">.</span><span class="n">read_p3d_grid</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;grid_file&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">=</span> <span class="n">spatial_queries</span><span class="o">.</span><span class="n">VertexSearch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Indexed grid file &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;grid_file&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tgts</span> <span class="o">=</span> <span class="n">kulite_utilities</span><span class="o">.</span><span class="n">read_tgts</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;targets_file&quot;</span><span class="p">])</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loaded tgts file &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;targets_file&quot;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="KuliteNeighborhoodSearch.query"><a class="viewcode-back" href="../../../_apidoc/upsp.kulite_comparison.selection.html#upsp.kulite_comparison.selection.KuliteNeighborhoodSearch.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kulite_name</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">,</span>
+        <span class="n">displacement</span><span class="p">,</span>
+        <span class="n">number_vertices</span><span class="p">,</span>
+        <span class="n">duplicate_vertex_tol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">kulite_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgts</span><span class="p">[</span><span class="n">kulite_name</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> position: </span><span class="si">%s</span><span class="s2">, duplicate_vertex_tol=</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">kulite_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">kulite_position</span><span class="p">),</span> <span class="n">duplicate_vertex_tol</span>
+        <span class="p">)</span>
+        <span class="n">selection_position</span> <span class="o">=</span> <span class="n">selection_area_center</span><span class="p">(</span>
+            <span class="n">kulite_position</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">displacement</span>
+        <span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">kulite_nn_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">kulite_position</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># If duplicate_vertex_tol is not None, then we should</span>
+        <span class="c1"># skip any vertices that are within that radius of another vertex</span>
+        <span class="c1"># in the neighbor search.</span>
+        <span class="c1">#</span>
+        <span class="c1"># Implementation is not immediately obvious because we must</span>
+        <span class="c1"># specify the number of neighbors as input to the NN search.</span>
+        <span class="c1"># Current solution is to always query slightly more vertices than</span>
+        <span class="c1"># what the user requests, and then increase incrementally until</span>
+        <span class="c1"># we find enough unique vertices.</span>
+        <span class="n">search_increase_factor</span> <span class="o">=</span> <span class="mf">1.5</span>
+        <span class="n">number_model_vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">number_query_vertices</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number_vertices</span> <span class="o">*</span> <span class="n">search_increase_factor</span><span class="p">)</span>
+        <span class="n">selection_nn_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">number_query_vertices</span> <span class="o">&lt;</span> <span class="n">number_model_vertices</span><span class="p">:</span>
+            <span class="n">number_query_vertices</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number_query_vertices</span> <span class="o">*</span> <span class="n">search_increase_factor</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">selection_nn_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+                <span class="n">selection_position</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">number_query_vertices</span>
+            <span class="p">)</span>
+            <span class="n">selection_nn_indices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">selection_nn_indices</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">duplicate_vertex_tol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">selection_nn_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_duplicates</span><span class="p">(</span>
+                    <span class="n">selection_nn_indices</span><span class="p">,</span>
+                    <span class="n">duplicate_vertex_tol</span><span class="o">=</span><span class="n">duplicate_vertex_tol</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selection_nn_indices</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">number_vertices</span><span class="p">:</span>
+                <span class="n">selection_nn_indices</span> <span class="o">=</span> <span class="n">selection_nn_indices</span><span class="p">[:</span><span class="n">number_vertices</span><span class="p">]</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;Kulite Nearest Vertex&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">kulite_nn_index</span><span class="p">),</span>
+            <span class="s2">&quot;Selection Vertices&quot;</span><span class="p">:</span> <span class="n">selection_nn_indices</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="KuliteNeighborhoodSearch.filter_duplicates"><a class="viewcode-back" href="../../../_apidoc/upsp.kulite_comparison.selection.html#upsp.kulite_comparison.selection.KuliteNeighborhoodSearch.filter_duplicates">[docs]</a>    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">duplicate_vertex_tol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">):</span>
+        <span class="c1"># Initialize output list: []</span>
+        <span class="c1"># Iterating through node idxs 0 ... N</span>
+        <span class="c1">#  - Find all neighbor nodes within tolerance radius of node</span>
+        <span class="c1">#    - Use existing KDtree</span>
+        <span class="c1">#  - If any neighbors are already in output list, skip this node</span>
+        <span class="c1">#  - Else, add this node to output list</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">vertices</span>
+        <span class="p">]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">duplicate_vertex_tol</span><span class="p">)</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">neighbor_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+            <span class="n">is_in_filtered_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="ow">in</span> <span class="n">filtered</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">neighbor_list</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_in_filtered_list</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filtered</span></div></div>
+
+
+<div class="viewcode-block" id="selection_area_center"><a class="viewcode-back" href="../../../_apidoc/upsp.kulite_comparison.selection.html#upsp.kulite_comparison.selection.selection_area_center">[docs]</a><span class="k">def</span> <span class="nf">selection_area_center</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">surface_displacement</span><span class="p">):</span>
+    <span class="c1"># port + starboard wrt direction of nose of vehicle</span>
+    <span class="c1"># By definition, +X model axis is aligned with freestream,</span>
+    <span class="c1"># so port := +rotation around X axis (right-handed)</span>
+    <span class="n">forward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">aftward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">+</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">distance_from_centerline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">p0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">rotation_degrees</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">surface_displacement</span> <span class="o">/</span> <span class="n">distance_from_centerline</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rotate_around</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+        <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span>
+        <span class="n">rotation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Rotation</span><span class="o">.</span><span class="n">from_rotvec</span><span class="p">(</span><span class="n">radians</span> <span class="o">*</span> <span class="n">axis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rotation</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+    <span class="n">offset_positions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;up&quot;</span><span class="p">:</span> <span class="n">p0</span> <span class="o">+</span> <span class="n">surface_displacement</span> <span class="o">*</span> <span class="n">forward</span><span class="p">,</span>
+        <span class="s2">&quot;down&quot;</span><span class="p">:</span> <span class="n">p0</span> <span class="o">+</span> <span class="n">surface_displacement</span> <span class="o">*</span> <span class="n">aftward</span><span class="p">,</span>
+        <span class="s2">&quot;starboard&quot;</span><span class="p">:</span> <span class="n">rotate_around</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="n">rotation_degrees</span><span class="p">),</span>
+        <span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="n">rotate_around</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="o">-</span><span class="n">rotation_degrees</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">offset_positions</span><span class="p">[</span><span class="n">direction</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, uPSP Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
