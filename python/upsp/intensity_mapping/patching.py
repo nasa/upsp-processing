@@ -1,17 +1,9 @@
 import numpy as np
 import copy
 import cv2
-import time
-import os
-import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
 
-utils = os.path.join(parent_dir, 'cam_cal_utils')
-sys.path.append(utils)
+from upsp.cam_cal_utils import photogrammetry
 
-import photogrammetry
-import visibility
 
 np.set_printoptions(linewidth=180, precision=4, threshold=np.inf)
 
@@ -37,103 +29,103 @@ def get_target_node_idxs(nodes, tgts, buffer_thickness_in):
 
     Returns list of indices of nodes that fall within the patch of a target. This is
     calculated by finding the distance from every node to every target. All nodes that
-    are a distance less than tgt['size'] from the target are marked as 'invalid' and the
-    indices of those nodes are returned
+    are a distance less than ``tgt['size']`` from the target are marked as 'invalid' and
+    the indices of those nodes are returned
 
     This is calculated in a two step procedure for a speedup. It is based on the fact
-    that euclidean distance <= manhattan distance <= sqrt(3) * euclidean distance. And
-    that manhattan distance is much faster to calculate than euclidean distance since
+    that Euclidean distance <= Manhattan distance <= sqrt(3) * euclidean distance, and
+    that Manhattan distance is much faster to calculate than Euclidean distance since
     there is no square or square root operation.
 
-    Step 1 calculates the manhattan distance (L1 norm) from every node to every target.
-    If the manhattan distance is greater than sqrt(3) * tgt['size'], we know for certain
-    that the node is at least tgt['size'] units of euclidean distance from the target.
-    This will be the vast majority of nodes (all but ~300 for example launch vehicle
-    w/ ~1 million nodes).
+    Step 1 calculates the Manhattan distance (L1 norm) from every node to every target.
+    If the Manhattan distance is greater than ``sqrt(3) * tgt['size']``, we know for
+    certain that the node is at least ``tgt['size']`` units of Euclidean distance from
+    the target. This will be the vast majority of nodes (all but ~300 for example launch
+    vehicle w/ ~1 million nodes).
 
-    Step 2 checks the euclidean distance of each node that failed the manhattan distance
-    check. Nodes that fall within tgt['size'] of any target are marked as invalid and
-    their index is returned.
+    Step 2 checks the Euclidean distance of each node that failed the Manhattan distance
+    check. Nodes that fall within ``tgt['size']`` of any target are marked as invalid
+    and their index is returned.
 
     If a large portion of the nodes are near a target, this process would be slow since
     it is effectively double calculating any node near a target. However, since the
-    targets are relatively small compared to the surface area of the, it results in a
-    roughly 2X speedup.
+    targets are relatively small compared to the surface area of the model, it results
+    in a roughly 2X speedup.
 
     Parameters
     ----------
-    nodes : np.ndarray (N, 3), float
+    nodes : np.ndarray, shape (N, 3), float
         A numpy array of the X, Y, and Z values of the nodes
-    tgts : list of targets
+    tgts : list
         Each target is a dictionary with (at a minimum) a 'tvec' and 'size' attribute.
-        The 'tvec' attribute gives the target's location and the 'size' gives the 
-        euclidean distance from the center of the target to the perimeter
+        The 'tvec' attribute gives the target's location and the 'size' gives the
+        Euclidean distance from the center of the target to the perimeter
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
 
     Returns
-    ----------
-    sorted numpy array (np.int32) of the indices of the nodes that are inside of a target
+    -------
+    nodes_in_targets : np.ndarray
+        Sorted array of the indices (``np.int32``) of the nodes that are inside of a
+        target
     """
 
     # Heuristic - Nodes within np.sqrt(3) * tgt['size'] units of manhattan distance are
     #   flagged as potential invalid nodes
     heuristic_invalid_nodes = set()
     for tgt in tgts:
-        manhattan_dist = np.linalg.norm(np.absolute(nodes - tgt['tvec']), ord=1, axis=1)
+        manhattan_dist = np.linalg.norm(np.absolute(nodes - tgt['tvec'].T), ord=1, axis=1)
         heuristic_invalid_nodes.update(np.squeeze(np.argwhere(manhattan_dist < (np.sqrt(3) * (tgt['size'] / 2 + buffer_thickness_in))), axis=1).tolist())
     heuristic_invalid_nodes = list(heuristic_invalid_nodes)
 
     # Final Check - Of the nodes flagged, check if any are within of euclidean distance
     invalid_nodes = set()
     for tgt in tgts:
-        dist = np.linalg.norm(nodes[heuristic_invalid_nodes] - tgt['tvec'], axis=1)
+        dist = np.linalg.norm(nodes[heuristic_invalid_nodes] - tgt['tvec'].T, axis=1)
         invalid_nodes.update(set(heuristic_invalid_nodes[i] for i in np.squeeze(np.argwhere(dist < (tgt['size'] / 2 + buffer_thickness_in)), axis=1)))
-    
+
     return np.array(sorted(invalid_nodes), dtype=np.int32)
 
 
 def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
-    """ Patches clusters in the inp_img
+    """Patches clusters in the `inp_img`
 
-    Parameters:
-    -----------
-    fiduals_visible : list of fiducials
+    Parameters
+    ----------
+    fiduals_visible : list
         Each fiducial is a dict with (at a minimum) 'tvec' and 'target_type' attributes.
         The 'tvec' attribute gives the fiducial's location and 'target_type' is a string
         denoting the type of fiducial (most commonly 'dot' or 'kulite')
-    inp_img : np.uint8 np.ndarray (image)
-        Input image to be patched. rmat and tvec should be aligned to image
-    rmat : np.ndarray (3, 3), float
+    inp_img : np.ndarray, np.uint8
+        Input image to be patched. `rmat` and `tvec` should be aligned to image
+    rmat : np.ndarray, shape (3, 3), float
         Rotation matrix from camera to object
-    tvec : np.ndarray (3, 1) or (3,), float
+    tvec : np.ndarray, shape (3, 1), float
         Translation vector from camera to object
-    cameraMatrix : np.ndarray (3x3), float
+    cameraMatrix : np.ndarray, shape (3x3), float
         The (openCV formatted) camera matrix for the camera
-    distCoeffs : np.ndarray (5x1) or (5,), float
+    distCoeffs : np.ndarray, shape (5, 1) or (5,), float
         The (openCV formatted) distortion coefficients for the camera
     boundary_thickness : int
-        thickness of boundary (in pixels)
+        Thickness of boundary (in pixels)
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
 
-    Returns:
-    --------------
-    float np.ndarray (image)
+    Returns
+    -------
+    out_img : np.ndarray, float
         Image with patched fiducials
 
-    See Also:
-    -----------
-    get_fiducial_internal_and_boundary :
-        Return internal and boundary pixel positions for the input fiducial
-    get_cluster_internal_and_boundary :
-        Returns a list of internal and boundary pixels for the input cluster
-    polyfit2D :
-        Finds the polynomial fit using the boundary pixels
-    polyval2D :
-        Finds the value for the internal pixels using the polynomial fit
+    See Also
+    --------
+    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions
+        for the input fiducial
+    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels
+        for the input cluster
+    polyfit2D : Finds the polynomial fit using the boundary pixels
+    polyval2D : Finds the value for the internal pixels using the polynomial fit
     """
     # Create an output copy of the input image to work with
     out_img = copy.deepcopy(inp_img).astype(np.float32)
@@ -163,7 +155,7 @@ def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeff
 
         # Fit a 2D polynomial to the boundary intensities
         coeffs = polyfit2D(local_bounds, Is)
-                
+
         # Using the fit, find values for the internal intensities
         new_internal_intensities = polyval2D(local_internals, coeffs)
 
@@ -175,35 +167,41 @@ def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeff
 
 
 def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
-    """ Clusters input fiducials based on image location and image size
+    """Clusters input fiducials based on image location and image size
 
-    A cluster is made of all fiducials with a path of overlap between them. I.e. A is 
-    overlapping B which is overlapping C and D. Therefore A, B, C, and D are all in the
+    A cluster is made of all fiducials with a path of overlap between them, i.e. A is
+    overlapping B which is overlapping C and D, therefore A, B, C, and D are all in the
     same cluster. It is considered overlap if the internal pixels to one fiducial
     overlap the internal or boundary pixels of another fiducial. A cluster can be a
     single fiducial if there is no overlap.
 
     This function clusters targets, then returns the clusters.
 
-    Parameters:
-    -----------
-    fiduals_visible : list of fiducials
+    Parameters
+    ----------
+    fiduals_visible : list
         Each fiducial is a dict with (at a minimum) 'tvec' and 'target_type' attributes.
         The 'tvec' attribute gives the fiducial's location and 'target_type' is a string
         denoting the type of fiducial (most commonly 'dot' or 'kulite')
-    rmat : np.ndarray (3, 3), float
+    rmat : np.ndarray, shape (3, 3), float
         Rotation matrix from camera to object
-    tvec : np.ndarray (3, 1) or (3,), float
+    tvec : np.ndarray, shape (3, 1), float
         Translation vector from camera to object
-    cameraMatrix : np.ndarray (3x3), float
+    cameraMatrix : np.ndarray, shape (3, 3), float
         The (openCV formatted) camera matrix for the camera
-    distCoeffs : np.ndarray (5x1) or (5,), float
+    distCoeffs : np.ndarray, shape (5, 1) or (5,), float
         The (openCV formatted) distortion coefficients for the camera
     boundary_thickness : int
-        thickness of boundary (in pixels)
+        Thickness of boundary (in pixels)
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
+
+    Returns
+    -------
+    clusters : list
+        List of clusters, where each cluster is a list of fiducials from
+        `fiducials_visible`.
     """
     # Represent fiducials as circles with center and radius
     unclustered_fiducial_sets = [] #deleteme?
@@ -226,7 +224,7 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
     #   set of internal or set of boundary pixels of another
     # Clusters are connected components of that graph
     clusters = []
-    
+
     # 1) Add the an unclustered fiducal to a cluster. Remove it from the
     #     unclustered list
     # 2) For each unclusted fiducial, find the distance to each fiducial in the
@@ -255,7 +253,7 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
                         unclustered_fiducial_sets.remove(unclustered)
                         was_added = True
                         break
-                    
+
                     # If the boundaries of one overlap the internals of thee other, add
                     #   the unclustered to the cluster
                     if clustered[1].intersection(unclustered[0]) or clustered[0].intersection(unclustered[1]):
@@ -263,21 +261,21 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
                         unclustered_fiducial_sets.remove(unclustered)
                         was_added = True
                         break
-                
+
                 if was_added:
                     break
-        
+
         clusters.append(cluster)
 
     # Repackage as fiducial cluster
     fiducial_clusters = []
     for cluster in clusters:
         fiducial_cluster = []
-        
+
         for image_fiducial in cluster:
             i = unclustered_fiducial_sets_orig.index(image_fiducial)
             fiducial_cluster.append(fiduals_visible[i])
-        
+
         fiducial_clusters.append(fiducial_cluster)
 
     return fiducial_clusters
@@ -285,45 +283,45 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
 
 # TODO: automatically find fiducials that are close together to group into clusters
 def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
-    """ Returns a list of internal and boundary pixels for the input cluster
+    """Returns a list of internal and boundary pixels for the input cluster
 
-    An internal pixel is either directly a part of the fiducials or in between fiducials.
-    A boundary pixel is any pixel within buffer pixels of an internal pixel and is not
-    an internal itself
-    
-    Parameters:
-    -----------
-    cluster : list of fiducials
-        Each fiducial is a dict with (at a minimum) 'tvec' and 'target_type' attributes.
-        The 'tvec' attribute gives the fiducial's location and 'target_type' is a string
-        denoting the type of fiducial (most commonly 'dot' or 'kulite')
-    rmat : np.ndarray (3, 3), float
+    An internal pixel is either directly a part of the fiducials or in between
+    fiducials. A boundary pixel is any pixel within buffer pixels of an internal pixel
+    and is not an internal itself
+
+    Parameters
+    ----------
+    cluster : list
+        List of fiducials in the cluster. Each fiducial is a dict with (at a minimum)
+        'tvec' and 'target_type' attributes.  The 'tvec' attribute gives the fiducial's
+        location and 'target_type' is a string denoting the type of fiducial (most
+        commonly 'dot' or 'kulite')
+    rmat : np.ndarray, shape (3, 3), float
         Rotation matrix from camera to object
-    tvec : np.ndarray (3, 1) or (3,), float
+    tvec : np.ndarray, shape (3, 1), float
         Translation vector from camera to object
-    cameraMatrix : np.ndarray (3x3), float
+    cameraMatrix : np.ndarray, shape (3x3), float
         The (openCV formatted) camera matrix for the camera
-    distCoeffs : np.ndarray (5x1) or (5,), float
+    distCoeffs : np.ndarray, shape (5, 1) or (5,), float
         The (openCV formatted) distortion coefficients for the camera
     boundary_thickness : int
         thickness of boundary (in pixels)
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
-    
-    Returns:
-    -----------
-    tuple
-        Both items are np.ndarrays. First is the internals with shape (n, 2) for the
-        position (x, y) of n internal pixels. Second is the boundary pixels with shape
-        (m, 2) for the positin (x, y) of m boundary pixels
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
 
-    See Also:
-    -----------
-    get_fiducial_boundary_map_from_internal_map :
-        Determines boundary pixels from bit mask of internal pixels
-    get_fiducial_pixel_properties :
-        Returns the pixel properties of the input fiducial
+    Returns
+    -------
+    internals : np.ndarray, shape (n, 2)
+        Positions (x, y) of the ``n`` internal points
+    bounds : np.ndarray, shape (m, 2)
+        Positions (x, y) of the ``m`` boundary pixels
+
+    See Also
+    --------
+    get_fiducial_boundary_map_from_internal_map : Determines boundary pixels from bit
+        mask of internal pixels
+    get_fiducial_pixel_properties : Returns the pixel properties of the input fiducial
     """
     # First stage: Get the minimum, axis aligned rectangle that contains all fiducials
     #   of this cluster
@@ -339,7 +337,7 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
         # Update t_min and t_max
         t_min = np.minimum(t_min, t_min_temp)
         t_max = np.maximum(t_max, t_max_temp)
-    
+
     # Second Stage: make a mini images the size of that minimum axis aligned rectangle
     #   and mark internal and boundary pixels. An internal pixel is either directly a
     #   part of the fiducials or in between fiducials. A boundary pixel is any pixel within
@@ -347,17 +345,17 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
 
     # Mini image to contain the internal points
     internal_map = np.zeros((t_max[1] - t_min[1], t_max[0] - t_min[0]))
-    
+
     # Mark all points that are directly a part of the fiducials as internal
     for tgt in cluster:
         internal_points, __ = get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
-        
+
         # Mark every internal point as internal
         for x, y in internal_points:
             internal_map[y - t_min[1]][x - t_min[0]] = 1
 
     # Mark all points between fiducials as internal
-    
+
     # Start with a dilation then erosion to fill in any small gaps between fiducials
     #   that might not otherwise get filled. If there are no gaps, this is an identity
     #   operation
@@ -376,13 +374,13 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
             if internal_map[y][x]:
                 min_y = y
                 break
-        
+
         # Find the bottommost internal pixel of this row
         for y in reversed(range(t_max[1] - t_min[1])):
             if internal_map[y][x]:
                 max_y = y
                 break
-        
+
         # Fill in everything in between
         for y in range(min_y, max_y):
             internal_map[y][x] = 1
@@ -398,13 +396,13 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
             if internal_map[y][x]:
                 min_x = x
                 break
-        
+
         # Find the bottommost internal pixel of this row
         for x in reversed(range(t_max[0] - t_min[0])):
             if internal_map[y][x]:
                 max_x = x
                 break
-        
+
         # Fill in everything in between
         for x in range(min_x, max_x):
             internal_map[y][x] = 1
@@ -423,44 +421,44 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
     bounds += (t_min[0], t_min[1])
 
     return internals, bounds
-    
+
 
 def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
-    """ Return internal and boundary pixel positions for the input fiducial
+    """Return internal and boundary pixel positions for the input fiducial
 
     An internal pixel a part of the fiducials (minimum axis aligned bounding rectangle).
     A boundary pixel is any pixel within buffer pixels of an internal pixel and is not
     an internal itself
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     tgt : dict
         dict with (at a minimum) 'tvec' and 'target_type' attributes. The 'tvec'
-        attribute gives the fiducial's location and 'target_type' is a string denoting the
-        type of fiducial (most commonly 'dot' or 'kulite')
-    rmat : np.ndarray (3, 3), float
+        attribute gives the fiducial's location and 'target_type' is a string denoting
+        the type of fiducial (most commonly 'dot' or 'kulite')
+    rmat : np.ndarray, shape (3, 3), float
         Rotation matrix from camera to object
-    tvec : np.ndarray (3, 1) or (3,), float
+    tvec : np.ndarray, shape (3, 1), float
         Translation vector from camera to object
-    cameraMatrix : np.ndarray (3x3), float
+    cameraMatrix : np.ndarray, shape (3x3), float
         The (openCV formatted) camera matrix for the camera
-    distCoeffs : np.ndarray (5x1) or (5,), float
+    distCoeffs : np.ndarray, shape (5, 1) or (5,), float
         The (openCV formatted) distortion coefficients for the camera
     boundary_thickness : int
         thickness of boundary (in pixels)
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
-    
-    Returns:
-    -----------
-    tuple
-        Both items are np.ndarrays. First is the internals with shape (n, 2) for the
-        position (x, y) of n internal pixels. Second is the boundary pixels with shape
-        (m, 2) for the positin (x, y) of m boundary pixels
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
 
-    See Also:
-    -----------
+    Returns
+    -------
+    internals : np.ndarray, shape (n, 2)
+        Positions (x, y) of the ``n`` internal points
+    bounds : np.ndarray, shape (m, 2)
+        Positions (x, y) of the ``m`` boundary pixels
+
+    See Also
+    --------
     get_fiducial_boundary_map_from_internal_map :
         Determines boundary pixels from bit mask of internal pixels
     get_fiducial_pixel_properties :
@@ -477,7 +475,7 @@ def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs
 
     # Get the fiducial center location within the local map
     tgt_proj_local = [tgt_proj['proj'][0]-t_min[0], tgt_proj['proj'][1]-t_min[1]]
-    
+
     # For each pixel, find the point on the pixel closest to the center of the fiducial
     # The expression to find the x coordinate of that point is max(X1, min(Xc, X2))
     #   where X1 is the left edge of the pixel, X2 is the right edge, and Xc is the
@@ -495,7 +493,7 @@ def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs
     xs, ys = xs.ravel(), ys.ravel()
     Xns = np.maximum(xs - 0.5, np.minimum(tgt_proj_local[0], xs + 0.5))
     Yns = np.maximum(ys - 0.5, np.minimum(tgt_proj_local[1], ys + 0.5))
-    
+
     # For each of the closest points, if it is within the radius of the center it is
     #   internal and needs to be marked as such in the internal_map
     closest_distances = np.linalg.norm([Xns - tgt_proj_local[0], Yns - tgt_proj_local[1]], axis=0)
@@ -513,41 +511,41 @@ def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs
     # Offset by the region corner to get absolute image coordinates
     internals += (t_min[0], t_min[1])
     bounds += (t_min[0], t_min[1])
-    
+
     return internals, bounds
 
 
 def get_fiducial_boundary_map_from_internal_map(internal_map, boundary_thickness):
-    """ Determines boundary pixels from bit mask of internal pixels
+    """Determines boundary pixels from bit mask of internal pixels
 
-    internal_map is a bitwise mask (image) where 1 is an internal and 0 is not. 
-    internal_map needs to be big enough to contain all boundary pixels. That means it
-    needs to have a buffer of 0's around it that is boundary_thickness thick on all
+    `internal_map` is a bitwise mask (image) where 1 is an internal and 0 is not.
+    `internal_map` needs to be big enough to contain all boundary pixels. That means it
+    needs to have a buffer of 0's around it that is `boundary_thickness` thick on all
     sides (a number of columns of 0's left of leftmost internal equal to
-    boundary_thickness. Same for rightmost. And similarly rows above and below)
+    `boundary_thickness`. Same for rightmost. And similarly rows above and below)
 
-    Performs n dilation operations on the internal_map with a 3x3 square kernel where
-    n is equal to boundary_thickness. boundary_map (return value) is the result minus
-    internal_map
+    Performs ``n`` dilation operations on the internal_map with a 3x3 square kernel
+    where ``n`` is equal to boundary_thickness. `boundary_map` (return value) is the
+    result minus `internal_map`
 
-    Parameters:
-    -----------
-    internal_map : np.ndarray (image)
-        bitwise mask of internal pixels
+    Parameters
+    ----------
+    internal_map : np.ndarray
+        Bitwise mask of internal pixels
     boundary_thickness : int
         thickness of boundary (in pixels)
 
-    Returns:
-    -----------
-    np.ndarray (image)
-        Bitmask of boundary pixels. Same dimensions of internal_map input
+    Returns
+    -------
+    boundary_map : np.ndarray
+        Bitmask of boundary pixels. Same shape as `internal_map` input
 
-    See Also:
-    -----------
-    get_fiducial_internal_and_boundary :
-        Return internal and boundary pixel positions for the input fiducial
-    get_cluster_internal_and_boundary :
-        Returns a list of internal and boundary pixels for the input cluster
+    See Also
+    --------
+    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions
+        for the input fiducial
+    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels
+        for the input cluster
     """
     # Dilate the internals image to get an image of the internals and boundary
     kernel = np.full((3, 3), 1)
@@ -561,50 +559,53 @@ def get_fiducial_boundary_map_from_internal_map(internal_map, boundary_thickness
 
 
 def get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
-    """ Returns the pixel properties of the input fiducial
+    """Returns the pixel properties of the input fiducial
 
     Pixel properties refers to projected location, pixel size (adjusted for focal
     length, distance to camera, and diameter), and minimum axis-aligned bounding box
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     tgt : dict
         dict with (at a minimum) 'tvec' and 'target_type' attributes. The 'tvec'
-        attribute gives the fiducial's location and 'target_type' is a string denoting the
-        type of fiducial (most commonly 'dot' or 'kulite')
-    rmat : np.ndarray (3, 3), float
+        attribute gives the fiducial's location and 'target_type' is a string denoting
+        the type of fiducial (most commonly 'dot' or 'kulite')
+    rmat : np.ndarray, shape (3, 3), float
         Rotation matrix from camera to object
-    tvec : np.ndarray (3, 1) or (3,), float
+    tvec : np.ndarray, shape (3, 1), float
         Translation vector from camera to object
-    cameraMatrix : np.ndarray (3x3), float
+    cameraMatrix : np.ndarray, shape (3, 3), float
         The (openCV formatted) camera matrix for the camera
-    distCoeffs : np.ndarray (5x1) or (5,), float
+    distCoeffs : np.ndarray, shape (5, 1) or (5,), float
         The (openCV formatted) distortion coefficients for the camera
     boundary_thickness : int
         thickness of boundary (in pixels)
     buffer_thickness_in : float
-        Buffer (in inches) to add to fiducials when determining internals applied radially
-        (increases effective radius of fiducial by buffer_thickness_in)
+        Buffer (in inches) to add to fiducials when determining internals applied
+        radially (increases effective radius of fiducial by `buffer_thickness_in`)
 
-    Returns:
-    -----------
-    tuple
-        First item is fiducial projection which is a dict with keys 'target_type', and 
-        'proj' which map to a string and list of positions (length 2, (x, y))
-        respectfully. 'target_type' matches the input 'target_type'. Second item is 
-        a float for the fiducial size in pixels accounting for the focal length, distance
-        to camera, and diameter. Does not take model geometry into account, and is
-        either exactly accurate or an over estimate (likely a mild overestimate). Last
-        two items are t_min and t_max. t_min is the upper left corner of the minimum
-        axis aligned bounding box of the fiducial plus boundary pixels. t_max is the
-        bottom right corner for that bounding box. Both are int np.ndarrays of (2,)
+    Returns
+    -------
+    tgt_proj : dict
+        Fiducial projection which is a dict with keys 'target_type', and 'proj' which
+        map to a string and list of positions (length 2, (x, y)) respectively.
+        'target_type' matches the input 'target_type'.
+    targ_size_px : float
+        Fiducial size in pixels accounting for the focal length, distance to camera, and
+        diameter. Does not take model geometry into account, and is either exactly
+        accurate or an over estimate (likely a mild overestimate).
+    t_min : np.ndarray, shape (2,), int
+        Upper left corner of the minimum axis aligned bounding box of the fiducial plus
+        boundary pixels.
+    t_max : np.ndarray, shape (2,), int
+        Bottom right corner for the bounding box.
 
-    See Also:
-    -----------
-    get_fiducial_internal_and_boundary :
-        Return internal and boundary pixel positions for the input fiducial
-    get_cluster_internal_and_boundary :
-        Returns a list of internal and boundary pixels for the input cluster
+    See Also
+    --------
+    get_fiducial_internal_and_boundary : Return internal and boundary pixel positions
+        for the input fiducial
+    get_cluster_internal_and_boundary : Returns a list of internal and boundary pixels
+        for the input cluster
     """
     # Effective size of fiducial in inches
     targ_size_in = tgt['size'] + 2 * buffer_thickness_in
@@ -627,33 +628,34 @@ def get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, bou
     # Take the floor and ceiling respectively to convert to an integer
     t_min = np.floor(t_min).astype(np.int32)
     t_max = np.ceil(t_max).astype(np.int32)
-    
+
     return tgt_proj, targ_size_px, t_min, t_max
 
 
 def polyfit2D(bounds, Is):
-    """ Finds the polynomial fit using the boundary pixels
-    
-    Parameters:
-    -----------
-    bounds : np.ndarray vector (n, 2) of floats
+    """Finds the polynomial fit using the boundary pixels
+
+    Parameters
+    ----------
+    bounds : np.ndarray, shape (n, 2) of floats
         (x, y) position of boundary pixels in local coordinates (i.e. leftmost boundary
-        pixel has x coordinate of 0. Topmost has coordinate of 0). bounds[n] corresponds
-        to Is[n]
-    Is : np.ndarray vector (n,) of floats
-        Intensity value of boundary pixels pixels. Is[n] corresponds to bounds[n]
+        pixel has x coordinate of 0. Topmost has coordinate of 0). ``bounds[n]``
+        corresponds to ``Is[n]``
+    Is : np.ndarray, shape (n,) of floats
+        Intensity value of boundary pixels pixels. ``Is[n]`` corresponds to
+        ``bounds[n]``
 
-    Returns:
-    -----------
-    np.ndarray vector (n, 1)
-        coeffs polynomial fit coefficients
+    Returns
+    -------
+    coeffs : np.ndarray, shape (n, 1)
+        Polynomial fit coefficients
 
-    See Also:
-    -----------
+    See Also
+    --------
     polyval2D : Finds the value for the internal pixels using the polynomial fit
     """
     assert((len(bounds) == len(Is)))
-    
+
     # Determine the number of coefficients
     # Terms are 1 constant, 2 linear (x, y), 3 quadratic (xx, xy, yy), ...
     # Equivalent to 1 + 2 + ... + degree + (degree+1) = (degree+2)*(degree+1)/2
@@ -674,37 +676,37 @@ def polyfit2D(bounds, Is):
             if (i + j) <= degree:
                 A[:, count] = pow(bounds[:, 1], i) * pow(bounds[:, 0], j)
                 count += 1
-    
+
     # Solution to linear equation is just pixel values
     b = np.array(Is)
 
     # Initialize polynomial coefficient output vector
     poly = np.zeros(num_coeffs, dtype=np.float32)
-    
+
     # Solve least squares problem
     coeffs = np.linalg.lstsq(A, b, rcond=None)[0]
-    
+
     return np.array(coeffs)
 
 
 def polyval2D(internals, coeffs):
     """ Finds the value for the internal pixels using the polynomial fit
-    
-    Parameters:
-    -----------
-    internals : np.ndarray vector (n, 2) of floats
+
+    Parameters
+    ----------
+    internals : np.ndarray, shape (n, 2) of floats
         (x, y) position of internal pixels in local coordinates (i.e. leftmost boundary
         pixel has x coordinate of 0. Topmost has y coordinate of 0)
-    coeffs : np.ndarray vector (n,)
+    coeffs : np.ndarray, shape (n,)
         Polynomial fit coefficients
-    
-    Returns:
-    -----------
-    float np.ndarray (n,)
+
+    Returns
+    -------
+    Is : np.ndarray, shape (n,)
         Estimated intensity for internals
 
-    See Also:
-    -----------
+    See Also
+    --------
     polyfit2D : Finds the polynomial fit using the boundary pixels
     """
     # Determine the number of coefficients
@@ -727,4 +729,3 @@ def polyval2D(internals, coeffs):
 
     Is = np.matmul(A, coeffs)
     return Is
-

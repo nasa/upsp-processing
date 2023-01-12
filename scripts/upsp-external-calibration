@@ -4,27 +4,14 @@ import cv2
 import json
 import logging
 import os
-import sys
 
 import matplotlib
 matplotlib.use("Agg")
 
-sys.path.append(
-    os.path.realpath(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "python")
-    )
-)
-
-import warnings  # noqa
-
-warnings.filterwarnings("ignore")
-import upsp.cam_cal_utils.parsers as parsers  # noqa
-import upsp.cam_cal_utils.visibility as visibility  # noqa
-import upsp.cam_cal_utils.external_calibrate as external_calibrate  # noqa
-import upsp.cam_cal_utils.photogrammetry as photogrammetry # noqa
-
-warnings.filterwarnings("default")
-
+import upsp.cam_cal_utils.parsers as parsers
+import upsp.cam_cal_utils.visibility as visibility
+import upsp.cam_cal_utils.external_calibrate as external_calibrate
+import upsp.cam_cal_utils.photogrammetry as photogrammetry
 
 DEFAULT_OUTPUT_FILENAME = "external_calibration.json"
 
@@ -93,8 +80,9 @@ def main():
 
     for camera_number, img_filename, img in imgs:
         log.info("Calibrating camera %02d based on %s", camera_number, img_filename)
-        camera_cal = parsers.read_camera_params(
-            camera_number, args.cal_dir, img.shape
+        camera_cal_path = os.path.join(args.cal_dir, 'camera' + str(camera_number).rjust(2, '0') + '.json')
+        camera_cal = parsers.read_camera_tunnel_cal(
+            camera_cal_path, img.shape
         )
 
         try:
@@ -109,8 +97,8 @@ def main():
             with open(output_filename, "w") as fp:
                 json.dump(
                     {
-                        "cameraMatrix": camera_cal[0].squeeze().tolist(),
-                        "distCoeffs": camera_cal[1].squeeze().tolist(),
+                        "cameraMatrix": camera_cal[2].squeeze().tolist(),
+                        "distCoeffs": camera_cal[3].squeeze().tolist(),
                         "rmat": rmat.squeeze().tolist(),
                         "tvec": tvec.squeeze().tolist(),
                         "imageSize": [img.shape[1], img.shape[0]]

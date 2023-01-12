@@ -6,17 +6,21 @@ import numpy as np
 class StructGrid:
     """Manage plot3d-style structured grid and write formatted to file
 
-    Attributes:
-        sz    : array-like, sizes of each grid [3xN]
-        x     : array-like, x-position [N]
-        y     : array-like, y-position [N]
-        z     : array-like, z-position [N]
-        zones : list of vertices ordered by zones [N]
+    Attributes
+    ----------
+    sz : array_like
+        sizes of each grid [3xN]
+    x : array_like
+        x-position [N]
+    y : array_like,
+        y-position [N]
+    z : array_like,
+        z-position [N]
+    zones : np.ndarray
+        vertices ordered by zones [N]
     """
 
     def __init__(self):
-        """ Create empty StructGrid """
-
         self.sz = []
         self.x = []
         self.y = []
@@ -26,13 +30,11 @@ class StructGrid:
     def load_grid(self, grid_file):
         """Read a formatted p3d file
 
-        Args:
-            grid_file (str) : formatted plot3d file
-
-        Returns:
-            None
+        Parameters
+        ----------
+        grid_file : str
+            formatted plot3d file
         """
-
         with open(grid_file, "r") as f:
             n_zones = int(f.readline())
 
@@ -64,13 +66,11 @@ class StructGrid:
             self.zones = np.array(zone_list, dtype=np.float32)
 
     def num_zones(self):
-        """ Return the number of grids (or zones) """
-
+        """Return the number of grids (or zones)"""
         return len(self.sz)
 
     def size(self):
-        """ Return the number of grid nodes """
-
+        """Return the number of grid nodes"""
         total_size = 0
         for i in range(0, self.num_zones()):
             total_size += np.product(self.sz[i])
@@ -80,17 +80,21 @@ class StructGrid:
     def num_faces(self, zone=None):
         """Return the number of faces in a zone
 
-        Args:
-            zone (int): zone number (0-based)
+        Parameters
+        ----------
+        zone : int, optional
+            zone number (0-based)
 
-        Returns:
-            (int) if zone = None, number of faces in grid
-            else, number of faces in zone
+        Returns
+        -------
+        n_faces : int
+            Number of faces in the given `zone` (if provided), otherwise the total
+            number of faces in the grid.
 
-        Raises:
-            RuntimeError: invalid zone number
+        Raises
+        ------
+        RuntimeError: invalid zone number
         """
-
         n_faces = 0
 
         if zone is None:
@@ -113,13 +117,11 @@ class StructGrid:
     def write_p3d(self, fileout):
         """Write formatted p3d file
 
-        Args:
-            fileout (str)   : output file
-
-        Returns:
-            None
+        Parameters
+        ----------
+        fileout : str
+            output file
         """
-
         with open(fileout, "w") as f:
             f.write("{}\n".format(len(self.sz)))
             for z in range(0, len(self.sz)):
@@ -139,31 +141,34 @@ class StructGrid:
     def write_zones_mapping(self, fileout):
         """Write out the binary vertex zones mapping from a plot3d grid
 
-        Args:
-            fileout (str)   : output file
-
-        Returns:
-            None
+        Parameters
+        ----------
+        fileout : str
+            output file
         """
-
         self.zones.tofile(fileout)
 
 
 class UnstructGrid:
     """Manages triangulated unstructured grid
 
-    Attributes:
-        n_comps : number of components
-        tris    : array-like, node ids in each triangle [3,T]
-        comps   : array-like, component id for each node [N]
-        x       : array-like, x-position of each node [N]
-        y       : array-like, y-position of each node [N]
-        z       : array-like, z-position of each node [N]
+    Attributes
+    ----------
+    n_comps : int
+        number of components
+    tris :array_like
+        node ids in each triangle [3,T]
+    comps : array_like
+        component id for each node [N]
+    x : array_like
+        x-position of each node [N]
+    y : array_like
+        y-position of each node [N]
+    z : array_like
+        z-position of each node [N]
     """
 
     def __init__(self):
-        """ Create an empty UnstructGrid """
-
         self.x = []
         self.y = []
         self.z = []
@@ -174,24 +179,27 @@ class UnstructGrid:
         self.n_comps = 0
 
     def num_comps(self):
-        """ Return the number of components """
+        """Return the number of components"""
         return self.n_comps
 
     def num_nodes(self):
-        """ Return the number of nodes """
+        """Return the number of nodes"""
         return len(self.x)
 
     def num_faces(self, comp=None):
         """Return the number of faces in a component
 
-        Args:
-            comp (int): component number (id)
+        Parameters
+        ----------
+        comp : int, optional
+            component number (id)
 
-        Returns:
-            (int) if comp = None, number of faces in grid, else number of
-                  faces in component
+        Returns
+        -------
+        n_faces : int
+            Number of faces in the given `comp` (if provided), otherwise the total
+            number of faces in the grid.
         """
-
         n_faces = 0
 
         if comp is None:
@@ -206,14 +214,18 @@ class UnstructGrid:
     def extract_comp(self, comp):
         """Extract a sub-grid containing just the component of interest
 
-        Args:
-            comp (int): component id
+        Parameters
+        ----------
+        comp : int
+            component id
 
-        Returns:
-            (UnstructGrid) with just the selected component and mapping of
-            old nodes to new nodes
+        Returns
+        -------
+        g : UnstructGrid
+            New unstructured grid with just the selected component
+        n2n : list
+            mapping of old nodes to new nodes
         """
-
         # Initialize the new grid
         g = UnstructGrid()
 
@@ -257,14 +269,19 @@ class UnstructGrid:
     def get_area(self, t):
         """Return the area of a triangle
 
-        Args:
-            t (int) : triangle index
+        Parameters
+        ----------
+        t : int
+            triangle index
 
-        Returns:
-            (float) area of the triangle
+        Returns
+        -------
+        float
+            area of the triangle
 
-        Raises:
-            RuntimeError    : The triangle index is invalid
+        Raises
+        ------
+        RuntimeError : The triangle index is invalid
         """
 
         if t < 0 or t >= self.num_faces():

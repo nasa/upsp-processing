@@ -24,12 +24,18 @@ def plot_coord_sys(rmat, tvec, ax, scale=10, text=None):
 
     In the plot, the x axis is blue, the y axis is orange, and the z axis is green
 
-    Inputs:
-        rmat - Rotation Matrix. Columns represent the basis of the coordinate system
-        tvec - Origin of the coordinate system
-        ax - matplotlib axis
-        scale - Size of the vcoordinate system vectors
-        text - label of the coordinate system
+    Parameters
+    ----------
+    rmat : array_like, shape (3, 3)
+        Rotation Matrix. Columns represent the basis of the coordinate system
+    tvec : array_like, , shape (3,)
+        Origin of the coordinate system
+    ax : mpl_toolkits.mplot3d.axes3d.Axes3D
+        matplotlib axis
+    scale : int or float, optional
+        Size of the vcoordinate system vectors
+    text : str, optional
+        Label of the coordinate system. If ``None`` (default), no text is added.
     """
 
     s_rmat = scale * rmat
@@ -37,18 +43,18 @@ def plot_coord_sys(rmat, tvec, ax, scale=10, text=None):
     # TODO: these should be drawn in the order of distance to the virtual camera
     #   Drawing them in this order by default can cause the debug outputs to look incorrect
     #   due to occlusions    
-    ax.plot3D([tvec[0], tvec[0] + s_rmat[0][0]], [tvec[1], tvec[1] + s_rmat[1][0]], [tvec[2], tvec[2] + s_rmat[2][0]], 'b')
-    ax.plot3D([tvec[0], tvec[0] + s_rmat[0][1]], [tvec[1], tvec[1] + s_rmat[1][1]], [tvec[2], tvec[2] + s_rmat[2][1]], 'orange')
-    ax.plot3D([tvec[0], tvec[0] + s_rmat[0][2]], [tvec[1], tvec[1] + s_rmat[1][2]], [tvec[2], tvec[2] + s_rmat[2][2]], 'g')
+    ax.plot3D([tvec[0][0], tvec[0][0] + s_rmat[0][0]], [tvec[1][0], tvec[1][0] + s_rmat[1][0]], [tvec[2][0], tvec[2][0] + s_rmat[2][0]], 'b')
+    ax.plot3D([tvec[0][0], tvec[0][0] + s_rmat[0][1]], [tvec[1][0], tvec[1][0] + s_rmat[1][1]], [tvec[2][0], tvec[2][0] + s_rmat[2][1]], 'orange')
+    ax.plot3D([tvec[0][0], tvec[0][0] + s_rmat[0][2]], [tvec[1][0], tvec[1][0] + s_rmat[1][2]], [tvec[2][0], tvec[2][0] + s_rmat[2][2]], 'g')
 
     if (text is not None) and debug_text_displays:
-        ax.text(tvec[0], tvec[1], tvec[2], text)
+        ax.text(tvec[0][0], tvec[1][0], tvec[2][0], text)
 
 
 def show_image_locations(img, img_locations, fig_name, scale=5, c='w'):
     """
     Displays an image with the given image locations indicated with a marker of the
-        given color (white by default)
+    given color (white by default)
     """
 
     plt.figure(fig_name)
@@ -62,11 +68,12 @@ def show_coord_transforms(cs1_rmat, cs1_tvec, cs2_rmat, cs2_tvec, figname=None,
                           texts=[None, None, None], compares=[False, False, False]):
     """
     Shows the transformation from coordinate system 1 (cs1) to coordinate system 2 (cs2)
-        Additionally, shows the origin coordinate system. Draws a line from cs1 to cs2
-    Texts is the label to be shown for the origin, cs1, and cs2 respectively
-    compares is a list of booleans that determines if a line is drawn from the origin to
-        cs1 (compares[0]), from cs1 to cs2 (compares[1]), and from cs2 to the origin
-        (compares[2])
+
+    Additionally, shows the origin coordinate system. Draws a line from cs1 to cs2 Texts
+    is the label to be shown for the origin, cs1, and cs2 respectively compares is a
+    list of booleans that determines if a line is drawn from the origin to cs1
+    (compares[0]), from cs1 to cs2 (compares[1]), and from cs2 to the origin
+    (compares[2])
     """
 
     if figname is None:
@@ -114,27 +121,30 @@ def show_coord_transforms(cs1_rmat, cs1_tvec, cs2_rmat, cs2_tvec, figname=None,
 
 
 def plot_pts_and_norms(pts_and_norms, ax, scale=5, c='r'):
-    """
-    Helper function to plot points with normals
+    """Helper function to plot points with normals
 
-    Input:
-        pts_and_norms - list of dictionaries. Each dictionary has keys 'tvec' and 'norm'
-            tvec refers to the translation vector from the origin to the point
-            norm refers to the point's normal vector
-        ax - matplotlib axis
-        scale - size of the normal vectors
-        c - color of points and normals
+    Parameters
+    ----------
+    pts_and_norms : list of dict
+        Each dictionary has keys 'tvec' and 'norm' tvec refers to the translation vector
+        from the origin to the point norm refers to the point's normal vector
+    ax : mpl_toolkits.mplot3d.axes3d.Axes3D
+        matplotlib axis
+    scale : int or float, optional
+        Size of the normal vectors
+    c : str, optional
+        Color of points and normals
     """
 
     for pt_and_norm in pts_and_norms:
         # Calculate translation vector relative to camera
-        tvec = pt_and_norm['tvec']
+        tvec = pt_and_norm['tvec'][:, 0]
 
         # Plot point
         ax.scatter([tvec[0]], [tvec[1]], [tvec[2]], marker='o', c='r', s=scale*2)
 
         # Calculate scaled normal vector in camera frame
-        s_norm = scale * np.array(pt_and_norm['norm'])
+        s_norm = scale * pt_and_norm['norm'][:, 0]
 
         # Plot normal vector
         ax.plot3D([tvec[0], tvec[0] + s_norm[0]],
@@ -143,23 +153,30 @@ def plot_pts_and_norms(pts_and_norms, ax, scale=5, c='r'):
                   c=c)
 
 
-def show_pts_and_norms(rmat, tvec, pts_and_norms, ax=None, c='r', texts=[None, None]):
+def show_pts_and_norms(rmat, tvec, pts_and_norms, ax=None, c='r', texts=(None, None)):
     """
     Helper function to plot transformation from the origin to given coordinate system,
-        and show a set of points. Originally intended to plot the tgts frame and the
-        targets with their normals
+    and show a set of points. Originally intended to plot the tgts frame and the targets
+    with their normals
 
-    Input:
-        rmat - basis of the coordinate system to be shown
-        tvec - origin of coordinate system to be shown
-        pts_and_norms - list of dictionaries. Each dictionary has keys 'tvec' and 'norm'
-            tvec refers to the translation vector from the origin to the point
-            norm refers to the point's normal vector. Points and normals are in the
-            coordinate frame of the origin
-        ax - matplotlib axis
-        scale - size of the normal vectors
-        c - color of points and normals
-        texts - labels for the origin and transformed coordinate system
+    Parameters
+    ----------
+    rmat : array_like, shape (3, 3)
+        Basis of the coordinate system to be shown
+    tvec : array_like, shape (3,)
+        Origin of coordinate system to be shown
+    pts_and_norms : list of dict
+        Each dictionary has keys 'tvec' and 'norm' tvec refers to the translation vector
+        from the origin to the point norm refers to the point's normal vector. Points
+        and normals are in the coordinate frame of the origin
+    ax : matplotlib.Axes, optional
+        matplotlib axis. If not provided, a figure and 3D axes are created.
+    scale : int or float
+        Size of the normal vectors
+    c : str, optional
+        Color of points and normals
+    texts : tuple, optional
+        Labels for the origin and transformed coordinate system.
     """
 
     # If no axis was given, make a new one
@@ -184,19 +201,25 @@ def show_pts_and_norms(rmat, tvec, pts_and_norms, ax=None, c='r', texts=[None, N
 
 def show_projection_matching(img, proj_pts, matching_points, num_matches=None,
                              name='', bonus_pt=None, scale=10., ax=None):
-    """
-    Show the projected target matching.
-        Projected points are labeled in red
-        Matching points are labeled in white
-        Line connecting point to match is drawn in black
+    """Show the projected target matching.
 
-    Input
-        img - Display image
-        proj_pts - projected location of 3D point
-        matching_points - image location of point
-        name - figure name prefix
-        bonus_pt - optional input. Point to be shown in blue
-        scale - scale of point labels
+    Projected points are labeled in red. Matching points are labeled in white. Line
+    connecting point to match is drawn in black
+
+    Parameters
+    ----------
+    img : array_like
+        Display image
+    proj_pts : array_like, shape (n, 2)
+        :rojected locations of 3D points
+    matching_points : array_like, shape (n, 2)
+        Image location of point
+    name : str, optinoal
+        Figure name prefix
+    bonus_pt : array_like, optional
+        Optional input. Point to be shown in blue
+    scale : int or float, optional
+        Scale of point labels
     """
 
     if num_matches is None:

@@ -4,11 +4,13 @@ import glob
 import logging
 import os
 import re
+import shutil
 import string
-import subprocess
 import sys
 import textwrap
+import numpy as np
 
+import upsp
 from . import io
 
 log = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ def _camera_name(filename):
     return "cam%02d" % _camera_number_from_filename(filename)
 
 
-_ADD_FIELD_EXE = "add_field"
+_ADD_FIELD_EXE = shutil.which("add_field")
 
 _DEFAULT_TASK_EXE_NAME = "task.sh"
 
@@ -77,6 +79,32 @@ _NAS_NCPUS_BY_MODEL = {
 class Error(Exception):
     pass
 
+
+def ensure_unique(values: list[str], prefixes=None):
+    # Ensure a list of strings is unique. If not, add prefixes to non-unique elements.
+    # If prefixes is not specified, the list index (0, 1, 2, ...) is used.
+    prefixes = list(range(len(values))) if prefixes is None else prefixes
+    prefixes = [str(s) for s in prefixes]
+
+    add_prefix = np.array([False, False, False, False], dtype=bool)
+    uniq_values, inv_idxs = np.unique(values, return_inverse=True)
+    for ii in range(len(uniq_values)):
+        duplicate_check = inv_idxs == ii
+        if np.count_nonzero(duplicate_check) > 1:
+            add_prefix[duplicate_check] = True
+    new_values = np.where(
+        add_prefix, list(map(''.join, zip(prefixes, values))), values
+    )
+    return new_values
+
+
+def copy_files_ensure_unique_names(src_filenames, dst_dir, src_prefixes=None):
+    src_basenames = [os.path.basename(fn) for fn in src_filenames]
+    dst_basenames = ensure_unique(src_basenames, prefixes=src_prefixes)
+    for src_fn, dst_bn in zip(src_filenames, dst_basenames):
+        dst_fn = os.path.join(dst_dir, dst_bn)
+        shutil.copy(src_fn, dst_fn)
+        print("Copied:", src_fn, '->', dst_fn)
 
 # Create a processing tree for uPSP raw data.
 #
@@ -124,6 +152,20 @@ def create(
     # Write the final cfg state out to an index file
     ctx_filename = os.path.join(dirname, "context.json")
     io.json_write_or_die(cfg, ctx_filename, indent=2)
+
+    # Write the origin JSON files to the config directory
+    # ... if their basenames aren't unique, MAKE them unique
+    # (to avoid overwriting eachother. It's possible they have
+    # the same basename but are located in different folders)
+    _cfgs = {
+        "data-": data_config_filename, "user-": user_config_filename,
+        "proc-": proc_config_filename, "plot-": plot_config_filename
+    }
+    copy_files_ensure_unique_names(
+        list(_cfgs.values()),
+        _configuration_path(cfg),
+        src_prefixes=list(_cfgs.keys())
+    )
 
 
 def _resolve_nas_config(nas: dict):
@@ -247,155 +289,51 @@ def _resolve_parameter_overlays(processing: dict, datapoints: dict):
     return proc
 
 
-def _assert_valid_code_version(cfg):
-    _launcher_env_sh(cfg)
-
-
-# Cache the outputs to minimize the number of times a subprocess is launched
-_git_top_level_dir_cache = {}
-_code_version_str_cache = {}
-_launcher_env_sh_cache = {}
-
-
-def _git_top_level_dir(path):
-    """Return top-level directory of git repo containing 'path'
-    Returns '' if path is not a child of a valid git repository.
-    """
-    realpath = os.path.realpath(path)
-    if realpath in _git_top_level_dir_cache:
-        return _git_top_level_dir_cache[realpath]
-    try:
-        if os.path.isdir(realpath):
-            cwd = realpath
-        else:
-            cwd = os.path.dirname(realpath)
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            return ""
-        else:
-            cachepath = os.path.realpath(result.stdout.strip())
-            _git_top_level_dir_cache[realpath] = cachepath
-            return cachepath
-    except FileNotFoundError:  # cwd=path fails, ! path.isdir...
-        return ""
-    except PermissionError:  # cwd=path fails, user cannot 'cd'
-        return ""
-
-
-def _install_dir():
-    return os.environ.get("_UPSP_RUNTIME_ROOT", "")
-
-
-def _code_version_str():
-    """Return uPSP code version for this module file"""
-    if __file__ in _code_version_str_cache:
-        return _code_version_str_cache[__file__]
-    gtl = _git_top_level_dir(__file__)
-    if gtl:
-        version_exe = "%s/build/version" % gtl
-    else:
-        version_exe = "%s/version" % _install_dir()
-    result = subprocess.run([version_exe], capture_output=True, text=True)
-    if result.returncode != 0:
-        return ""
-    else:
-        version = result.stdout.strip()
-        _code_version_str_cache[__file__] = version
-        return version
-
-
 def _launcher_env_sh(cfg: dict):
     """Returns string containing sh environment setup commands
 
-    The launcher environment activates the appropriate
-    uPSP software version using the following strategy:
-    - If this Python module lives under a valid git repository,
-      then assume we'd like to run using a development build of
-      the software. By default, binaries are built in the "build/"
-      subdirectory, scripts are under the "scripts/" subdirectory,
-      and python modules are under the "python/" subdirectory.
-    - Otherwise, we assume the user has activated an installed version
-      of the uPSP software (either via the NAS module system or by
-      directly sourcing the 'activate.sh' script shipped with the install).
-      In this case, the _UPSP_EXEC_ROOT environment variable is populated
-      with the path to the installed software.
+    - Load any required system libraries that aren't available
+      by default... for example, system-provided MPI libraries.
+    
+    - Prefix the PATH with the directory of our current python
+      interpreter. Ensures any scripts keying off "/usr/bin/env python"
+      resolve the correct interpreter at runtime.
     """
-    code_version = _code_version_str()
-    if code_version in _launcher_env_sh_cache:
-        return _launcher_env_sh_cache[code_version]
-
-    dev_dir = _git_top_level_dir(__file__)
-    install_dir = _install_dir()
-
-    code_version_is_dev = os.path.isdir(dev_dir)
-    code_version_is_install = os.path.isdir(install_dir)
-
     env_sh_lines = [
         "source /usr/local/lib/global.profile",
         "module purge",
         "module load mpi-hpe/mpt.2.25",
+        "export PATH=%s:$PATH" % (os.path.dirname(shutil.which("python")))
     ]
-
-    if code_version_is_dev:
-        log.info("Launchers will use uPSP software build from '%s'", dev_dir)
-        env_sh_lines.append("source %s/scripts/activate.sh" % dev_dir)
-        dev_python_path = os.path.join(dev_dir, "python")
-        dev_build_path = os.path.join(dev_dir, "build")
-        dev_scripts_path = os.path.join(dev_dir, "scripts")
-        env_sh_lines.append("export PYTHONPATH=%s:$PYTHONPATH" % dev_python_path)
-        env_sh_lines.append("export PATH=%s:$PATH" % dev_build_path)
-        env_sh_lines.append("export PATH=%s:$PATH" % dev_scripts_path)
-    elif code_version_is_install:
-        log.info("Launchers will use uPSP software install in '%s'", install_dir)
-        env_sh_lines.append("source %s/activate.sh" % install_dir)
-    else:
-        raise Error(
-            "\n".join(
-                [
-                    "Invalid code_version '%s'" % code_version,
-                    "Must be one of the following:",
-                    "1. A module from /nobackupp11/uPSP/modulefiles, e.g., 'upsp/v2.0'",
-                    "2. A directory containing an install of the uPSP software",
-                    "3. A local git repository working directory (for developers)",
-                ]
-            )
-        )
-    s = "\n".join(env_sh_lines)
-    _launcher_env_sh_cache[code_version] = s
-    return s
+    return "\n".join(env_sh_lines)
 
 
 def _create_qsub_step_launcher(cfg: dict):
     filename = _launchers_path(cfg, "qsub-step")
     env_sh = _launcher_env_sh(cfg)
     exe_sh = textwrap.dedent(
-        """
-        SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+        f"""
+        SCRIPT_DIR=$( cd -- "$( dirname -- "${{BASH_SOURCE[0]}}" )" &> /dev/null && pwd )
         STEP_LAUNCHER_FILENAME=$(realpath $1)
         STEP_LAUNCHER_BASENAME=$(basename $STEP_LAUNCHER_FILENAME)
-        STEP_NAME="$(echo ${STEP_LAUNCHER_BASENAME} | cut -d+ -f2)"
+        STEP_NAME="$(echo ${{STEP_LAUNCHER_BASENAME}} | cut -d+ -f2)"
         D=$SCRIPT_DIR/../04_processing/01_exec/$STEP_NAME
         ALL_DATAPOINTS=($(ls -1 $D))
-        INP_DATAPOINTS=("${@:2}")
+        INP_DATAPOINTS=("${{@:2}}")
         SEL_DATAPOINTS=()
-        if (( ${#INP_DATAPOINTS[@]} )); then
-            SEL_DATAPOINTS+=( "${INP_DATAPOINTS[@]}" )
+        if (( ${{#INP_DATAPOINTS[@]}} )); then
+            SEL_DATAPOINTS+=( "${{INP_DATAPOINTS[@]}}" )
         else
-            SEL_DATAPOINTS+=( "${ALL_DATAPOINTS[@]}" )
+            SEL_DATAPOINTS+=( "${{ALL_DATAPOINTS[@]}}" )
         fi
         readarray -t UPSP_QSUB_ARGS_OUT < \
-            <(upsp-qsub-args "$SCRIPT_DIR/.." $STEP_NAME ${SEL_DATAPOINTS[@]})
-        NLINES="${#UPSP_QSUB_ARGS_OUT[@]}"
+            <({shutil.which("upsp-qsub-args")} "$SCRIPT_DIR/.." $STEP_NAME ${{SEL_DATAPOINTS[@]}})
+        NLINES="${{#UPSP_QSUB_ARGS_OUT[@]}}"
         IDX=0
         while [ $IDX -lt $NLINES ]; do
-            THIS_QSUB_ARGS=${UPSP_QSUB_ARGS_OUT[$IDX]}
+            THIS_QSUB_ARGS=${{UPSP_QSUB_ARGS_OUT[$IDX]}}
             IDX=$(( $IDX + 1 ))
-            THIS_DATAPOINTS=${UPSP_QSUB_ARGS_OUT[$IDX]}
+            THIS_DATAPOINTS=${{UPSP_QSUB_ARGS_OUT[$IDX]}}
             IDX=$(( $IDX + 1 ))
             CMD="$STEP_LAUNCHER_FILENAME $THIS_DATAPOINTS"
             EX="qsub $THIS_QSUB_ARGS -- $CMD"
@@ -517,14 +455,14 @@ def _create_pbs_file(cfg: dict, step_name: str, run_number: str, exe_name: str):
         "# directory of the process. We want these core dumps to be written",
         "# to the process logs directory.",
         "cd %s" % _app_logs_path(cfg, step_name, run_number),
-        "mpiexec psp_process \\",
+        "mpiexec %s \\" % (shutil.which("psp_process"),),
         "  -cutoff_x_max=%s \\" % (pcfg["cutoff_x_max"]),
         "  -input_file=%s \\" % (_inp_filename(cfg, step_name, run_number)),
         "  -h5_out=%s \\" % (h5_filename),
         "  -paint_cal=%s \\" % (this_run["paint_calibration_file"]),
         "  -steady_p3d=%s \\" % (this_run["steady_psp_file"]),
         "  -frames=%s \\" % (pcfg["number_frames"]),
-        "  -code_version=%s \\" % (_code_version_str()),
+        "  -code_version=%s \\" % (upsp.__version__),
         "  > %s 2>&1\n" % (log_filename),
     ]
     exe_sh = "\n".join(exe_rows)
@@ -548,7 +486,7 @@ def _create_input_file(
     frame_rate = 10000
     fstop = 2.8
     input_rows = [
-        "%%Version %s" % _code_version_str(),
+        "%%Version %s" % upsp.__version__,
         "%%Date_Created: %s" % cfg["__meta__"]["__date__"],
         "",
         "@general",
@@ -618,7 +556,7 @@ def _configuration_name(cfg: dict):
 
 def _version_configuration_name(cfg: dict):
     # Combine software version and configuration name into a single string.
-    return "+".join([_code_version_str(), _configuration_name(cfg)])
+    return "+".join([upsp.__version__, _configuration_name(cfg)])
 
 
 def _root_path(cfg: dict, *args):
@@ -706,7 +644,9 @@ def _create_task_render_images(cfg: dict, step_name: str, run_number: str):
     # TODO This file will be overwritten every time this is run per-datapoint.
     #      Inefficient but not a huge deal.
     cfg_filename = _create_plotting_config_file(cfg, "render-images")
-    exe_sh = "upsp-plotting render-images %s %s" % (cfg_filename, run_number)
+    exe_sh = "%s render-images %s %s" % (
+        shutil.which("upsp-plotting"), cfg_filename, run_number
+    )
     env_sh = _launcher_env_sh(cfg)
     exe_filename = _app_exec_path(cfg, step_name, run_number, _DEFAULT_TASK_EXE_NAME)
     _create_dir_and_log(_app_logs_path(cfg, step_name, run_number))
@@ -754,7 +694,7 @@ def _create_task_extract_first_frame(cfg: dict, step_name: str, run_number: str)
         log_filename = _app_logs_path(cfg, step_name, run_number, "%s.out" % src_name)
         exe_sh_lines.extend(
             [
-                "upsp-extract-frames \\",
+                "%s \\" % (shutil.which("upsp-extract-frames"),),
                 "  -input=%s \\" % src_filename,
                 "  -output=%s.%s \\" % (img_prefix, img_ext),
                 "  -start=%d \\" % (img_frame_number),
@@ -789,7 +729,7 @@ def _create_task_external_calibration(
             "# directory of the process. We want core dumps to be written",
             "# to the process logs directory.",
             "cd %s" % _app_logs_path(cfg, step_name, run_number),
-            "upsp-external-calibration \\",
+            "%s \\" % (shutil.which("upsp-external-calibration"),),
             "  --tgts %s \\" % this_run["targets_file"],
             "  --grd %s \\" % this_run["grid_file"],
             "  --wtd %s \\" % this_run["wtd_file"],
@@ -828,29 +768,6 @@ def _create_task_psp_process(
     return None, ["run-psp-process.pbs", "run-add-field.sh"]
 
 
-def _create_step_unity_export(cfg: dict):
-    step_name = "unity-export"
-    log_filename = _app_logs_path(cfg, step_name, "%s.out" % step_name)
-    exe_filename = _launchers_path(cfg, "run-%s" % step_name)
-    out_dir = _app_products_path(cfg, step_name)
-    exe_sh_lines = [
-        "# By default, core dumps are written out to the current working",
-        "# directory of the process. We want core dumps to be written",
-        "# to the process logs directory.",
-        "cd %s" % _app_logs_path(cfg, step_name),
-        "upsp-unity-export \\",
-        "  --pipeline_dir '%s' \\" % _root_path(cfg),
-        "  --output_dir '%s' \\" % out_dir,
-        "  > %s 2>&1\n" % log_filename,
-    ]
-    exe_sh = "\n".join(exe_sh_lines)
-    env_sh = _launcher_env_sh(cfg)
-    _create_dir_and_log(os.path.dirname(log_filename))
-    _create_dir_and_log(out_dir)
-    _create_dir_and_log(_app_logs_path(cfg, step_name, "jobs"))
-    _create_launcher(exe_filename, exe_sh=exe_sh, env_sh=env_sh)
-
-
 def _create_per_datapoint_step(cfg: dict, step_name: str, fn, inputs=None):
     output = {}
     for run_number, _ in cfg["datapoints"].items():
@@ -867,7 +784,6 @@ def _create_per_datapoint_step(cfg: dict, step_name: str, fn, inputs=None):
 
 
 def _create(cfg: dict):
-    _assert_valid_code_version(cfg)
     _create_root_dir(cfg)
     _create_dir_and_log(_configuration_path(cfg))
     _create_dir_and_log(_launchers_path(cfg))
@@ -892,19 +808,20 @@ def _create(cfg: dict):
         {dp: [[v], {}] for dp, v in external_calibration_info.items()},
     )
 
-    # TODO: pull scalar filenames as output fom psp_process step, similar
-    #       to first_frame_info and external_calibration_info.
-    _create_per_datapoint_step(
-        cfg,
-        "render-images",
-        _create_task_render_images,
-    )
+    # TODO: re-enable this task, which is a step to render views of the
+    #       model colored by certain scalars output by psp_process (the
+    #       demo application made use of the NAS-provided TecPlot install,
+    #       but has not been made general enough to include in the batch
+    #       processing autogeneration tools). We will likely want to rewrite
+    #       the step to make use of the PyTecplot interface, which is a
+    #       lightweight Python package that connects to a Tecplot backend
+    #       provided it is running and then provides an API for plotting.
+    # _create_per_datapoint_step(
+    #     cfg,
+    #     "render-images",
+    #     _create_task_render_images,
+    # )
 
     _create_qsub_step_launcher(cfg)
-
-    # TODO: unity-export operates on 1+ datapoints at a time (as opposed to
-    #       other steps that are all per-datapoint), so it fit into the
-    #       current per-datapoint templated launch framework.
-    _create_step_unity_export(cfg)
 
     return _root_path(cfg)

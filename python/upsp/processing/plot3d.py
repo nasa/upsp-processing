@@ -7,11 +7,15 @@ from . import grids
 def read_p3d_grid(filename):
     """Read an unformatted plot3d grid
 
-    Args:
-        filename (str)  : unformatted plot3d grid file
+    Parameters
+    ----------
+    filename : str
+        unformatted plot3d grid file
 
-    Returns:
-        (StructGrid)
+    Returns
+    -------
+    ~upsp.processing.grids.StructGrid
+        grid
     """
 
     grid = grids.StructGrid()
@@ -64,11 +68,15 @@ def read_p3d_grid(filename):
 def read_p3d_function(filename):
     """Read in the plot3d function file (first function)
 
-    Args:
-        filename (str)  : plot3d binary function file
+    Parameters
+    ----------
+    filename : str
+        plot3d binary function file
 
-    Return:
-        (np.array) first function in the file (Cp)
+    Returns
+    -------
+    np.ndarray
+        first function in the file (Cp)
     """
 
     # Open the file for reading

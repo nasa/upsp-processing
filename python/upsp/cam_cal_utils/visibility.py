@@ -1,117 +1,63 @@
 import logging
 import os
-import sys
 import numpy as np
-import time
+
+import upsp.processing.p3d_utilities as p3d
+import upsp.processing.p3d_conversions as p2g
+import upsp.raycast
 
 log = logging.getLogger(__name__)
 
-THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-python_dir = os.path.dirname(os.path.dirname(THIS_DIRECTORY))
-
-sys.path.append(THIS_DIRECTORY)
-sys.path.append(python_dir)
-
-# Normally, 'upsp' will throw a warning indicating
-# that the pybind11 modules are not available when
-# importing from the source tree.
-import warnings  # noqa
-warnings.simplefilter("ignore")
-import upsp.processing.p3d_utilities as p3d  # noqa
-import upsp.processing.p3d_conversions as p2g  # noqa
-import upsp  # noqa
-
-warnings.resetwarnings()
-
-# todo-mshawlec: clean up how we handle pybind11 modules
-# between two uses cases of a) dev tree, vs. b) installed sw.
-#
-# If we're running this module out of a development
-# tree, then we have to import pybind11 modules from the
-# project build/ directory. If we hit a ModuleNotFoundError,
-# then we're likely running out of an install, where the
-# pybind11 modules are installed right in the python/upsp package
-# folder (and should have been imported automatically above during
-# the 'import upsp' call).
-try:
-    upsp_dir = os.path.dirname(python_dir)
-    UPSP_PYBIND11_BUILD_PATH = os.path.abspath(os.path.join(upsp_dir, "build"))
-    sys.path.append(UPSP_PYBIND11_BUILD_PATH)
-    # Unorthodox "patch" of module into the upsp package namespace
-    import raycast  # noqa
-    upsp.raycast = raycast
-except ModuleNotFoundError:
-    pass
-
-
-class VisibilityChecker():
+class VisibilityChecker:
     """Visibilty object class for occlusion and viewing angle checking
-    
+
     This class creates an object for checking visibility of a list of points with
-        associated normals. The intended use is for the external calibration to
-        check target visibility, and to check visibility of the the model mesh nodes
-        for node-pixel mapping. 
+    associated normals. The intended use is for the external calibration to check target
+    visibility, and to check visibility of the the model mesh nodes for node-pixel
+    mapping.
 
-    For the visibility check, it is assumes that the entire model is within the field
-        of view of the camera. This simplifies the check for 2 reasons
-        1) We don't need to check if a node is within the field of view
-        2) We don't need to check if an intersection is behind the camera
-            - A ray is drawn from a given point to the camera. If that ray intersects a
-              node, it is deemed not visible. However, if there is a node behind the
-              camera that intersects with the ray, this will still be seen as an
-              intersection and flagged as not visible. Even though the intersection
-              behind the camera does not truely occlude the given point.
+    For the visibility check, it is assumes that the entire model is within the field of
+    view of the camera. This simplifies the check for 2 reasons:
 
-    Methods
-    -------
-        init - creates object and populates scene
-        load_mesh - reads grid file to populate scene
-        package_primitves - turns p3d outputs into primitives for scene
-        is_back_facing - inputs 'angle', vector from camera to node, and node normal
-            outputs True if node is viewing angle is less than the input angle
-        does_intersect - inputs a ray via origin and direction. Returns True if
-            there is an intersection between that ray and the primitives of the
-            grid of the grid path file
-        is_visible - inputs nodes and their normals (optionally a viewing angle)
+    1. We don't need to check if a node is within the field of view
+    2. We don't need to check if an intersection is behind the camera
+
+        - A ray is drawn from a given point to the camera. If that ray intersects a
+          node, it is deemed not visible. However, if there is a node behind the camera
+          that intersects with the ray, this will still be seen as an intersection and
+          flagged as not visible. Even though the intersection behind the camera does
+          not truly occlude the given point.
+
+    Parameters
+    ----------
+    grid_path : str
+        Filepath to the grid file
+    oblique_angle : float, optional
+        Maximum allowable oblique viewing angle. Viewing angle for a node pointed
+        directly at the camera and in the center of the field of view of the camera
+        is 0 degrees
+    epsilon : float, optional
+        Intersection tolerance. For the ray tracing intersection check, the origin of
+        the ray is offset from the model by a distance of epsilon in the direction of
+        the normal
+    debug : bool, optional
+        Debug parameter to speed up grid loading. It is suggested to use this debug for
+        all development, and to leave it False for all non-development case.  If True,
+        looks for ``'{{filename}}_primitives.npy'`` in '.cache', where ``filename``
+        is the filename from `grid_path`. If it finds it, loads from the ``.npy`` file
+        rather than reading and processing the grid file. If it doesn't find it, it will
+        read and process the grid file as normal, and save the numpy array as
+        ``'{{filename}}_primitives.npy'`` in '.cache'
+    debug_nogrid : bool, optional
+        Debug parameter to speed up computation. It is suggested to use this debug for
+        development if occlusions are not needed for development work. There is no
+        reason to leave this parameter for any non-development work. If True, instead of
+        loading a real grid file, it loads a fake one with a single, extremely small
+        primitive (effectively having 'no grid'). This makes BVH operations much faster.
     """
 
     def __init__(self, grid_path, oblique_angle=70, epsilon=1e-4, debug=False, debug_nogrid=False):
-        """Initializes the visibility check object
-        
-        Parameters
-        ----------
-        grid_path : str
-            Filepath to the grid file
-        oblique_angle : float, optional default=70.0
-            Maximum allowable oblique viewing angle. Viewing angle for a node pointed
-            directly at the camera and in the center of the field of view of the camera
-            is 0 degrees 
-        epsilon : float, optional default=1e-4)
-            Intersection tolerance. For the ray tracing intersection check, the origin
-            of the ray is offset from the model by a distance of epsilon in the
-            direction of the normal
-        debug : boolean, optional default=False
-            Debug parameter to speed up grid loading. It is suggested to use this debug
-            for all development, and to leave it False for all non-development case.
-            If True, looks for filename + '_primitives.npy' in '.cache', where filename
-            is the filename from grid_path. If it finds it, loads from the .npy file
-            rather than reading and processing the grid file. If it doesn't fine it,
-            it will read and process the grid file as normal, and save the numpy
-            array as filename + '_primitives.npy' in '.cache'
-        debug_nogrid : boolean, optional default=False
-            Debug parameter to speed up computation. It is suggested to use this debug
-                for development if occlusions are not needed for development work. There
-                is no reason to leave this parameter for any non-development work
-            If True, instead of loading a real grid file, it loads a fake one with a
-                single, extremely small primitive (effectively having 'no grid'). This
-                is so the BVH operations much faster.
-            
-        Returns
-        ----------
-        VisibilityChecker with internal objects based on given parameters
-        """
-
         # If debug_nogrid is used, create a fake BVH with one very small primitive
         if debug_nogrid:
             primitives = np.array([0.00001, 0.0, 0.0, 0.0, 0.00001, 0.0, 0.0, 0.0, 0.00001])
@@ -148,6 +94,9 @@ class VisibilityChecker():
             t = self.load_mesh(grid_path)
             primitives = self.package_primitives(t)
 
+        # Store the grid path used for this object
+        self.grid_path = grid_path
+
         # Convert primitives to a list (potentially from a np array)
         primitives = primitives.tolist()
 
@@ -157,7 +106,7 @@ class VisibilityChecker():
         # Save the square of the cosine of the oblique angle
         #   This will be used for back face culling
         self.update_oblique_angle(oblique_angle)
-        
+
         # Save the BVH to the instance
         # Simple scene with several triangle primitives
         # [t0p0x, t0p0y, t0p0z, t0p1x, t0p1y, t0p1z, t0p2x, t0p2y, t0p2z, ...]
@@ -168,38 +117,33 @@ class VisibilityChecker():
 
     def update_oblique_angle(self, oblique_angle):
         """Updates object elements related to the oblique viewing angle
-        
+
         Parameters
-        ----------        
+        ----------
         oblique_angle : float
             Maximum allowable oblique viewing angle. Viewing angle for a node pointed
             directly at the camera and in the center of the field of view of the camera
             is 0 degrees
-        
-        Returns
-        ----------
-        None
         """
         self.oblique_angle = oblique_angle
         self.squared_cos_angle = np.cos(np.deg2rad(oblique_angle))**2
 
     def load_mesh(self, grid_path):
         """Loads the grid file into vertices and indices
-        
+
         Parameters
         ----------
-        grid_path : str
+        grid_path : string
             Filepath to the grid file
-        
-        Returns
-        ----------
-        dict
-            dict with keys "vertices" and "indices". t["vertices"] is a (N, 3) array of
-            the model vertices. t["indices"] is a (N, 3) array of ints. t["indices"][i]
-            refers to model face i. The vertices that make up face i are t["vertices"][n]
-            where n is (3, 1) from t["indices"][i]
-        """
 
+        Returns
+        -------
+        t : dict
+            Dict with keys "vertices" and "indices". ``t["vertices"]`` is a (N, 3) array
+            of the model vertices. ``t["indices"]`` is a (N, 3) array of ints where each
+            row refers to a model face ``i``. The vertices that make up face ``i`` are
+            ``t["vertices"][n]``, where ``n`` is (3, 1) from ``t["indices"][i]``
+        """
         grd = p3d.read_p3d_grid(grid_path)
         t = p2g.p3d_to_gltf_triangles(grd)
         t["vertices"] = np.array(t["vertices"])
@@ -208,21 +152,20 @@ class VisibilityChecker():
 
     def package_primitives(self, t):
         """Packages the primitives of the grid file into the BVH format
-        
-        Converts the vertices and indices into a list of primitives in the form:
+
+        Converts the vertices and indices into a list of primitives in the form::
+
             [t0p0x, t0p0y, t0p0z, t0p1x, t0p1y, t0p1z, t0p2x, t0p2y, t0p2z, ...]
-        
+
         Parameters
         ----------
         t : dict
-            dict with keys "vertices" and "indices". t["vertices"] is a (N, 3) array of
-            the model vertices. t["indices"] is a (N, 3) array of ints. t["indices"][i]
-            refers to model face i. The vertices that make up face i are t["vertices"][n]
-            where n is (3, 1) from t["indices"][i]
-        
+            Dict with keys "vertices" and "indices" from :meth:`load_mesh`.
+
         Returns
-        ----------
-        primitives array
+        -------
+        primitives : np.ndarray
+            Packaged primitives
         """
 
         # Get vertex and face information
@@ -256,77 +199,77 @@ class VisibilityChecker():
 
     def unit_vector(self, vector):
         """Returns the unit vector of the vector
-        
-        Helper function for angle_between
+
+        Helper function for :meth:`angle_between`
 
         Parameters
         ----------
-        vector : np.ndarray (3,) or (3, 1), float
-            vector whose unit vector is desired
+        vector : np.ndarray, shape (n, 3) float
+            Array of vectors
 
         Returns
-        ----------
-        unit vector of input vector
-        
+        -------
+        unit_vector : np.ndarray
+            Unit vector(s) corresponding to `vector`
+
         See Also
-        -------- 
+        --------
         angle_between : Returns the angle in radians between vectors 'v1' and 'v2'
         """
-        return vector / np.linalg.norm(vector)
+        return np.divide(vector, np.expand_dims(np.linalg.norm(vector, axis=1), 1))
 
     def angle_between(self, v1, v2):
-        """Returns the angle in radians between vectors 'v1' and 'v2'
-        
+        """Returns the angle in radians between vectors `v1` and `v2`
+
         Parameters
         ----------
-        v1 : np.ndarray (3,) or (3, 1), float
+        v1 : np.ndarray, shape (n, 3), float
             Vector 1
-        v2 : np.ndarray (3,) or (3, 1), float
+        v2 : np.ndarray, shape (n, 3), float
             Vector 2
 
         Returns
-        ----------
-        float
-            Angle (in radians) between v1 and v2
-        
+        -------
+        angle : float
+            Angle (in radians) between `v1` and `v2`
+
         See Also
-        -------- 
+        --------
         unit_vector : Returns the unit vector of the vector
         is_back_facing : This is the 'slow' version of the back face culling check
         """
         v1_u = self.unit_vector(v1)
         v2_u = self.unit_vector(v2)
-        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+        return np.rad2deg(np.arccos(np.clip(np.sum(np.multiply(v1_u, v2_u), axis=1), -1.0, 1.0)))
 
     def is_back_facing(self, t, n):
         """This is the 'slow' version of the back face culling check
-        
+
         This function is mostly for legacy/regression purposes
 
-        TODO: This does not filter points on the horizon of the model (~90 degrees 
-            oblique viewing angle). It does seem to filter those above 70 degrees (might
-            not though, very little testing was done). It might have something to do
-            with the clip in angle between
-        
+        TODO: This does not filter points on the horizon of the model (~90 degrees
+        oblique viewing angle). It does seem to filter those above 70 degrees (might not
+        though, very little testing was done). It might have something to do with the
+        clip in angle between
+
         Parameters
         ----------
-        t : np.ndarray (3,1) or (3,), float
+        t : np.ndarray, shape (3,) or (3, n), float
             Translation vector from camera to node
-        n : np.ndarray (3,1) or (3,), float
+        n : np.ndarray, shape (3,) or (3, n), float
             Normal of the node
 
         Returns
-        ----------
-        True if the node is back facing. False if it is not back facing
+        -------
+        back_facing : bool
+            True if the node is back facing. False if it is not back facing
 
         See Also
-        -------- 
-        angle_between : 
-            Returns the angle in radians between vectors 'v1' and 'v2'
-        is_back_facing : 
-            This is the 'slow' version of the back face culling check
-        is_back_facing_fast_vectorized :
-            Returns array of booleans for which nodes are back facing
+        --------
+        angle_between : Returns the angle in radians between vectors 'v1' and 'v2'
+        is_back_facing : This is the 'slow' version of the back face culling check
+        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are
+            back facing
         """
         if self.angle_between(t, n) > self.oblique_angle:
             return True
@@ -334,53 +277,59 @@ class VisibilityChecker():
             return False
 
     def is_back_facing_fast(self, t, n):
-        """Returns True if the node is back facing, otherwise returns False
-        
+        r"""Returns True if the node is back facing, otherwise returns False
+
         This re-write is significantly faster than the naive approach, but not as fast
-        as the vectorized approach. This function is mostly for legacy/regression purposes
+        as the vectorized approach. This function is mostly for legacy/regression
+        purposes
 
-        Calculations:
-        1) The node is back facing if:
-              angle between vectors < oblique angle
+        The node is back facing if angle between vectors < oblique angle
 
-        2) Mathematically this is done as:
-              arccos(dot(t, n) / (||t|| * ||n||) < oblique_angle
+        Mathematically this is done as:
 
-        3) arccos is an expensive operation. Re-write as follows:
-              dot(t, n) / (||t|| * ||n||) < cos(oblique_angle)
+        .. math::
+            \arccos\left(\frac{t \cdot n}{\|t\| \|n\|}\right) < \textrm{oblique angle}
 
-        4) Division is more expensive than multiplication
-              dot(t, n) < cos(oblique_angle) * ||t|| * ||n||
+        Since ``arccos`` is an expensive operation, re-write as:
 
-        5) magnitude(a) can be re-written as sqrt(dot(a, a))
-              dot(t, n) < cos(oblique_angle) * sqrt(dot(t, t)) * sqrt(dot(n, n))
+        .. math::
+            \frac{t \cdot n}{\|t\| \|n\|} < \cos(\textrm{oblique angle})
 
-        6) sqrt is an expensive function, square both sides and re-write as follows:
-              abs is required on LHS to preserve sign. All elements of RHS are positive
-              since t and n contain only real numbers
-              dot(t, n) * abs(dot(t, n)) < cos^2(oblique_angle) * dot(t, t) * dot(n, n)
+        Since division is more expensive than multiplication, re-write as:
 
-        7) cos^2(oblique_angle) is given as an input to additional speedup
+        .. math::
+              t \cdot n < \|t\| \|n\| \cos(\textrm{oblique angle})
+
+        Using :math:`\|a\|^2 = a \cdot a`, we get:
+
+        .. math::
+              (t \cdot n) (|t \cdot n|) <
+              (t \cdot t) (n \cdot n) \cos^2(\textrm{oblique angle})
+
+        Where the absolute value  is required on the LHS to preserve sign. All elements
+        of RHS are positive since ``t`` and ``n`` contain only real numbers
+
+        :math:`\cos^2(\textrm{oblique angle})` is calculated and cached when the oblique
+        angle changes, giving an additional speedup
 
         Parameters
         ----------
-        t : np.ndarray (3,1) or (3,), float
+        t : np.ndarray, shape (3, 1) or (3,), float
             Translation vector from camera to node
-        n : np.ndarray (3,1) or (3,), float
+        n : np.ndarray, shape (3, 1) or (3,), float
             Normal of the node
 
         Returns
-        ----------
-        Boolean
-            True if input is back facing (viewing angle > maximum oblique angle)
-            False if input is not back facing (viewing angle <= maximum oblique angle)
-        
+        -------
+        back_facing : bool
+            True if input is back facing (viewing angle > maximum oblique angle). False
+            if input is not back facing (viewing angle <= maximum oblique angle)
+
         See Also
-        -------- 
-        is_back_facing : 
-            This is the 'slow' version of the back face culling check
-        is_back_facing_fast_vectorized : 
-            Returns array of booleans for which nodes are back facing
+        --------
+        is_back_facing : This is the 'slow' version of the back face culling check
+        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are
+            back facing
         """
         proj = np.dot(t, n)
 
@@ -397,30 +346,29 @@ class VisibilityChecker():
 
     def is_back_facing_fast_vectorized(self, t, n):
         """Returns array of booleans for which nodes are back facing
-        
-        See is_back_facing_fast for explaination of math. To vectorize dot(a, b) we will
-        use np.sum(a*b, axis=1)
-        
+
+        See :meth:`is_back_facing_fast` for explaination of math. To vectorize
+        :math:`a \\cdot b` we use ``np.sum(a*b, axis=1)``
+
         Parameters
         ----------
-        t : np.ndarray (N,3) or (3,), float
+        t : np.ndarray, shape (N, 3), float
             Array of translation vectors from camera to nodes
-        n : np.ndarray (N,3) or (3,), float
+        n : np.ndarray, shape (N, 3), float
             Array of normal vectors of the nodes
 
         Returns
-        ----------
-        Boolean Array
-            output[i] is True if node[i] is backfacing (viewing angle > maximum oblique
-            angle). output[i] is False if node[i] is not backfacing 
+        -------
+        back_facing : np.ndarray, bool
+            ``output[i]`` is True if ``node[i]`` is backfacing (viewing angle > maximum
+            oblique angle). ``output[i]`` is False if ``node[i]`` is not backfacing
             (viewing angle <= maximum oblique angle).
 
         See Also
-        -------- 
-        is_back_facing : 
-            This is the 'slow' version of the back face culling check
-        is_back_facing_fast : 
-            Returns True if the node is back facing, otherwise returns False
+        --------
+        is_back_facing : This is the 'slow' version of the back face culling check
+        is_back_facing_fast : Returns True if the node is back facing, otherwise returns
+            False
         """
 
         proj = np.sum(t*n, axis=-1)
@@ -428,75 +376,84 @@ class VisibilityChecker():
 
     def does_intersect(self, origin, direction, return_pos=False):
         """Function that determines if a point is occluded by the object mesh
-        
+
         Creates a ray from origin with given direction. Checks for intersection of ray
         with the BVH
 
         Parameters
         ----------
-            origin : np.ndarray (3,), float
-                start of ray
-            direction : np.ndarray (3,), float
-                direction of ray
+        origin : np.ndarray, shape (3, 1), float
+            start of ray
+        direction : np.ndarray, shape (3, 1), float
+            direction of ray
 
-        Output
-        ----------
-        Boolean
+        Returns
+        -------
+        result : bool
             True if node is occluded and False if node is not occluded
         """
         r = upsp.raycast.Ray(*origin, *direction)
         h = upsp.raycast.Hit()
         result = self.scene.intersect(r, h)
-        
+
         # If the position was requested, return it
         if return_pos:
-            return (result, np.array(h.pos))
-        
+            return (result, np.expand_dims(h.pos, 1))
+
         # Otherwise just return the boolean
         else:
             return result
 
-    def is_visible(self, tvec_model_to_camera, nodes, normals):
+    def is_visible(self, tvec_model_to_camera, nodes, normals, return_angles=False):
         """Returns list of nodes that are visible
-        
+
         Currently only checks for oblique viewing angle and occlusion, assumes all nodes
-            are within FOV of camera
+        are within FOV of camera
 
         Parameters
         ----------
-            tvec_model_to_camera : np.ndarray (3,1) or (3,), float
-                translation vector from model to camera
-            nodes : np.ndarray (N, 3), float
-                X, Y, Z position of nodes to be checked. nodes[i] is associated with
-                normals[i]
-            normals : np.ndarray (N, 3), float
-                Normal vectors. normals[i] is associated with nodes[i]
-            
+        tvec_model_to_camera : np.ndarray, shape (3, 1), float
+            translation vector from model to camera
+        nodes : np.ndarray, shape (N, 3), float
+            X, Y, Z position of nodes to be checked. ``nodes[i]`` is associated with
+            ``normals[i]``
+        normals : np.ndarray, shape (N, 3), float
+            Normal vectors. ``normals[i]`` is associated with ``nodes[i]``
+        return_angles : bool, optional
+            If True, return angles for each visible node as well.
+
         Returns
         ----------
+        visible : np.ndarray
             Numpy array of the indices of the nodes that are visible
-        
+        angles : np.ndarray
+            Angles of visible nodes. Only returned when ``return_angles=True``
+
         See Also
         ----------
-        is_back_facing_fast_vectorized :
-            Returns array of booleans for which nodes are back facing
-        does_intersect :
-            Function that determines if a point is occluded by the object mesh
+        is_back_facing_fast_vectorized : Returns array of booleans for which nodes are
+            back facing
+        does_intersect : Function that determines if a point is occluded by the object
+            mesh
         """
-        
         # Get the tvecs from the camera to each node
-        tvec_model_to_camera = tvec_model_to_camera.ravel()
-        tvecs = tvec_model_to_camera - nodes
-        
+        tvecs = tvec_model_to_camera.T - nodes
+
         # Get the unit_tvecs and unit_normals
-        tvec_norms = np.linalg.norm(tvecs, axis=1)
-        unit_tvecs = tvecs / tvec_norms.reshape(-1, 1)
+        tvec_norms = np.linalg.norm(tvecs, axis=-1)
+        unit_tvecs = tvecs / np.expand_dims(tvec_norms, 1)
         normal_norms = np.linalg.norm(normals, axis=1)
-        unit_normals = normals / normal_norms.reshape(-1, 1)
-        
+        unit_normals = normals / np.expand_dims(normal_norms, 1)
+
         # Determine what nodes are back-facing
         #   or nearly back-facing based on oblique_angle
-        back_facings = self.is_back_facing_fast_vectorized(unit_tvecs, unit_normals)
+        # If the angles values are not needed, use is_back_facing_fast_vectorized
+        # If angles are needed, use the slower
+        if not return_angles:
+            back_facings = self.is_back_facing_fast_vectorized(unit_tvecs, unit_normals)
+        else:
+            angles = self.angle_between(unit_tvecs, unit_normals)
+            back_facings = np.where(angles > self.oblique_angle, True, False)
 
         # Get the offset node positions
         epsilon_normals = self.epsilon * unit_normals
@@ -505,37 +462,112 @@ class VisibilityChecker():
         visible = []
         for i in range(len(nodes)):
             # If it is back-facing, move on to the next node
-            if back_facings[i]: 
+            if back_facings[i]:
                 continue
-
-            direction = self.unit_vector(tvecs[i])
 
             # If there is an occlusion, move on to the next node
             #   origin is the ray origin offset so it is close to, but not on the model
             #   tvecs[i] is the ray direction vector that goes from the camera to node i
             if self.does_intersect(origins[i], unit_tvecs[i]):
                 continue
-            
+
             # If the node was not back-facing, and was not occluded, mark it visible
             visible.append(i)
-        
+
+        if return_angles:
+            return np.array(visible), np.array(angles[visible])
+
         return np.array(visible)
 
     def tri_normal(self, face):
         """Returns the normal of a face with vertices ordered counter-clockwise
-        
+
         Parameters
         ----------
-        face : np.ndarray (3, 3), float
-            X, Y, Z positions of the fae vertices. face[i] contains x, y, z of vertex i
+        face : np.ndarray, shape (3, 3), float
+            X, Y, Z positions of the face vertices. ``face[i]`` contains x, y, z of
+            vertex ``i``
 
         Returns
         ----------
-        Normal vector of input node
+        normal : np.ndarray, shape (3,)
+            Normal vector of input face
         """
         # https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
         A = face[1] - face[0]  # Edge 1
         B = face[2] - face[1]  # Edge 2
         C = np.cross(A, B)
-        return C
+        return C.reshape(3, 1)
 
+    def get_faces_and_face_normals(self):
+        """Returns the faces and face normals of all grid nodes
+
+        Returns
+        -------
+        faces : np.ndarray, shape (n, 3, 3)
+            Each face is a (3, 3) with (i, 3) corresponding to a node, and each node
+            having an (x, y, z). Faces are ordered counter-clockwise.
+        face_normals : np.ndarray, shape (n, 3)
+            The face normal is (x, y, z). ``face_normals[i]`` corresponds to ``face[i]``
+        """
+        # Get the mesh
+        t = self.load_mesh(self.grid_path)
+
+        # Get vertex and face information
+        nverts = int(t["vertices"].size / 3)
+        nfaces = int(t["indices"].size / 3)
+        verts = np.reshape(t["vertices"], (nverts, 3))
+
+        # This is the faces, with the indexes corresponding to the elements of verts
+        # Note: faces are counter-clockwise ordered so normals are implicit in faces
+        faces_v_idx = np.reshape(t["indices"], (nfaces, 3))
+
+        # Get all the faces and the face normals
+        faces = []
+        face_normals = []
+        for face_v_idx in faces_v_idx: #[np.random.choice(range(len(faces_v_idx)), 25000)]:
+            face = np.array([verts[face_v_idx[0]],
+                            verts[face_v_idx[1]],
+                            verts[face_v_idx[2]]])
+
+            if ((face[0] == face[1]).all() or (face[0] == face[2]).all()
+                    or (face[1] == face[2]).all()):
+                continue
+
+            faces.append(face)
+            face_normals.append(self.tri_normal(face))
+
+        return np.array(faces), np.array(face_normals).reshape(-1, 3)
+
+    def get_tvecs_and_norms(self):
+        """Returns the tvecs and tvec normals of all grid nodes
+
+        Returns
+        -------
+        tvecs : np.ndarray, shape (n, 3)
+            Each tvec is corresponds to the (x, y, z) of a node.
+        norms : np.ndarray, shape (n, 3)
+            Each norm is an (x, y, z) of the node's normal vector ``norms[i]``
+            corresponds to ``tvecs[i]``. The norm is the normal of the first face to
+            contain the tvec. Each tvec can appear in multiple faces, so the first is
+            used. In practice, each face that contains the node will have a different
+            normal vector, but in general the difference is a relatively small angle.
+        """
+        # Get the faces and face normals from the vis_checker
+        faces, face_normals = self.get_faces_and_face_normals()
+
+        # Calculate a normal for every node. If a node is on several faces, assume the
+        #   normals of all those faces are close enough and pick any one of them
+        tvecs, norms = [], []
+        node_set = set()
+        for face, normal in zip(faces, face_normals):
+            for node in face:
+                if not tuple(node.tolist()) in node_set:
+                    node_set.add(tuple(node.tolist()))
+                    tvecs.append(np.array(node))
+                    norms.append(np.array(normal))
+
+        # Save the nodes and normals as np arrays
+        tvecs = np.array(tvecs)
+        norms = np.array(norms)
+        return tvecs, norms

@@ -1,19 +1,46 @@
 import numpy as np
-import scipy.stats
+import scipy.interpolate
+
 
 def convert_12bit_to_8bit(img):
+    """Proportionally scales image values from (0, 4095) to (0, 255)
+
+    Scales input image values from (0, 4095) to (0, 255). Values in input image that
+    are greater than scale will be clipped to 255 in the output image
+
+    Parameters
+    ----------
+    img : np.ndarray, shape (y, x), np.uint8
+        Input image
+
+    Returns
+    -------
+    scaled_img : np.ndarray, shape (y, x), np.uint8
+        8 bit scaled version of input image
+    """
     return scale_image(img, scale=(2**12) - 1)
 
 
 def scale_image(img, scale=(2**12) - 1):
-    """
-    Proportionally scales image values between 0 and scale to 0 to 255
-        I.e. If scale is 50, all pixel values are multiplied by 5.1 (255/50) then
-        rounded to an integer
-    Returns unsigned, 8 bit scaled version of input image
+    """Proportionally scales image values from (0, `scale`) to (0, 255)
+
+    Scales input image values from (0, `scale`) to (0, 255). Values in input image that
+    are greater than `scale` will be clipped to 255 in the output image
+
+    Parameters
+    -----------
+    img : np.ndarray, shape (y, x)
+        Input image
+    scale : float or int, optional
+        Maximum value for scaling input image. Default=4095 (max int for 12 bit)
+
+    Returns
+    -------
+    scaled_img : np.ndarray, shape (y, x), np.uint8
+        8 bit scaled version of input image
     """
 
-    # Ensure the image is scaled properly
+    # Clip the image to the max value
     img_temp = np.minimum(img, scale)
 
     # Normalize the image
@@ -28,8 +55,23 @@ def scale_image(img, scale=(2**12) - 1):
 
 
 def scale_image_max_inlier(img):
-    """
-    Convert from 12 bit image to 8 bit image by scaling by the max inlier image value
+    """Proportionally scales image values from (0, `max_inlier`) to (0, 255)
+
+    Scales input image values from (0, `max_inlier`) to (0, 255). Values in input image
+    that are greater than the max inlier will be clipped to 255 in the output image
+
+    In a sorted list of the pixel intensities, the max inlier is the largest value that
+    satisfies the following condition: ``intensity[i] * 0.9 <= intensity[i*0.999]``
+
+    Parameters
+    ----------
+    img : np.ndarray, shape (y, x), np.unit8
+        Input image
+
+    Returns
+    -------
+    scaled_img : np.ndarray, shape (y, x), np.unit8
+        8 bit scaled version of input image
     """
 
     # Get the maximum value, ignoring outliers
@@ -47,79 +89,34 @@ def scale_image_max_inlier(img):
     return scale_image(img, scale=img_flat[i])
 
 
-# TODO: see external_calibration_monte_carlo.interpolation_based_association for
-#   inspiration to implement a fast version that only checks neighbors within max distance
-def interp(pt, neighbors, method, scale=1, max=2):
-    method_funcs = {'nearest' : interp_nearest,
-                    'lanczos' : interp_lanczos,
-                    'inv_prop' : interp_inv_prop,
-                    'gauss' : interp_gauss,
-                    'expo_decay' : interp_expo_decay,
-                    'logistic' : interp_logistic}
+def interp(pts, img, method='nearest'):
+    """Interpolate values for `pts` from `img`
 
-    assert(method in method_funcs.keys()), "method must be in " + str(list(method_funcs.keys()))
+    Interpolates `img` at the locations defined by `pts` using the given method
 
-    scoring_func = method_funcs[method]
+    Parameters
+    ----------
+    pts : np.ndarray, shape (n, 2), float
+        n points to be interpolated
+    img : np.ndarray, shape (y, x), np.unit8
+        Input image
+    method : {'linear', 'nearest', 'slinear', 'cubic', 'quintic'}, optional
+        Interpolation method. See :class:`scipy.interpolate.RegularGridInterpolator` for
+        details
 
-    # Calculate the distance between the point and its neighbors
-    dists = np.linalg.norm(neighbors - pt, axis=1)
-
-    # Get coefficients based on given method
-    coeffs = scoring_func(dists, scale)
-
-    # Remove points farther than max
-    coeffs = np.where(dists <= max, coeffs, 0.0)
-
-    total_sum = np.sum(coeffs)
-    
-    # If the sum is 0 (usually only happens when max is too small), use interp_nearest
-    if (total_sum == 0.0):
-        coeffs = interp_nearest(dists, scale)
-        total_sum = 1.0
-    
-    # Scale so sum of coeffs is 1
-    coeffs /= total_sum
-
-    # Return the final coefficients
-    return coeffs
-
-
-def interp_nearest(dists, scale):
-    """Returns 1 for closest neighbor and 0 for all else
-    scaling does nothing, but is kept so all interp functions have the same inputs
+    Returns
+    -------
+    out : np.ndarray, shape (n, 2), float
+        Value of pts interpolated from img
     """
-    return np.where(dists == dists.min(), 1.0, 0.0)
+    # Ensure the method is one supported by scipy
+    assert method in ['linear', 'nearest', 'slinear', 'cubic', 'quintic']
 
+    # Define the X and Y domains
+    X, Y = np.arange(img.shape[1]), np.arange(img.shape[0])
 
-def interp_lanczos(dists, scale):
-    """lanczos function
-    Note: some coefficients are negative
-    """
-    # Calculate the lanczos parameters
-    return np.sinc(dists) * np.sinc(dists / scale)
-    
+    # Define the scipy interpolation function
+    f = scipy.interpolate.RegularGridInterpolator((X, Y), img.T, method=method)
 
-def interp_inv_prop(dists, scale):
-    """inverse proportional
-    """
-    # Calculate the inv proportional parameters
-    return 1 / (scale + dists)
-
-
-def interp_gauss(dists, scale):
-    """normal distribution
-    """
-    return scipy.stats.norm.pdf(dists, scale=scale)
-
-
-def interp_expo_decay(dists, scale):
-    """exponential decay
-    """
-    return np.exp(-dists / scale)
-
-
-def interp_logistic(dists, scale):
-    """logistic function
-    """
-    return scipy.stats.logistic.pdf(dists, scale=scale)
-
+    # Return the interpolated values for the points
+    return f(pts)

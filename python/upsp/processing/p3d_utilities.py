@@ -1,8 +1,3 @@
-'''
-pared-down mashup of Jessie Powell's grids.py and plot3d.py from UPSP-40.
-used for grabbing of grid points and data stored in
-p3d files (typically both P_ss and Cp_rms)
-'''
 import math
 import numpy as np
 
@@ -26,19 +21,17 @@ def to_cartesian(r,theta):
     return (y, z)
 
 class StructGrid:
-    """ Manage plot3d-style structured grid and write formatted to file 
+    """Manage plot3d-style structured grid and write formatted to file
 
-    Attributes:
-        x      : array-like, x-position [N]
-        y      : array-like, y-position [N]
-        z      : array-like, z-position [N]
-        r    : array-like, cylindrical coords [N]
-        theta  : array-like, cylindrical coords [N]
+    Attributes
+    ----------
+    x, y, z : array_like
+        Cartesian coordinates [N]
+    r, theta : array_like
+        Cylindrical coordinates [N]
     """
     
     def __init__(self):
-        """ Create empty StructGrid """
-        
         self.sz = []
         self.x = []
         self.y = []
@@ -59,15 +52,13 @@ class StructGrid:
 
 
     def load_grid(self, grid_file):
-        """ Read a formatted p3d file 
+        """ Read a formatted p3d file
 
-        Args:
-            grid_file (str) : formatted plot3d file
-
-        Returns:
-            None
+        Parameters
+        ----------
+        grid_file : str
+            formatted plot3d file
         """
-
         with open(grid_file, 'r') as f:
             sz = []
             n_zones = int(f.readline())
@@ -94,13 +85,17 @@ class StructGrid:
         self.r, self.theta = to_cylindrical(self.y,self.z)
 
 def read_p3d_grid(filename):
-    """ Read an unformatted plot3d grid 
+    """Read an unformatted plot3d grid
 
-    Args:
-        filename (str)  : unformatted plot3d grid file
+    Parameters
+    ----------
+    filename : str
+        unformatted plot3d grid file
 
-    Returns:
-        (StructGrid)
+    Returns
+    -------
+    StructGrid
+        grid
     """
 
     grid = StructGrid()
@@ -144,13 +139,17 @@ def read_p3d_grid(filename):
     return grid
 
 def read_p3d_function(filename):
-    """ Read in the plot3d function file (first function)
+    """Read in the plot3d function file (first function)
 
-    Args:
-        filename (str)  : plot3d binary function file
+    Parameters
+    ----------
+    filename : str
+        plot3d binary function file
 
-    Return:
-        (np.array) first function in the file (Cp)
+    Returns
+    -------
+    np.ndarray
+        first function in the file (Cp)
     """
 
     # Open the file for reading

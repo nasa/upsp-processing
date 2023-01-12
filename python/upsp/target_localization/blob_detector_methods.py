@@ -3,12 +3,7 @@ import cv2
 import os
 import sys
 
-current_dir = os.path.dirname(__file__)
-parent_dir = os.path.dirname(current_dir)
-cam_cal_utils = os.path.join(parent_dir, 'cam_cal_utils')
-sys.path.append(cam_cal_utils)
-
-import img_utils
+from upsp.cam_cal_utils import img_utils
 
 
 #---------------------------------------------------------------------------------------
@@ -50,39 +45,30 @@ target_detectors = {'detector_all': detector_all}
 def blob_func(detection_method, decide_method=None):
     """Returns a function that acts as a wrapper around openCV's blob detection function
     to act as a target center localizer
-    
+
     Parameters
     ----------
-    detection_method : str
+    detection_method : string
         String must be a key in the global dict target_detectors. The key selects the
         blob detection parameters to use
-    decide_method : optional {'biggest', 'smallest', 'first', 'last', 'random', None}, default=None
-        decision method if more than 1 blob is detected in the image. Biggest and 
-        smallest selects he largest and smallest (respectfully) based on the keypoint
+    decide_method : {'biggest', 'smallest', 'first', 'last', 'random', None}, optional
+        decision method if more than 1 blob is detected in the image. Biggest and
+        smallest selects the largest and smallest (respectfully) based on the keypoint
         size parameter. First and last select the first and last (respectfully) based on
-        the order returned by the blob detector. Random selects a random blob. None
-        uses the default method, which is last
+        the order returned by the blob detector. Random selects a random blob. None uses
+        the default method, which is last
 
     Returns
-        Function
+    -------
+    callable
         Blob detector localization function - Wrapper around a blob detector to act as a
-        localization function
+        localization function. The function has the signature::
 
-        Parameters
-        ----------
-            img : np.ndarray, 2D, uint8 or uint16
-                Image containing one target
-            return_keypoint : optional, boolean.
-                If True returns openCV keypoint object. If False, returns only estimated
-                target center location
-        
-        Returns
-        ----------
-        Tuple if return_keypoint is False, and keypoint is return_keypoint is True
-            Tuple's first index is the center. The center is a length 2 tuple of floats.
-            The first item of the center is the x coordiante and the second item is the
-            y coordinate
+            func(img, target_type=None, return_keypoint=False) -> keypoint
 
+        where ``img`` is a 2D image array containing one target, ``target_type`` does
+        nothing, and ``return_keypoint`` specifies whether the keypoint itself is
+        returned (``True``) or just the center position (x, y).
     """
 
     if (detection_method in list(target_detectors.keys())):

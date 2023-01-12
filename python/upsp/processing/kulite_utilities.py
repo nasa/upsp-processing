@@ -1,12 +1,4 @@
-'''
-Kulites class and helpers taken and pared-down from Jessie Powell code present
-in branch uPSP-40.
-Modified to return all kulites if no kulite list is passed in.
-Modified to generate rms field with optional filter option or generate from psd
-with start freq
-Modified to allow global application of sos filter
-
-'''
+"""Kulites class and helpers"""
 import numpy as np
 import os
 import re
@@ -26,28 +18,34 @@ log = logging.getLogger(__name__)
 
 
 class Kulites:
-    """ Load and Manage kulite data.
-        Data is in PSI unless optional psf argument is true
+    """Load and manage kulite data
 
-        Attributes:
-            data : dict
-                keys   : kulite names [K]
-                values : numpy array of pressure-time history [P]
+    Data is in PSI unless optional psf argument is True
+
+    Parameters
+    ----------
+    data_dir : str
+        directory with ``*.info``, ``*.slow``, ``*.fast`` files
+    run : int
+        run number
+    seq : int
+        sequence number
+    kulites : list
+        kulites to load
+    data_type : numpy.dtype
+        data type of array elements
+    f_type : str
+        'slow' or 'fast'
+
+    Attributes
+    ----------
+    data : dict
+        Dictionary with Kulite names as keys and numnpy arrays with pressure time
+        histoires as values.
     """
 
     def __init__(self, data_dir, run, seq, kulites='all',
                  data_type=np.float32, psf=False, f_type='slow'):
-        """ Load the kulite data into a dictionary struct
-
-        Args:
-            data_dir (str)       : directory with *.info, *.slow, *.fast files
-            run (int)            : run number
-            seq (int)            : sequence number
-            kulites (List)       : kulites to load
-            data_type (np.dtype) : data type of array elements
-            f_type (str)         : 'slow' or 'fast'
-        """
-
         # Create dictionary to hold data
         self.raw, raw = dict(), dict()
         self.native, native = dict(), dict()
@@ -361,14 +359,20 @@ class Kulites:
 ###############################################################################
 
 def read_tgts(tgts_file, kulites='all'):
-    """ Read in the tgts file data and return the coordinates of the kulites
+    """Read in the tgts file data and return the coordinates of the kulites
 
-    Args:
-        tgts_file (str) : targets data file
-        kulites (List)  : list of kulite strings
+    Parameters
+    ----------
+    tgts_file : str
+        targets data file
+    kulites : list, optional
+        list of kulite strings. If "all" (default), all targets identified as Kulites
+        are returned.
 
-    Returns:
-        (Dict) of (x,y,z) positions for each kulite keyed by name
+    Returns
+    -------
+    pos : dict of list
+        (x,y,z) positions for each kulite keyed by name
     """
 
     pos = dict()
@@ -389,10 +393,10 @@ def read_tgts(tgts_file, kulites='all'):
 
 
 def compute_delta_rms(kulites, sosfilter=None):
-    '''
+    """
     calculate rms values for each kulite by subtracting off the mean, and return a dict.
     if sosfilter is provided, applies it to the timeseries before calculating rms
-    '''
+    """
 
     def calc_rms(a):
         return np.sqrt(np.mean(a ** 2))
@@ -411,10 +415,10 @@ def compute_delta_rms(kulites, sosfilter=None):
 
 
 def compute_rms_from_psd(kulites, startfreq=None):
-    '''
+    """
     calculate rms values for each kulite  in the input collection by integrating its psd
     if startfreq is provided, integrates from startfreq upwards
-    '''
+    """
     rms_dict = dict()
     psds = compute_psd(kulites)
     freqs = psds['freq']
@@ -433,12 +437,12 @@ def compute_rms_from_psd(kulites, startfreq=None):
 
 
 def apply_filter(kulites, sosfilter):
-    '''
-    Apply an sos filter to the given kulite collection, and return a new
-    kulites object.
+    """
+    Apply an sos filter to the given kulite collection, and return a new kulites object.
+
     Creates a deep copy in case you want to use this for comparing filtered
     vs unfiltered collections, and want to hang on to an unmodified version too
-    '''
+    """
     filtered_kulites = copy.deepcopy(kulites)
     for name, timeseries in kulites.data.items():
         filtered_kulites.data[name] = signal.sosfilt(sosfilter, timeseries)
@@ -446,14 +450,20 @@ def apply_filter(kulites, sosfilter):
 
 
 def compute_psd(kulites, w_len=1024):
-    """ Compute psds for kulite data
+    """Compute PSDs for kulite data
 
-    Args:
-        kulites (Kulite)    : Kulite or VKulite object
-        w_len (int)         : window length
+    Parameters
+    ----------
+    kulites : Kulites
+        Kulites object
+    w_len : int, optional
+        window length
 
-    Returns:
-        (Dict) of psds for each kulite (plus frequency)
+    Returns
+    -------
+    dict
+        Dictionary of PSDs for each kulite, with an additional entry "freq" for the
+        frequency bins
     """
 
     data = dict()
@@ -477,16 +487,22 @@ def compute_psd(kulites, w_len=1024):
     return data
 
 
+# FIXME this is broken?
 def create_kulite_grid(tgts_file, kul_strs):
-    """  Generate a structGrid of kulite locations
-    Args:
-        tgts_file (str)     : TGTS kulite location file
-        kul_strs (List)     : kulite names to include in plots
+    """Generate a structured grid of kulite locations
 
-    Returns:
-        kul_grid            : kulite positions in cartesion and cylindrical form
+    Parameters
+    ----------
+    tgts_file : str
+        TGTS kulite location file
+    kul_strs : list
+        kulite names to include in plots
+
+    Returns
+    -------
+    kul_grid : StructGrid
+        kulite positions in cartesion and cylindrical form
     """
-
     # Load the kulite positions
     kulite_pos = kul_strs.read_tgts(tgts_file, kul_strs)
 
@@ -505,30 +521,35 @@ def create_kulite_grid(tgts_file, kul_strs):
 
 
 def write_kulite_positions_p3d(output_file, tgts_file, kul_strs):
-    """ Generate a 1D plot3d grid with kulite locations
+    """Generate a 1D plot3d grid with kulite locations
 
-    Args:
-        output_file (str)   : output p3d file
-        tgts_file (str)     : TGTS kulite location file
-        kul_strs (List)     : kulite names to include in plots
-
-    Returns:
-        None
+    Parameters
+    ----------
+    output_file : str
+        output p3d file
+    tgts_file : str
+        TGTS kulite location file
+    kul_strs : list
+        kulite names to include in plots
     """
     kul_grid = create_kulite_grid(tgts_file, kul_strs)
     kul_grid.write_p3d(output_file)
 
 
 def read_targets_matrix(tgts_file, kul_strs):
-    """ Generate a list of kulite data
+    """Generate a list of kulite data
 
-    Args:
-        tgts_file (str)     : TGTS kulite location file
-        kul_strs (List)     : kulite names to include in plots
+    Parameters
+    ----------
+    tgts_file : str
+        TGTS kulite location file
+    kul_strs : list
+        kulite names to include in plots.
 
-    Returns:
-        List of Lists of kulite data - name, x, y, z, r, theta, i, j, k, diam, zone
-
+    Returns
+    -------
+    list of list
+        Kulite data of the form: ``name, x, y, z, r, theta, i, j, k, diam, zone``
     """
     if kul_strs != 'all':
         mat = np.empty([len(kul_strs), 11], dtype=object)
@@ -573,14 +594,19 @@ def read_targets_matrix(tgts_file, kul_strs):
 
 
 def create_pressure_array(kuls, data_type=np.float32):
-    """ Generate a numpy array with kulite pressure-time histories
+    """Generate a numpy array with kulite pressure-time histories
 
-    Args:
-        kuls (dict)          : kulite names linked to array of pressure values
-        data_type (np.dtype) : data type of array elements
+    Parameters
+    ----------
+    kuls : dict
+        kulite names linked to array of pressure values
+    data_type : numpy.dtype
+        data type of array elements
 
-    Returns:
-        numpy array of kulite data
+    Returns
+    -------
+    np.ndarray
+        kulite data
     """
     size = len(kuls.data) * len(kuls.data[list(kuls.data.keys())[0]])
     leng = len(kuls.data[list(kuls.data.keys())[0]])

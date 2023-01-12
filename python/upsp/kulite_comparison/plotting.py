@@ -44,17 +44,17 @@ def make_selection_area_images(df: pd.DataFrame, out_dir=None):
     Parameters
     ----------
     df : pandas.DataFrame
-         Records with the following columns:
-         'Pipeline Directory': data pipeline top-level directory
-         'Datapoint': datapoint identifier
-         'Kulite Nearest Vertex': index of vertex nearest to Kulite
-         'Kulite Name': name of kulite
-         'Selection Vertices': string repr of list of indices of selected vertices,
-                               e.g., "[124,231,101]"
+        Records with the following columns:
+
+        - 'Pipeline Directory' : data pipeline top-level directory
+        - 'Datapoint' : datapoint identifier
+        - 'Kulite Nearest Vertex' : index of vertex nearest to Kulite
+        - 'Kulite Name' : name of kulite
+        - 'Selection Vertices' : string repr of list of indices of selected vertices,
+          e.g., "[124,231,101]"
     out_dir : str or None
-              Directory for writing output images. If None, defaults to
-              subdirectories of the current working directory named according to
-              the 'Pipeline Directory' names.
+        Directory for writing output images. If None, defaults to subdirectories of the
+        current working directory named according to the 'Pipeline Directory' names.
     """
     if out_dir is None:
         out_dir = os.getcwd()

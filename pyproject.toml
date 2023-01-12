@@ -1,0 +1,29 @@
+[project]
+name = "upsp"
+description = "NASA uPSP data processing applications and utilities"
+authors = [{name = "NASA uPSP developers"}]
+license = {file = "LICENSE.txt"}
+dynamic = ["version"]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "opencv-python-headless==4.5.2.54",
+    "pandas",
+    "scipy",
+]
+
+[build-system]
+requires = [
+    "setuptools>=61",
+    "setuptools_scm[toml]>=6.2",
+    "pybind11",
+    "cmake>=3.22",
+    "scikit-build>=0.15.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+
+[tool.setuptools_scm]
+write_to = "python/upsp/_version.py"
