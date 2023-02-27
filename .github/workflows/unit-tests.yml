@@ -1,0 +1,114 @@
+# Run the uPSP project build system and unit tests.
+# Artifacts are installed into the runner's system Python 3 environment.
+#
+# Notes:
+#
+# - Initially considered installing all dependencies via system
+#   package manager, but encountered some GH-specific "pain points"
+#   (e.g., HDF5 v1.12 is not supported out-of-box by ubuntu-latest).
+#   Simpler and more robust to manage with third-party C/C++ package
+#   manager like vcpkg.
+#
+# - Some system dependencies may not be needed... accidentally tried
+#   vcpkg install without explicitly disabling default opencv4 features
+#   which include a LOT of extras with frontend library deps like x11.
+#   TODO consider pruning at a later date.
+#
+# - Making use of third-party actions for improved caching + invocation
+#   of CMake and vcpkg. Ref: https://github.com/marketplace/actions/run-vcpkg
+#   Recommendations from author highlight using vcpkg as a Git submodule...
+#   this is NOT desirable in our case because for native deployment to
+#   HPC clusters, oftentimes the user-supplied /home folder has quite limited
+#   storage and is not appropriate for caching lots of external submodules.
+#   Instead, we pin the vcpkg release here (vcpkgGitCommitId) and maintain
+#   consistency manually.
+#
+# - On NAS HECC systems, we build the C/C++ code with dynamic linkage due
+#   to the available system dependencies. This is *not* a default
+#   target supported by vcpkg, but it has a lot of community interest and
+#   "unofficial" testing support. Ref: https://github.com/microsoft/vcpkg/issues/15006
+#   We patch up some of the RPATH quirks using 'patchelf'.
+#   
+name: unit-tests
+on: 
+  push: 
+  workflow_dispatch:
+
+jobs:
+  job:
+    name: ${{ matrix.os }}-${{ github.workflow }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        # Python v3.9 is latest version supported by NAS HECC systems
+        # Main obstacle to upgrading is "pinned" opencv 4.5.12 dependency
+        python-version: ['3.9.16']
+    env:
+      VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg/installed
+      VCPKG_DEFAULT_TRIPLET: x64-linux-dynamic
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: lukka/get-cmake@latest
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            autoconf \
+            bison \
+            gperf \
+            nasm \
+            patchelf \
+            libdbus-1-dev \
+            libgles2-mesa-dev \
+            libopenmpi-dev \
+            libtool \
+            libx11-dev \
+            libxcursor-dev \
+            libxdamage-dev \
+            libxext-dev \
+            libxft-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxtst-dev
+        if: matrix.os == 'ubuntu-latest'
+      - name: Restore from cache and setup vcpkg executable and data files.
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: '.github/workflows/vcpkg.json'
+          runVcpkgInstall: true
+          # Release 2023.04.15
+          vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+      - name: Patch vcpkg library headers with patchelf
+        run: |
+          cd vcpkg
+          ${{ github.workspace }}/.github/workflows/vcpkg-fix-rpaths
+          cd ..
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Upgrade pip to v23+
+        run: |
+          pip install --upgrade pip
+          pip --version
+          python --version
+      - name: Run build+install with pip
+        run: |
+          SKBUILD_CONFIGURE_OPTIONS=\
+          " -DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"\
+          " -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic" pip install -v .
+      # - name: Setup upterm session
+      #   uses: lhotari/action-upterm@v1
+      - name: Run C/C++ unit tests
+        # TODO this should be made cross-platform. Currently works only for ubuntu-latest
+        # TODO fix RUNPATH of built executables to avoid use of LD_LIBRARY_PATH
+        run: |
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${{ env.VCPKG_INSTALLED_DIR }}/${{ env.VCPKG_DEFAULT_TRIPLET }}/lib"
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+          cd cpp/test
+          ../../_skbuild/linux-x86_64-3.9/cmake-build/run_tests
+

@@ -1,3 +1,9 @@
+
+[![pages-build-deployment](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment)
+![Unit Tests](https://github.com/nasa/upsp-processing/actions/workflows/build.yml/badge.svg?event=push)
+
+-----
+
 # upsp-processing
 
 Software for processing high-speed video recordings from Unsteady Pressure-Sensitive Paint (UPSP) measurement systems.
