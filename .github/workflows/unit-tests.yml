@@ -82,8 +82,6 @@ jobs:
           runVcpkgInstall: true
           # Release 2023.04.15
           vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-      - name: Test-drive early exit with failure
-        run: exit 1
       - name: Patch vcpkg library headers with patchelf
         run: |
           cd vcpkg
