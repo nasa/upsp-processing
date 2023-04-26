@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "main",
+  "version-string": "latest",
+  "dependencies": [
+    {"name": "hdf5", "default-features": false, "features": ["cpp"]},
+    "eigen3",
+    {"name": "opencv4", "default-features": false, "features": ["contrib", "ffmpeg", "openexr"]},
+    "boost-iterator",
+    "boost-lexical-cast",
+    "boost-fusion",
+    "boost-format",
+    "boost-math",
+    "boost-tokenizer",
+    "ilmbase",
+    "gtest",
+    "pybind11"
+  ],
+  "vcpkg-configuration": {
+    "overlay-triplets": ["./vcpkg-triplets"]
+  }
+}
