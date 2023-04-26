@@ -82,6 +82,8 @@ jobs:
           runVcpkgInstall: true
           # Release 2023.04.15
           vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+      - name: Test-drive early exit with failure
+        run: exit 1
       - name: Patch vcpkg library headers with patchelf
         run: |
           cd vcpkg
@@ -90,7 +92,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip
+          cache: 'pip'
       - name: Upgrade pip to v23+
         run: |
           pip install --upgrade pip
