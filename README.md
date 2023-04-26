@@ -1,5 +1,5 @@
 
-[![pages-build-deployment](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment)
+[![pages-build-deployment](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment/badge.svg)](https://nasa.github.io/upsp-processing)
 ![Unit Tests](https://github.com/nasa/upsp-processing/actions/workflows/unit-tests.yml/badge.svg?event=push)
 
 -----
