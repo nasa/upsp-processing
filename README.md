@@ -1,6 +1,6 @@
 
 [![pages-build-deployment](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/nasa/upsp-processing/actions/workflows/pages/pages-build-deployment)
-![Unit Tests](https://github.com/nasa/upsp-processing/actions/workflows/build.yml/badge.svg?event=push)
+![Unit Tests](https://github.com/nasa/upsp-processing/actions/workflows/unit-tests.yml/badge.svg?event=push)
 
 -----
 
