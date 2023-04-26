@@ -76,7 +76,7 @@ TEST(FilteringHTest, TransPolyfitter) {
         unsigned int count=0;
         for (unsigned int p=p_start; p <= p_end; ++p, ++count) {
             for (unsigned int f=0; f < n_frames; ++f) {
-                ASSERT_GT(std::abs(y[p*n_frames+f] - y2[count*n_frames+f]), epsilon);
+                ASSERT_LT(std::abs(y[p*n_frames+f] - y2[count*n_frames+f]), epsilon);
             }
         }
     }
