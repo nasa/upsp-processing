@@ -14,4 +14,4 @@ add_library(
 target_link_libraries(upsp_utils PUBLIC opencv_core opencv_imgproc)
 target_link_libraries(upsp_utils PUBLIC ${LIBRT})
 
-install(TARGETS upsp_utils)
+install(TARGETS upsp_utils LIBRARY DESTINATION lib)

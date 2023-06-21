@@ -24,5 +24,6 @@ install(
     TARGETS
     # cine
     raycast
+    upsp_kdtree
     LIBRARY DESTINATION python/upsp
 )

@@ -18,4 +18,7 @@ add_library(
 )
 target_link_libraries(upsp_kdtree PUBLIC IlmBase::Imath)
 
-install(TARGETS upsp_kdtree)
+if (UPSP_BUILD_PYBIND11)
+else()
+  install(TARGETS upsp_kdtree)
+endif()
