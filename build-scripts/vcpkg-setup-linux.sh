@@ -18,7 +18,6 @@ if [ ! -e "$VCPKG_ROOT" ]; then
 
     pushd .
     cd $VCPKG_ROOT
-    echo "vcpkg version: '$(git describe)'"
     ./bootstrap-vcpkg.sh -disableMetrics
     popd
 fi
