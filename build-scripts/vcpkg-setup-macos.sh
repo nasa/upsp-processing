@@ -5,16 +5,12 @@ VCPKG_TRIPLET="x64-osx-dynamic"
 
 echo "Settings up vcpkg in '$VCPKG_ROOT' ..."
 
-yum install -y \
-    perl-IPC-Cmd \
-    zip
-
 if [ ! -e "$VCPKG_ROOT" ]; then
     git clone \
         --depth 1 \
         --branch "2023.04.15" \
         https://github.com/Microsoft/vcpkg.git \
-        /opt/vcpkg
+        $VCPKG_ROOT
 
     pushd .
     cd $VCPKG_ROOT

@@ -14,7 +14,7 @@ if [ ! -e "$VCPKG_ROOT" ]; then
         --depth 1 \
         --branch "2023.04.15" \
         https://github.com/Microsoft/vcpkg.git \
-        /opt/vcpkg
+        $VCPKG_ROOT
 
     pushd .
     cd $VCPKG_ROOT
