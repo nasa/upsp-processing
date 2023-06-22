@@ -21,29 +21,17 @@ if (DEFINED SKBUILD)
 
   # TODO this is ugly but it works for now.
   #
-  # When the project is built by scikit-build for deployment as a
-  # Python package, libraries are dropped in the lib/ folder and there's
-  # multiple consumers of those libraries that need to resolve them at runtime:
+  # Hard-code the appropriate library RPATHs, handling all possible "install" use cases.
+  # - Installing libs for use in "standard" C/C++ <prefix>/lib install
+  # - Installing libs for use in Python extensions
   #
-  # - Executables, installed to bin/, need to look in $ORIGIN/../lib
-  # - Python extension modules, installed to lib/pythonX/site-packages/upsp,
-  #   need to look in $ORIGIN/../../..
-  #
-  # Lastly, there's some build-tree-only artifacts (eg gtest unit tests),
-  # those need to look in their own build directory ($ORIGIN).
-  #
-  # We could do this on a per-target basis but I'd rather just leave
-  # the hack in one spot for now instead of being peppered all over
-  # this build file.
-  #
-  # A "better/cleaner" example of this setup can be found here (although
-  # I don't think it handles all the use cases I listed above, it's
-  # a small sample project):
-  #
-  # https://github.com/scikit-build/scikit-build-sample-projects/blob/master/projects/hello-cmake-package/CMakeLists.txt#L92
-  #
+  # Exact rpath syntax depends on target arch.
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-  set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../../")
+  if (APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/;@loader_path/../../../")
+  elseif (LINUX)
+    set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../../")
+  endif()
 endif()
  
 add_subdirectory(cpp)
