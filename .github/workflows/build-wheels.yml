@@ -6,22 +6,51 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ github.workflow }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: true
       matrix:
-        os: [ubuntu-20.04, macos-11]
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            # tag '2023.04.15'
+            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+            triplet: 'x64-linux-dynamic'
+          - os: macos-latest
+            # tag '2023.04.15'
+            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+            triplet: 'x64-osx-dynamic'
+
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.13.1
+      - name: run vcpkg
+        uses: lukka/run-vcpkg@main
+        id: run_vcpkg
         with:
-          package-dir: .
-          output-dir: wheelhouse
-          config-file: "{package}/pyproject.toml"
+          vcpkgDirectory: '{{ runner.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '{{ matrix.vcpkgCommitId }}'
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '${{ github.workspace }}/build-scripts/vcpkg.json'
 
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ./wheelhouse/*.whl
+      - name: List $RUNNER_WORKSPACE before build
+        run: find $RUNNER_WORKSPACE
+        shell: bash
+
+      - name: Prints output of run-vcpkg action.
+        run: echo "root='${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+
+      # - name: Build wheels
+      #   uses: pypa/cibuildwheel@v2.13.1
+      #   with:
+      #     package-dir: .
+      #     output-dir: wheelhouse
+      #     config-file: "{package}/pyproject.toml"
+
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     path: ./wheelhouse/*.whl
