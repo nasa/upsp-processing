@@ -1,7 +1,10 @@
 #!/bin/bash
-yum install -y \
-    perl-IPC-Cmd \
-    zip
+
+if command -v yum &> /dev/null; then
+    yum install -y \
+        perl-IPC-Cmd \
+        zip
+fi
 
 if [ -e /opt/vcpkg ]; then
     echo "rm -rf /opt/vcpkg"

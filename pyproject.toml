@@ -32,7 +32,11 @@ write_to = "python/upsp/_version.py"
 environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
 before-all = "bash build-scripts/vcpkg-setup.sh"
 
+[tool.cibuildwheel.macos]
+environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+before-all = "bash build-scripts/vcpkg-setup.sh"
+
 [tool.cibuildwheel]
 skip = "*-win32 *-manylinux_i686"
-build = "cp39-manylinux_x86_64"
+build = "cp39-manylinux_x86_64 cp39-macosx_x86_64"
 build-verbosity = 1
