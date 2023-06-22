@@ -29,11 +29,11 @@ profile = "black"
 write_to = "python/upsp/_version.py"
 
 [tool.cibuildwheel.linux]
-environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
 before-all = "bash build-scripts/vcpkg-setup-linux.sh"
 
 [tool.cibuildwheel.macos]
-environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-osx-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+environment = "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-osx-dynamic -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
 before-all = "bash build-scripts/vcpkg-setup-macos.sh"
 
 [tool.cibuildwheel]
