@@ -9,13 +9,13 @@ jobs:
     name: ${{ matrix.os }}-${{ github.workflow }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   # tag '2023.04.15'
-          #   vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-          #   triplet: 'x64-linux-dynamic'
+          - os: ubuntu-latest
+            # tag '2023.04.15'
+            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+            triplet: 'x64-linux-dynamic'
           - os: macos-latest
             # tag '2023.04.15'
             vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
@@ -47,6 +47,9 @@ jobs:
         uses: pypa/cibuildwheel@v2.13.1
         env:
           CIBW_ENVIRONMENT: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+          CIBW_ENVIRONMENT_LINUX: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/host/${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+          CIBW_BEFORE_ALL_LINUX: "ls /host/${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}"
+          CIBW_SKIP: "cp36-* cp37-* cp38-*"
         with:
           package-dir: .
           output-dir: wheelhouse
