@@ -46,7 +46,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.13.1
         env:
-          CIBW_ENVIRONMENT: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
+          CIBW_ENVIRONMENT: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} -DVCPKG_INSTALLED_DIR=${{ runner.workspace }}/b/vcpkg_installed -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
           CIBW_ENVIRONMENT_LINUX: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/host/${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
           CIBW_BEFORE_ALL_LINUX: "ls /host/${{ steps.run_vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}"
           CIBW_SKIP: "cp36-* cp37-* cp38-*"
