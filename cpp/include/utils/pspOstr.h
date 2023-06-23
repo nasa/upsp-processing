@@ -11,11 +11,8 @@
 #include <deque>
 #include <string>
 #include <math.h>
-#include <sys/types.h>
 #include <stdio.h> // for perror
 #include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 namespace std {
   template <typename T>
@@ -23,52 +20,6 @@ namespace std {
   {
     return std::max(lo,std::min(val,hi));
   }
-}
-
-namespace Glx {
-  inline double r2d(double r) {return r*57.29577951308232087679815481411;}
-  inline double d2r(double d) {return d*0.01745329251994329576923690768;}
-  inline float r2d(float r) {return r*57.29577951308232087679815481411f;}
-  inline float d2r(float d) {return d*0.01745329251994329576923690768f;}
-
-  inline std::string argvstr(void)
-  {
-    const int maxcmdline=8192;
-    std::vector<char> src(maxcmdline),dst(maxcmdline);
-    off_t soff=0,doff=0;
-
-    src.assign(maxcmdline,0);
-    dst.assign(maxcmdline,0);
-    int fd=open("/proc/self/cmdline",O_RDONLY);
-    if( fd ==-1 ) return std::string("#\n");
-    bool done=false;
-
-    while( ! done ){
-      ssize_t got = read(fd,&src[soff],maxcmdline);
-      if( got<=0 ) done=true;
-      else{
-	for(int i=0;i<got;++i){
-	  if( src[soff+i]==0 )
-	  {
-	    dst[doff]=' ';
-	  }
-	  else if( src[soff+i]=='\n' )
-	  {
-	    dst[doff]='\\';
-	    ++doff;
-	    dst[doff]='n';
-	  }
-	  else
-	    dst[doff]=src[soff+i];
-	  ++doff;
-	}
-	soff+=got;
-      }
-    }
-    close(fd);
-    return std::string(&dst[0]);
-  }
-
 }
 
 namespace std

@@ -40,6 +40,10 @@
 
 #define PBRT_L1_CACHE_LINE_SIZE 64
 
+#if defined(_WIN32) || defined(_WIN64)
+  #define PBRT_IS_WINDOWS
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <algorithm>
