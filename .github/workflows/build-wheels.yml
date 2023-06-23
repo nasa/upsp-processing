@@ -12,14 +12,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            # tag '2023.04.15'
-            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-            triplet: 'x64-linux-dynamic'
-          - os: macos-latest
-            # tag '2023.04.15'
-            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-            triplet: 'x64-osx-dynamic'
+          # - os: ubuntu-latest
+          #   # tag '2023.04.15'
+          #   vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+          #   triplet: 'x64-linux-dynamic'
+          # - os: macos-latest
+          #   # tag '2023.04.15'
+          #   vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+          #   triplet: 'x64-osx-dynamic'
           - os: windows-latest
             # tag '2023.04.15'
             vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
@@ -41,7 +41,7 @@ jobs:
           # we need the cibuildwheel Docker container to actually build/install
           # the dependencies, even if they are stored on the host filesystem
           # (exposed via the /host mount point) and cached by the host runner.
-          runVcpkgInstall: false
+          runVcpkgInstall: true
           vcpkgJsonGlob: '${{ github.workspace }}/build-scripts/vcpkg.json'
 
       - name: List $RUNNER_WORKSPACE before build
@@ -55,40 +55,40 @@ jobs:
           echo "UNIX_GITHUB_WORKSPACE=${GITHUB_WORKSPACE//\\//}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.13.1
-        env:
-          CIBW_ENVIRONMENT_WINDOWS: >-
-            SKBUILD_CONFIGURE_OPTIONS='
-            -DCMAKE_TOOLCHAIN_FILE=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-            -DVCPKG_INSTALLED_DIR=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg_installed
-            -DVCPKG_MANIFEST_DIR=${{ env.UNIX_GITHUB_WORKSPACE }}/build-scripts
-            -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
-          CIBW_ENVIRONMENT_MACOS: >-
-            SKBUILD_CONFIGURE_OPTIONS='
-            -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-            -DVCPKG_INSTALLED_DIR=${{ runner.workspace }}/b/vcpkg_installed
-            -DVCPKG_MANIFEST_DIR=${{ github.workspace }}/build-scripts
-            -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
-          CIBW_ENVIRONMENT_LINUX: >-
-            SKBUILD_CONFIGURE_OPTIONS='
-            -DCMAKE_TOOLCHAIN_FILE=/host/${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-            -DVCPKG_INSTALLED_DIR=/host/${{ runner.workspace }}/b/vcpkg_installed
-            -DVCPKG_MANIFEST_DIR=/host/${{ github.workspace }}/build-scripts
-            -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
-          CIBW_BEFORE_ALL_LINUX: "yum install -y perl-IPC-Cmd zip ninja-build"
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install cmake"
-          CIBW_BUILD: "cp39-win_amd64 cp39-macosx_x86_64 cp39-manylinux_x86_64"
-          CIBW_SKIP: "*-win32 *-manylinux_i686"
-          CIBW_BUILD_VERBOSITY: 1
-        with:
-          package-dir: .
-          output-dir: wheelhouse
-          config-file: "{package}/pyproject.toml"
+      # - name: Build wheels
+      #   uses: pypa/cibuildwheel@v2.13.1
+      #   env:
+      #     CIBW_ENVIRONMENT_WINDOWS: >-
+      #       SKBUILD_CONFIGURE_OPTIONS='
+      #       -DCMAKE_TOOLCHAIN_FILE=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+      #       -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+      #       -DVCPKG_INSTALLED_DIR=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg_installed
+      #       -DVCPKG_MANIFEST_DIR=${{ env.UNIX_GITHUB_WORKSPACE }}/build-scripts
+      #       -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
+      #     CIBW_ENVIRONMENT_MACOS: >-
+      #       SKBUILD_CONFIGURE_OPTIONS='
+      #       -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+      #       -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+      #       -DVCPKG_INSTALLED_DIR=${{ runner.workspace }}/b/vcpkg_installed
+      #       -DVCPKG_MANIFEST_DIR=${{ github.workspace }}/build-scripts
+      #       -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
+      #     CIBW_ENVIRONMENT_LINUX: >-
+      #       SKBUILD_CONFIGURE_OPTIONS='
+      #       -DCMAKE_TOOLCHAIN_FILE=/host/${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+      #       -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+      #       -DVCPKG_INSTALLED_DIR=/host/${{ runner.workspace }}/b/vcpkg_installed
+      #       -DVCPKG_MANIFEST_DIR=/host/${{ github.workspace }}/build-scripts
+      #       -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
+      #     CIBW_BEFORE_ALL_LINUX: "yum install -y perl-IPC-Cmd zip ninja-build"
+      #     CIBW_BEFORE_BUILD_WINDOWS: "pip install cmake"
+      #     CIBW_BUILD: "cp39-win_amd64 cp39-macosx_x86_64 cp39-manylinux_x86_64"
+      #     CIBW_SKIP: "*-win32 *-manylinux_i686"
+      #     CIBW_BUILD_VERBOSITY: 1
+      #   with:
+      #     package-dir: .
+      #     output-dir: wheelhouse
+      #     config-file: "{package}/pyproject.toml"
 
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ./wheelhouse/*.whl
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     path: ./wheelhouse/*.whl
