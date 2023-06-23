@@ -60,10 +60,10 @@ jobs:
         env:
           CIBW_ENVIRONMENT_WINDOWS: >-
             SKBUILD_CONFIGURE_OPTIONS='
-            -DCMAKE_TOOLCHAIN_FILE=$UNIX_RUNNER_WORKSPACE/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
             -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-            -DVCPKG_INSTALLED_DIR=$UNIX_RUNNER_WORKSPACE/b/vcpkg_installed'
-            -DVCPKG_MANIFEST_DIR=$UNIX_GITHUB_WORKSPACE/build-scripts'
+            -DVCPKG_INSTALLED_DIR=${{ env.UNIX_RUNNER_WORKSPACE }}/b/vcpkg_installed'
+            -DVCPKG_MANIFEST_DIR=${{ env.UNIX_GITHUB_WORKSPACE }}/build-scripts'
             -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
           CIBW_ENVIRONMENT_MACOS: >-
             SKBUILD_CONFIGURE_OPTIONS='
