@@ -52,7 +52,7 @@ jobs:
         env:
           CIBW_ENVIRONMENT: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} -DVCPKG_INSTALLED_DIR=${{ runner.workspace }}/b/vcpkg_installed -DVCPKG_MANIFEST_DIR=${{ github.workspace }}/build-scripts -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
           CIBW_ENVIRONMENT_LINUX: "SKBUILD_CONFIGURE_OPTIONS=' -DCMAKE_TOOLCHAIN_FILE=/host/${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} -DVCPKG_INSTALLED_DIR=/host/${{ runner.workspace }}/b/vcpkg_installed -DVCPKG_MANIFEST_DIR=/host/${{ github.workspace }}/build-scripts -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y perl-IPC-Cmd zip"
+          CIBW_BEFORE_ALL_LINUX: "yum install -y perl-IPC-Cmd zip ninja-build"
           CIBW_BUILD: "cp39-*"
         with:
           package-dir: .
