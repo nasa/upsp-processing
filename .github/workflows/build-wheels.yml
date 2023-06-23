@@ -12,14 +12,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   # tag '2023.04.15'
-          #   vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-          #   triplet: 'x64-linux-dynamic'
-          # - os: macos-latest
-          #   # tag '2023.04.15'
-          #   vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-          #   triplet: 'x64-osx-dynamic'
+          - os: ubuntu-latest
+            # tag '2023.04.15'
+            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+            triplet: 'x64-linux-dynamic'
+          - os: macos-latest
+            # tag '2023.04.15'
+            vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+            triplet: 'x64-osx-dynamic'
           - os: windows-latest
             # tag '2023.04.15'
             vcpkgCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
