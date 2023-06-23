@@ -3,7 +3,6 @@
 
 //#define DBG
 #include "utils/pspRT.h"
-#include "utils/pspDbg.h"
 #include "utils/pspTimer.h"
 
 using namespace std;
@@ -47,13 +46,8 @@ rt::Ray::Ray(const V3f& orig, const V3f& dir) :
 {
   // blute: 2019-May-28 watertight fixes
 
-  VAR3( o[0],o[1],o[2] );
-  VAR3( d[0],d[1],d[2] );
-
   V3f ad = ABS(d);
   int md = MAX_DIM(ad);
-  VAR( ad );
-  VAR( md );
 
   // calculate dimension where the raydirection is maximal
   kz = MAX_DIM( ABS(d) );
@@ -62,16 +56,10 @@ rt::Ray::Ray(const V3f& orig, const V3f& dir) :
   // swap kx and ky dim to preserve winding dir of triangles
   if( d[kz] < 0.f ) std::swap(kx,ky);
 
-  VAR3( kx,ky,kz );
-
   // calculate shear constants, to make ray unit length aligned with Z
   Sx = d[kx] / d[kz];
   Sy = d[ky] / d[kz];
   Sz = 1.f / d[kz];
-  VAR( d[kz] );
-  VAR( (1.f/d[kz]) )
-
-  VAR3( Sx,Sy,Sz );
 
   // old
   i[0] = 1.0f / d[0];
@@ -117,31 +105,15 @@ rt::Triangle::bounds(void) const
   return res;
 }
 
-#if 1
-
 bool
 rt::Triangle::intersect(const Ray &ray, Hit *hit) const
 {
-  VAR( ray.kx );
-  VAR( ray.ky );
-  VAR( ray.kz );
-
-  VAR( ray.Sx );
-  VAR( ray.Sy );
-  VAR( ray.Sz );
-
   const Imath::V3f &origA = mesh->p[vi[0]];
   const Imath::V3f &origB = mesh->p[vi[1]];
   const Imath::V3f &origC = mesh->p[vi[2]];
-  VAR( origA );
-  VAR( origB );
-  VAR( origC );
   const Imath::V3f A = origA - ray.o;
   const Imath::V3f B = origB - ray.o;
   const Imath::V3f C = origC - ray.o;
-  VAR( A );
-  VAR( B );
-  VAR( C );
 
   // shear/scale verts
   const float Ax = A[ray.kx] - ray.Sx * A[ray.kz];
@@ -155,10 +127,6 @@ rt::Triangle::intersect(const Ray &ray, Hit *hit) const
   float U = Cx*By - Cy*Bx;
   float V = Ax*Cy - Ay*Cx;
   float W = Bx*Ay - By*Ax;
-
-  VAR( U );
-  VAR( V );
-  VAR( W );
 
   // fall back to dbl prec test for edges
   if( U==0.f or V==0.f or W==0.f )
@@ -223,83 +191,6 @@ rt::Triangle::intersect(const Ray &ray, Hit *hit) const
   return true;
 }
 
-#else
-
-bool
-rt::Triangle::intersect(const Ray &ray, Hit *hit) const
-{
-  const Imath::V3f &v0 = mesh->p[vi[0]];
-  const Imath::V3f &v1 = mesh->p[vi[1]];
-  const Imath::V3f &v2 = mesh->p[vi[2]];
-  const Imath::V3f edge1 = v1 - v0;
-  const Imath::V3f edge2 = v2 - v0;
-  const Imath::V3f pvec = ray.d.cross(edge2);
-  const float det = edge1.dot(pvec);
-  if (det == 0.f ) {
-    MESG("rt::hitTri: missed 0");
-    VAR( ray.o );
-    VAR( ray.d );
-    VAR( v0 );
-    VAR( v1 );
-    VAR( v2 );
-    return false;
-  }
-  const float idet = 1.f/det;
-  const Imath::V3f tvec = ray.o - v0;
-  const float u = idet * tvec.dot(pvec);
-  if (u < 0.0f || u > 1.0f) {
-    MESG("rt::hitTri: missed 1");
-    VAR( ray.o );
-    VAR( ray.d );
-    VAR( v0 );
-    VAR( v1 );
-    VAR( v2 );
-    VAR( u );
-    return false;
-  }
-  const Imath::V3f qvec = tvec.cross(edge1);
-  const float v = idet * ray.d.dot(qvec);
-  if (v < 0.0f || u + v > 1.0f) {
-    MESG("rt::hitTri: missed 2");
-    VAR( ray.o );
-    VAR( ray.d );
-    VAR( v0 );
-    VAR( v1 );
-    VAR( v2 );
-    VAR( u );
-    VAR( v );
-    return false;
-  }
-  const float t = idet * edge2.dot(qvec);
-  if( t < 0.f or t > ray.tmax ) {
-    MESG("rt::hitTri: missed 3");
-    VAR( ray.o );
-    VAR( ray.d );
-    VAR( ray.tmax );
-    VAR( v0 );
-    VAR( v1 );
-    VAR( v2 );
-    VAR( u );
-    VAR( v );
-    VAR( t );
-
-    return false;
-  }
-
-  //std::cerr<<" === tri hit ===\n";
-  hit->t = t;
-  hit->pos = ray.o + t * ray.d;
-  hit->nrm = edge1.cross(edge2);
-  hit->u=u;
-  hit->v=v;
-  hit->w=1.f - (u + v);
-  hit->primID = primID;
-
-  if( hit->nrm.dot(ray.d) > 0.f  ) hit->nrm = -hit->nrm;
-  return true;
-}
-#endif
-
 ////////////////////////////// TriangleMesh //////////////////////////////
 
 rt::TriangleMesh::TriangleMesh(const std::vector<Imath::V3f>& t, const size_t stride) :
@@ -309,9 +200,6 @@ rt::TriangleMesh::TriangleMesh(const std::vector<Imath::V3f>& t, const size_t st
   p = t;
   for(int tidx=0;tidx<nVertices;++tidx)
     vertexIndices.push_back(tidx);
-  VAR( nVertices );
-  VAR( nTriangles );
-  VAR( vertexIndices.size() );
 }
 
 std::vector<std::shared_ptr<rt::Primitive>>
@@ -319,13 +207,11 @@ rt::CreateTriangleMesh(const std::vector<float>& raw, size_t stride)
 {
 
   size_t nv = raw.size()/stride;
-  VAR( nv );
   std::vector<Imath::V3f> inTris( nv );
   for( size_t vidx=0; vidx<nv ; ++vidx ){
     const float* v = raw.data() + vidx*stride;
     inTris[vidx] = Imath::V3f(v[0],v[1],v[2]);
   }
-  VAR( inTris.size() );
   std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(inTris, stride);
   std::vector<std::shared_ptr<Primitive>> outTris;
   outTris.reserve(mesh->nTriangles);
@@ -449,31 +335,11 @@ rt::BVH::BVH(const std::vector<std::shared_ptr<Primitive>> &p, int maxPrimsInNod
   BuildNode *root = recursiveBuild(arena, primitiveInfo, 0, primitives.size(), &totalNodes, orderedPrims);
   primitives.swap(orderedPrims);
 
-  //Box3f buildbox = checkbuild(root);
-  //VAR( buildbox.min );
-  //VAR( buildbox.max );
-
   nodes = AllocAligned<LinearNode>(totalNodes);
 
   int offset = 0;
   flattenTree(root, &offset);
   ASSERT(offset == totalNodes);
-
-  //Box3f bvhbox = bounds();
-  //VAR( bvhbox.min );
-  //VAR( bvhbox.max );
-  //for(int d=0;d<3;++d){ASSERT( bvhbox.min[d] <= buildbox.min[d] and buildbox.max[d] <= bvhbox.max[d] );}
-
-  //auto aend = std::chrono::system_clock::now();
-  //std::chrono::duration<double> atime = aend - abgn;
-  //std::cout << "time to build BVH " << atime.count() << "s" << std::endl;
-
-  /*
-  std::cout << " total primitives "<<commas(totalPrimitives)<<"\n";
-  std::cout << "       leaf nodes "<<commas(leafNodes)<<"\n";
-  std::cout << "   interior nodes "<<commas(interiorNodes)<<"\n";
-  std::cout << "      total nodes "<<commas(totalNodes)<<"\n";
-  */
 }
 
 rt::BVH::~BVH(void)
@@ -507,8 +373,6 @@ rt::BVH::intersect(const Ray &ray, Hit *isect) const
   int nodesToVisit[64];
 
   while (true) {
-
-    VAR( currentNodeIndex );
 
     const LinearNode *node = &nodes[currentNodeIndex];
 
@@ -659,7 +523,6 @@ rt::BVH::recursiveBuild(MemoryArena &arena,
     }
     cost[i] = 1.f + ((float)count0 * rt::SurfaceArea(b0) +
 		     (float)count1 * rt::SurfaceArea(b1)) / rt::SurfaceArea(bounds);
-    //VAR2( i, cost[i] );
   } // for i
 
   // Find bucket to split at that minimizes SAH metric
