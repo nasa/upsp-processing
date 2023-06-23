@@ -42,7 +42,7 @@ jobs:
           # the dependencies, even if they are stored on the host filesystem
           # (exposed via the /host mount point) and cached by the host runner.
           runVcpkgInstall: true
-          vcpkgJsonGlob: '${{ github.workspace }}/build-scripts/vcpkg.json'
+          vcpkgJsonGlob: '**/build-scripts/vcpkg.json'
 
       - name: List $RUNNER_WORKSPACE before build
         run: find $RUNNER_WORKSPACE
