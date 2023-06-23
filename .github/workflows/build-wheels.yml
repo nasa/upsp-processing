@@ -49,7 +49,7 @@ jobs:
         shell: bash
       
       - name: Normalize paths (Windows only)
-        if: runner.os == "Windows"
+        if: runner.os == 'Windows'
         run: |
           echo "UNIX_RUNNER_WORKSPACE=${RUNNER_WORKSPACE//\\//}" >> $GITHUB_ENV
           echo "UNIX_GITHUB_WORKSPACE=${GITHUB_WORKSPACE//\\//}" >> $GITHUB_ENV
