@@ -11,6 +11,7 @@
 #include <deque>
 #include <string>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h> // for perror
 #include <errno.h>
 
@@ -145,7 +146,7 @@ inline std::string ftoa(double val)
   return ostr.str();
 }
 
-inline std::string utoa(u_int64_t val)
+inline std::string utoa(uint64_t val)
 {
   std::ostringstream ostr;
   ostr<<val;

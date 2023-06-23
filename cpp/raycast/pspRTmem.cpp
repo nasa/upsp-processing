@@ -36,7 +36,7 @@
 // Memory Allocation Functions
 void *AllocAligned(size_t size)
 {
-#if defined(PBRT_IS_WINDOWS)
+#ifdef PBRT_IS_WINDOWS
     return _aligned_malloc(size, PBRT_L1_CACHE_LINE_SIZE);
 #else
     void *ptr;
@@ -50,7 +50,7 @@ void *AllocAligned(size_t size)
 void FreeAligned(void *ptr)
 {
     if (!ptr) return;
-#if defined(PBRT_IS_WINDOWS)
+#ifdef PBRT_IS_WINDOWS
     _aligned_free(ptr);
 #else
     free(ptr);
