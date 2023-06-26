@@ -37,7 +37,7 @@ jobs:
       - name: Point VCPKG_BINARY_SOURCES to host filesystem (Linux only)
         if: runner.os == 'Linux'
         run: |
-          echo "VCPKG_BINARY_SOURCES=${RUNNER_WORKSPACE}/b/vcpkg_cache" >> $GITHUB_ENV
+          echo "VCPKG_BINARY_SOURCES=/host/${RUNNER_WORKSPACE}/b/vcpkg_cache" >> $GITHUB_ENV
         shell: bash
 
       - name: run vcpkg
