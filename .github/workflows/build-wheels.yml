@@ -31,6 +31,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Special case: cibuildwheel uses docker container for
+      # manylinux builds, so cache our vcpkg data on the
+      # host filesystem (mounted to /host by default)
+      - name: Point VCPKG_BINARY_SOURCES to host filesystem (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          echo "VCPKG_BINARY_SOURCES=${RUNNER_WORKSPACE}/b/vcpkg_cache" >> $GITHUB_ENV
+        shell: bash
+
       - name: run vcpkg
         uses: lukka/run-vcpkg@main
         id: run_vcpkg
@@ -47,7 +56,7 @@ jobs:
       - name: List $RUNNER_WORKSPACE before build
         run: find $RUNNER_WORKSPACE
         shell: bash
-      
+
       - name: Normalize paths (Windows only)
         if: runner.os == 'Windows'
         run: |
