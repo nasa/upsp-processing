@@ -30,6 +30,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # Special case: cibuildwheel uses docker container for
       # manylinux builds, so cache our vcpkg data on the
