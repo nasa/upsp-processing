@@ -31,21 +31,23 @@
  */
 
 #if defined(_MSC_VER)
-#define NOMINMAX
 #pragma once
 #endif
 
 #ifndef PBRT_CORE_MEMORY_H
 #define PBRT_CORE_MEMORY_H
-//#include "stdafx.h"
-#include <cstdint>
-#include <malloc.h>
+
 #define PBRT_L1_CACHE_LINE_SIZE 64
 
-// core/memory.h*
-//#include "pbrt.h"
-//#include "parallel.h"
+#if defined(_WIN32) || defined(_WIN64)
+  #define PBRT_IS_WINDOWS
+#endif
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <algorithm>
 #include <list>
+#include <utility>
 
 // Memory Declarations
 #define ARENA_ALLOC(arena, Type) new ((arena).Alloc(sizeof(Type))) Type

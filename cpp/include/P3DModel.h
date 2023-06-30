@@ -37,7 +37,6 @@
 // #include "Octree.h"
 
 //#define DBG
-#include "utils/pspDbg.h" // VAR(), DIE_IF()
 #include "utils/pspTimer.h" // BlockTimer
 #include "utils/pspKdtree.h" // kdtree
 // SANDSTROM: ... 2019-Jun-03

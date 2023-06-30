@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include "pspOstr.h"
 
+#ifdef _MSC_VER
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ __FUNCSIG__
+#endif
+#endif
+
 #ifndef PERROR
 # define PERROR(m) {							\
     std::cerr<<"==========================="<<std::endl;		\
