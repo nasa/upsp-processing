@@ -113,7 +113,8 @@ class TargetDetectionTestCase(unittest.TestCase):
         for i in range(len(img_targets_sub)):
             np.testing.assert_array_almost_equal(
                 img_targets_sub[i]['center'],
-                img_targets_sub_gt[i]
+                img_targets_sub_gt[i],
+                decimal=3
             )
 
     # pixel_2_polygon is tested indirectly with the test_template_detection

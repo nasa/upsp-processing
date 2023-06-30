@@ -10,6 +10,7 @@ dependencies = [
     "opencv-python-headless==4.5.2.54",
     "pandas",
     "scipy",
+    "shapely"
 ]
 
 [build-system]

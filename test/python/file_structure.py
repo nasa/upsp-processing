@@ -18,6 +18,8 @@ def setUp(data_dir):
     for f in file_setup:
         f = list(f)
         f[0] = os.path.relpath(f[0], os.path.dirname(__file__))
+        f[1] = sorted(f[1])
+        f[2] = sorted(f[2])
         relevant_file_setup.append(f)
     
     # convert the file structure to strings to match what is written in the csv
@@ -69,6 +71,8 @@ def file_setup_writer(data_dir):
         for files in os.walk(files_dir):
             files = list(files)
             files[0] = os.path.relpath(files[0], os.path.dirname(__file__))
+            files[1] = sorted(files[1])
+            files[2] = sorted(files[2])
             wri.writerow(files)
 
 
