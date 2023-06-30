@@ -54,7 +54,7 @@ class Kulites:
         # Get a list of all info files. There are a couple variations,
         # auto-detect using regexes.
         info_files = self.__autodetect_info_files(data_dir, run, seq)
-        log.info('Autodetected info files: %s', str(info_files))
+        log.debug('Autodetected info files: %s', str(info_files))
 
         # Check each info file for the kulites of interest
         for info_file in sorted(info_files):
@@ -186,7 +186,7 @@ class Kulites:
         #   the numbering corresponds to what channel they are plugged into.
         #
         if 'User Name' not in chanconfig_df.columns:
-            log.warning(''.join([
+            log.debug(''.join([
                 '"User Name" column not found in %s. ',
                 'Will infer Kulite-to-channel mapping: ',
                 'K01 -> Channel 1, K02 -> Channel 2, etc.',
@@ -224,7 +224,7 @@ class Kulites:
                     "Can't determine file format. Did Kevin change it again?"
                 )
 
-        log.info('Detected info file version: %d', Version)
+        log.debug('Detected info file version: %d', Version)
         accepted_versions = [1, 4]
         if Version not in accepted_versions:
             raise Exception(
@@ -278,7 +278,6 @@ class Kulites:
             #     f_type, filename, inferred_filename
             # )
             filename = inferred_filename
-        print(filename)
 
         def try_load_cal():
             prefix = os.path.splitext(filename)[0]
@@ -314,7 +313,7 @@ class Kulites:
 
         cal = try_load_cal()
         if cal:
-            print('calibration matrix:', cal['calibrationmatrix'].shape)
+            log.debug('calibration matrix: %s', str(cal['calibrationmatrix'].shape))
 
         # Perform import via numpy array
         # type is nChannel columns of int32 (i4)
@@ -343,7 +342,7 @@ class Kulites:
                     (10**(chan['EU Gain (dB)'][channel] / 20)) + \
                     chan['EU C0'][channel]
 
-            print(
+            log.debug(
                 'C[%02d]' % (channel + 1,), vraw.shape,
                 'Counts:', f'{np.min(vraw):+10d}', f'{np.max(vraw):+10d}',
                 'V:', f'{np.min(vnative):.3f}', f'{np.max(vnative):.3f}',
@@ -612,7 +611,7 @@ def create_pressure_array(kuls, data_type=np.float32):
     leng = len(kuls.data[list(kuls.data.keys())[0]])
     data_array = np.empty(size, dtype=data_type)
 
-    log.info("Creating kulite pressure file of %d kulites, history of %d,"
+    log.debug("Creating kulite pressure file of %d kulites, history of %d,"
              + " size %d, and type %s..",
              len(kuls.data), leng, size, data_type)
 

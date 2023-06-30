@@ -65,11 +65,15 @@ cv::Mat register_pixel(const cv::Mat& ref_img, const cv::Mat& inp_img,
     // get the warped image
     cv::Mat warp_img;
     if (warp_mode != cv::MOTION_HOMOGRAPHY) {
-        cv::warpAffine(inp_img, warp_img, warp_matrix, ref_img.size(), cv::INTER_LINEAR + 
-                cv::WARP_INVERSE_MAP);
+        cv::warpAffine(
+            inp_img, warp_img, warp_matrix, ref_img.size(),
+            cv::INTER_NEAREST | cv::WARP_INVERSE_MAP
+        );
     } else {
-        cv::warpPerspective(inp_img, warp_img, warp_matrix, ref_img.size(), cv::INTER_LINEAR + 
-                cv::WARP_INVERSE_MAP);
+        cv::warpPerspective(
+            inp_img, warp_img, warp_matrix, ref_img.size(),
+            cv::INTER_NEAREST | cv::WARP_INVERSE_MAP
+        );
     }
 
     return warp_img;

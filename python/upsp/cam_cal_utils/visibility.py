@@ -6,6 +6,11 @@ import upsp.processing.p3d_utilities as p3d
 import upsp.processing.p3d_conversions as p2g
 import upsp.raycast
 
+from upsp.cam_cal_utils import (
+    internal_calibration,
+    photogrammetry,
+)
+
 log = logging.getLogger(__name__)
 
 
@@ -57,10 +62,19 @@ class VisibilityChecker:
         primitive (effectively having 'no grid'). This makes BVH operations much faster.
     """
 
-    def __init__(self, grid_path, oblique_angle=70, epsilon=1e-4, debug=False, debug_nogrid=False):
+    def __init__(
+        self,
+        grid_path,
+        oblique_angle=70,
+        epsilon=1e-4,
+        debug=False,
+        debug_nogrid=False
+    ):
         # If debug_nogrid is used, create a fake BVH with one very small primitive
         if debug_nogrid:
-            primitives = np.array([0.00001, 0.0, 0.0, 0.0, 0.00001, 0.0, 0.0, 0.0, 0.00001])
+            primitives = np.array(
+                [0.00001, 0.0, 0.0, 0.0, 0.00001, 0.0, 0.0, 0.0, 0.00001]
+            )
 
         # When debug is True (and debug_nogrid is False), we are allowed to cache & load
         #   the grid. This makes debugging faster, but cached items can become stale
@@ -76,7 +90,7 @@ class VisibilityChecker:
                 primitives = np.load(CACHE_FILENAME)
                 log.debug('Loaded BVH primitives cache "%s"', CACHE_FILENAME)
 
-            # If the primitives are not available, load the grid from scratch and cache it
+            # If primitives are not available, load the grid from scratch and cache it
             else:
                 t = self.load_mesh(grid_path)
 
@@ -147,7 +161,7 @@ class VisibilityChecker:
         grd = p3d.read_p3d_grid(grid_path)
         t = p2g.p3d_to_gltf_triangles(grd)
         t["vertices"] = np.array(t["vertices"])
-        t["indices"] = np.array(t["indices"])
+        t["indices"] = np.array(t["indices"], dtype=int)
         return t
 
     def package_primitives(self, t):
@@ -240,7 +254,8 @@ class VisibilityChecker:
         """
         v1_u = self.unit_vector(v1)
         v2_u = self.unit_vector(v2)
-        return np.rad2deg(np.arccos(np.clip(np.sum(np.multiply(v1_u, v2_u), axis=1), -1.0, 1.0)))
+        angle_r = np.arccos(np.clip(np.sum(np.multiply(v1_u, v2_u), axis=1), -1.0, 1.0))
+        return np.rad2deg(angle_r)
 
     def is_back_facing(self, t, n):
         """This is the 'slow' version of the back face culling check
@@ -277,7 +292,7 @@ class VisibilityChecker:
             return False
 
     def is_back_facing_fast(self, t, n):
-        r"""Returns True if the node is back facing, otherwise returns False
+        """Returns True if the node is back facing, otherwise returns False
 
         This re-write is significantly faster than the naive approach, but not as fast
         as the vectorized approach. This function is mostly for legacy/regression
@@ -477,7 +492,77 @@ class VisibilityChecker:
         if return_angles:
             return np.array(visible), np.array(angles[visible])
 
-        return np.array(visible)
+        return np.array(visible, dtype=int)
+
+    def is_visible_and_inside_incal(
+        self,
+        rmat,
+        tvec,
+        cameraMatrix,
+        distCoeffs,
+        nodes,
+        normals,
+        incal_inputs=None
+    ):
+        """ Returns indices that pass the visibility and internal calibration checks
+
+        Parameters:
+        -----------
+        rmat : np.ndarray, shape (3, 3), float
+            Rotation matrix from camera to object
+        tvec : np.ndarray, shape (3, 1), float
+            Translation vector from camera to object
+        cameraMatrix : np.ndarray, shape (3, 3), float
+            The (openCV formatted) camera matrix for the camera
+        distCoeffs : np.ndarray, shape (1, 5), float
+            The (openCV formatted) distortion coefficients for the camera
+        nodes : np.ndarray, shape (N, 3), float
+            X, Y, Z position of nodes to be checked. ``nodes[i]`` is associated with
+            ``normals[i]``
+        normals : np.ndarray, shape (N, 3), float
+            Normal vectors. ``normals[i]`` is associated with ``nodes[i]``
+        incal_inputs : dict. Optional, default={'critical_pt':'first'}
+            Additional parameter inputs for internal_calibration.get_pts_inside_incal
+        
+        Returns
+        ----------
+        inside_incal : np.ndarray
+            Numpy array of the indices of the nodes that are inside the internal
+            calibration boundaries
+        """
+
+        """
+        # slow way
+        is_inside_incal_idxs = self.check_inside_incal(
+            rmat, tvec, cameraMatrix, distCoeffs, nodes, incal_inputs
+        )
+
+        rmat_model_to_cam, tvec_model_to_cam = photogrammetry.invTransform(rmat, tvec)
+        is_visible_idxs = self.is_visible(
+            tvec_model_to_cam, nodes, normals, return_angles=False
+        )
+        in_incal_and_vis_idxs = np.intersect1d(is_inside_incal_idxs, is_visible_idxs)
+        return np.sort(in_incal_and_vis_idxs)
+        """
+        # Populate incal_inputs if it was not given
+        if incal_inputs is None:
+            incal_inputs = {'critical_pt':'first'}
+        
+        # Get the visible nodes
+        rmat_model_to_cam, tvec_model_to_cam = photogrammetry.invTransform(rmat, tvec)
+        is_visible_idxs = self.is_visible(
+            tvec_model_to_cam, nodes, normals, return_angles=False
+        )
+    
+        # Of the visible nodes, get the nodes that are also in the incal bounds
+        is_inside_incal_idxs = internal_calibration.get_pts_inside_incal(
+            rmat, tvec, cameraMatrix, distCoeffs, nodes[is_visible_idxs], **incal_inputs
+        )
+
+        # is_inside_incal_idxs is the indices of is_visible_idxs that are visible
+        # Get the indices of nodes that are visible and in the incal bounds
+        in_incal_and_vis_idxs = is_visible_idxs[is_inside_incal_idxs]
+        return np.sort(in_incal_and_vis_idxs)
 
     def tri_normal(self, face):
         """Returns the normal of a face with vertices ordered counter-clockwise
@@ -493,7 +578,6 @@ class VisibilityChecker:
         normal : np.ndarray, shape (3,)
             Normal vector of input face
         """
-        # https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
         A = face[1] - face[0]  # Edge 1
         B = face[2] - face[1]  # Edge 2
         C = np.cross(A, B)
@@ -525,7 +609,7 @@ class VisibilityChecker:
         # Get all the faces and the face normals
         faces = []
         face_normals = []
-        for face_v_idx in faces_v_idx: #[np.random.choice(range(len(faces_v_idx)), 25000)]:
+        for face_v_idx in faces_v_idx:
             face = np.array([verts[face_v_idx[0]],
                             verts[face_v_idx[1]],
                             verts[face_v_idx[2]]])
