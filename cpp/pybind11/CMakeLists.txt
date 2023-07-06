@@ -25,5 +25,5 @@ install(
     # cine
     raycast
     upsp_kdtree
-    LIBRARY DESTINATION python/upsp
+    LIBRARY DESTINATION ${SKBUILD_PROJECT_NAME}
 )
