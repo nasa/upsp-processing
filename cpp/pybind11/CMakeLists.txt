@@ -26,4 +26,5 @@ install(
     raycast
     upsp_kdtree
     LIBRARY DESTINATION ${SKBUILD_PROJECT_NAME}
+    RUNTIME DESTINATION ${SKBUILD_PROJECT_NAME}
 )

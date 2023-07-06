@@ -50,5 +50,5 @@ install(
     scripts/upsp-plotting
     scripts/upsp-qsub-args
     DESTINATION
-    bin
+    ${SKBUILD_SCRIPTS_DIR}
 )
