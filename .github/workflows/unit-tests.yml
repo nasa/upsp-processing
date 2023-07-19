@@ -51,6 +51,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: lukka/get-cmake@latest
       - name: Install dependencies (Linux)
         run: |
@@ -82,11 +84,6 @@ jobs:
           runVcpkgInstall: true
           # Release 2023.04.15
           vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-      - name: Patch vcpkg library headers with patchelf
-        run: |
-          cd vcpkg
-          ${{ github.workspace }}/.github/workflows/vcpkg-fix-rpaths
-          cd ..
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -96,13 +93,13 @@ jobs:
           pip install --upgrade pip
           pip --version
           python --version
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Run build+install with pip
         run: |
           SKBUILD_CONFIGURE_OPTIONS=\
           " -DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"\
           " -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic" pip install -v .
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
       - name: Run C/C++ unit tests
         # TODO this should be made cross-platform. Currently works only for ubuntu-latest
         # TODO fix RUNPATH of built executables to avoid use of LD_LIBRARY_PATH
