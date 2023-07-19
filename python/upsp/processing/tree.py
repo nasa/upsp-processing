@@ -294,7 +294,6 @@ def _launcher_env_sh(cfg: dict):
 
     - Load any required system libraries that aren't available
       by default... for example, system-provided MPI libraries.
-    
     - Prefix the PATH with the directory of our current python
       interpreter. Ensures any scripts keying off "/usr/bin/env python"
       resolve the correct interpreter at runtime.
@@ -302,7 +301,7 @@ def _launcher_env_sh(cfg: dict):
     env_sh_lines = [
         "source /usr/local/lib/global.profile",
         "module purge",
-        "module load mpi-hpe/mpt.2.25",
+        "module load mpi-hpe/mpt",
         "export PATH=%s:$PATH" % (os.path.dirname(shutil.which("python")))
     ]
     return "\n".join(env_sh_lines)

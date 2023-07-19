@@ -1661,7 +1661,21 @@ int phase1(Phase1Settings& sett, P1Elems& elems) {
       // register the image to the first frame
       if (ifile.registration == upsp::RegistrationType::Pixel) {
         cv::Mat warp_matrix;
-        img = upsp::register_pixel(first_frames_32f[c], img, warp_matrix);
+        const int max_iters = 50;
+        const double epsilon = 0.001;
+        int interpolation_flags = 0;
+        switch(ifile.pixel_interpolation) {
+          case upsp::PixelInterpolationType::Linear:
+            interpolation_flags = cv::INTER_LINEAR;
+            break;
+          case upsp::PixelInterpolationType::Nearest:
+            interpolation_flags = cv::INTER_NEAREST;
+            break;
+        }
+        img = upsp::register_pixel(
+          first_frames_32f[c], img, warp_matrix,
+          max_iters, epsilon, interpolation_flags
+        );
       }
 
       // patch frame
@@ -1762,7 +1776,21 @@ int phase1(Phase1Settings& sett, P1Elems& elems) {
         // register the image to the first frame
         if ((f > 0) && (ifile.registration == upsp::RegistrationType::Pixel)) {
           cv::Mat warp_matrix;
-          img = upsp::register_pixel(elems.first_frames[c], img, warp_matrix);
+          const int max_iters = 50;
+          const double epsilon = 0.001;
+          int interpolation_flags = 0;
+          switch(ifile.pixel_interpolation) {
+            case upsp::PixelInterpolationType::Linear:
+              interpolation_flags = cv::INTER_LINEAR;
+              break;
+            case upsp::PixelInterpolationType::Nearest:
+              interpolation_flags = cv::INTER_NEAREST;
+              break;
+          }
+          img = upsp::register_pixel(
+            elems.first_frames[c], img, warp_matrix,
+            max_iters, epsilon, interpolation_flags
+          );
         }
 
         // patch frame

@@ -26,6 +26,7 @@ enum class TargetPatchType { None, Polynomial };
 
 /** Registration method */
 enum class RegistrationType { None, Point, Pixel };
+enum class PixelInterpolationType { Linear, Nearest };
 
 /** Type of spatial filter */
 enum class FilterType { None, Gaussian, Box };
@@ -78,6 +79,7 @@ public:
     GridType grid_type;
     TargetPatchType target_patcher;
     RegistrationType registration;
+    PixelInterpolationType pixel_interpolation;
     FilterType filter;
     OverlapType overlap;
     unsigned int filter_size;
@@ -173,6 +175,9 @@ std::ostream& operator<<(std::ostream& os, const upsp::TargetPatchType& tpt);
 
 /** Add registration type string to stream */
 std::ostream& operator<<(std::ostream& os, const upsp::RegistrationType& rt);
+
+/** Add pixel interpolation type string to stream */
+std::ostream& operator<<(std::ostream& os, const upsp::PixelInterpolationType& pt);
 
 /** Add filter type string to stream */
 std::ostream& operator<<(std::ostream& os, const upsp::FilterType& ft);

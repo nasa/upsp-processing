@@ -2130,7 +2130,7 @@ def external_calibrate_one_step(
 
         # Subpixel localize the image targets
         tgts_subpixel, img_targets_subpixel = target_detection.subpixel_localize(
-            img,
+            img8bit,
             tgts_filtered,
             img_targets_filtered,
             test_config,
@@ -2180,7 +2180,7 @@ def external_calibrate_one_step(
 
         # Output a debug image of the projected locations and image target center locations
         visualization.show_projection_matching(
-            img,
+            img8bit,
             proj_pts,
             img_centers,
             num_matches=num_matches,

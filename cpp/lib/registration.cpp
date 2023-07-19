@@ -30,7 +30,8 @@ cv::Mat RegisterImage::operator()(cv::Mat inp) {
 
 /*****************************************************************************/
 cv::Mat register_pixel(const cv::Mat& ref_img, const cv::Mat& inp_img, 
-        cv::Mat& warp_matrix, int max_iters/*=50*/, double epsilon/*=0.001*/) {
+        cv::Mat& warp_matrix, int max_iters/*=50*/, double epsilon/*=0.001*/,
+        int interpolation_flags/*=cv::INTER_LINEAR*/) {
 
     // grayscale and ref CV_32F
     assert(ref_img.channels() == 1);
@@ -67,12 +68,12 @@ cv::Mat register_pixel(const cv::Mat& ref_img, const cv::Mat& inp_img,
     if (warp_mode != cv::MOTION_HOMOGRAPHY) {
         cv::warpAffine(
             inp_img, warp_img, warp_matrix, ref_img.size(),
-            cv::INTER_NEAREST | cv::WARP_INVERSE_MAP
+            interpolation_flags | cv::WARP_INVERSE_MAP
         );
     } else {
         cv::warpPerspective(
             inp_img, warp_img, warp_matrix, ref_img.size(),
-            cv::INTER_NEAREST | cv::WARP_INVERSE_MAP
+            interpolation_flags | cv::WARP_INVERSE_MAP
         );
     }
 
