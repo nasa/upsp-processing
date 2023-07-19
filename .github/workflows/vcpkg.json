@@ -15,8 +15,5 @@
     "ilmbase",
     "gtest",
     "pybind11"
-  ],
-  "vcpkg-configuration": {
-    "overlay-triplets": ["./vcpkg-triplets"]
-  }
+  ]
 }
