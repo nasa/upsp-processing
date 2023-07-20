@@ -124,8 +124,7 @@ jobs:
   pypi_publish:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
+    environment: pypi
     permissions:
       id-token: write
     # Upload for any push of tag starting with 'v'
@@ -140,4 +139,4 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository_url: https://test.pypi.org/legacy/
+          repository_url: https://pypi.org/p/upsp
