@@ -1,4 +1,4 @@
-name: Build Python wheels
+name: Build 🐍 📦 (+ publish if tagged)
 
 on:
   push:
@@ -120,3 +120,24 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         path: dist/*.tar.gz
+
+  pypi_publish:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+    # Upload for any push of tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          # unpacks default artifact into dist/
+          # if `name: artifact` is omitted, the action will create extra parent dir
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository_url: https://test.pypi.org/legacy/
