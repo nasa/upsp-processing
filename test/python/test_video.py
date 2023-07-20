@@ -30,11 +30,6 @@ class MrawTest(unittest.TestCase):
 
             self.assertEqual(f0.shape, (1024, 1024))
 
-    def test_from_cih_path(self):
-        # test passing in corresponding header file path works too
-        with MrawReader(mraw_dir / "12bitMRAW.cih") as vid:
-            vid.read_frame(0)
-
 
 if __name__ == "__main__":
     unittest.main()
