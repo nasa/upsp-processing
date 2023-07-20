@@ -26,4 +26,5 @@ install(
     raycast
     upsp_kdtree
     LIBRARY DESTINATION python/upsp
+    RUNTIME DESTINATION python/upsp
 )
