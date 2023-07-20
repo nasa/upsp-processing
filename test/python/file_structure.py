@@ -1,5 +1,6 @@
 import os
 import csv
+import pathlib
 
 
 def setUp(data_dir):
@@ -17,7 +18,7 @@ def setUp(data_dir):
     file_setup = os.walk(data_dir)
     for f in file_setup:
         f = list(f)
-        f[0] = os.path.relpath(f[0], os.path.dirname(__file__))
+        f[0] = pathlib.Path(os.path.relpath(f[0], os.path.dirname(__file__))).as_posix()
         f[1] = sorted(f[1])
         f[2] = sorted(f[2])
         relevant_file_setup.append(f)
