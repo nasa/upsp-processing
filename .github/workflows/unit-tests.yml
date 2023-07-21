@@ -89,6 +89,9 @@ jobs:
           cmake \
             -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-linux-dynamic" \
+            -DUPSP_BUILD_TESTING=ON \
+            -DUPSP_BUILD_APPLICATIONS=ON \
+            -DUPSP_BUILD_PYBIND11=ON \
             ..
           make -j
       # - name: Setup upterm session
