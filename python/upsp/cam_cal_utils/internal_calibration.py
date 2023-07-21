@@ -13,17 +13,17 @@ meter2inch = 39.3701
 # NOTE: This is implemented for Calib.io version v1.6.5a
 
 
-def get_safe_pts(
+def get_pts_inside_incal(
     rmat,
     tvec,
     cameraMatrix,
     distCoeffs,
     obj_pts,
-    cal_area_is_safe,
-    cal_vol_is_safe,
+    cal_area_is_safe=None,
+    cal_vol_is_safe=None,
     critical_pt=None,
 ):
-    """Determines which `obj_pts` are inside the well behaved region of the internal calibration
+    """Returns `obj_pts` that are inside the well behaved region of the internal cal
 
     Performs 3 checks on each of the `obj_pts`. The first check and second check is that
     each obj_pt and its projection are within the safe volume and safe area as defined
@@ -59,24 +59,27 @@ def get_safe_pts(
         The (openCV formatted) distortion coefficients for the camera
     obj_pts : np.ndarray, shape (n, 3), float
         List of 3d points. Points are relative to the object frame
-    cal_area_is_safe : callable
-        ``alpha_shape_is_safe`` function that takes `img_pts` as an array, (shape
-        ``(n, 2)``) of floats and returns an array-like object of booleans.
-        ``return[i]`` corresonds to ``img_pts[i]``. If ``return[i]`` is True, then
-        ``img_pts[i]`` is within the safe internal calibration image area. If it is
-        False, it is not within that safe area
-    cal_vol_is_safe : callable
-        ``alpha_shape_is_safe`` function that takes `obj_pts` and returns a array-like
-        object of booleans. ``return[i]`` corresonds to ``img_pts[i]``. If ``return[i]``
-        is True, then ``img_pts[i]`` is within the safe internal calibration 3D volume.
-        If it is False, it is not within that safe volume
+    cal_area_is_safe : callable or None. Optional, default=None
+        If ``None``, it is assumed all points are safe. If cal_area_is_safe is a
+        callable, it must be an ``alpha_shape_is_safe`` function. It takes `img_pts` as
+        an array, (shape ``(n, 2)``) of floats and returns an array-like object of
+        booleans. ``return[i]`` of that function corresonds to ``img_pts[i]``. If
+        ``return[i]`` is True, then ``img_pts[i]`` is within the safe internal
+        calibration image area. If it is False, it is not within that safe area
+    cal_area_is_safe : callable or None. Optional, default=None
+        If ``None``, it is assumed all points are safe. If cal_area_is_safe is a
+        callable, it must be an ``alpha_shape_is_safe`` function. It takes `obj_pts` as
+        an array, (shape ``(n, 3)``) of floats and returns an array-like object of
+        booleans. ``return[i]`` of that function corresonds to ``obj_pts[i]``. If
+        ``return[i]`` is True, then ``obj_pts[i]`` is within the safe internal
+        calibration image area. If it is False, it is not within that safe area
     critical_pt : str, optional
         Criteria for step 3. Must be one of:
 
         - If 'first' then `obj_pts` cannot have a homogeneous coordinate with a
           magnitude past the first maxima of the distortion curve. This is the most
           useful option for the majority of lenses.
-        - If 'infinity', the magnitude must be less than the final maxima of the
+        - If 'final', the magnitude must be less than the final maxima of the
           distortion curve, and the distortion curve must be decreasing after the final
           maxima. This is the most useful option for mustache or otherwise complex
           distortion, if the mustache distortion effect is accurate
@@ -88,15 +91,21 @@ def get_safe_pts(
     Returns
     -------
     obj_pts_safe : np.ndarray, shape (n,), bool
-        Array of booleans where ``return[i]`` cooresponds to ``obj_pts[i]``. If
-        ``return[i]`` is True, ``obj_pts[i]`` is well behaved. If ``return[i]`` is
-        False, ``obj_pts[i]`` may not be well behaved
-
+        Array of indices ``obj_pts[i]``. If i is in return, then ``obj_pts[i]`` is well
+        behaved. Otherwise, ``obj_pts[i]`` is not well behaved
+    
     See Also
     --------
     incal_calibration_bounds : creates ``alpha_shape_is_safe`` functions
     """
     assert critical_pt in ["first", "final", None]
+
+    # Populate the cal area objects if they were not given
+    if cal_area_is_safe is None:
+        cal_area_is_safe = incal_calibration_bounds_debug()[0]
+    
+    if cal_vol_is_safe is None:
+        cal_vol_is_safe = incal_calibration_bounds_debug()[1]
 
     # Define a list of booleans to denote if a variable is safe
     obj_pts_safe = np.full(len(obj_pts), True)
@@ -115,12 +124,12 @@ def get_safe_pts(
 
     # First shortcut skips if step 3 is omitted
     if critical_pt is None:
-        return obj_pts_safe
+        return np.argwhere(obj_pts_safe==True).flatten()
 
     # Second shortcut skips if all of the distortion coefficients are non-negative,
     #   since there is no maxima
     if (distCoeffs >= 0).all():
-        return obj_pts_safe
+        return np.argwhere(obj_pts_safe==True).flatten()
 
     # Third shortcut skips if critical_pt == 'final' and the projection curve has a
     #   positive derivative as the magnitude of the homogeneous coordinates goes to inf
@@ -142,7 +151,7 @@ def get_safe_pts(
         else min(p2, p1)
     )
     if (critical_pt == "final") and highest_nonzero_term > 0.0:
-        return obj_pts_safe
+        return np.argwhere(obj_pts_safe==True).flatten()
 
     # Step 3b: Perform the full step 3
 
@@ -150,8 +159,8 @@ def get_safe_pts(
     obj_pts_rel_cam = photogrammetry.transform_3d_point(rmat, tvec, obj_pts)
 
     # Define the homogenous coordiantes
-    x_homo_vals = (obj_pts_rel_cam[:, 0] / obj_pts_rel_cam[:, 2]).astype(np.complex)
-    y_homo_vals = (obj_pts_rel_cam[:, 1] / obj_pts_rel_cam[:, 2]).astype(np.complex)
+    x_homo_vals = (obj_pts_rel_cam[:, 0] / obj_pts_rel_cam[:, 2]).astype(complex)
+    y_homo_vals = (obj_pts_rel_cam[:, 1] / obj_pts_rel_cam[:, 2]).astype(complex)
 
     # Define the distortion terms, and vectorize calculating of powers of x_homo_vals
     #   and y_homo_vals
@@ -267,7 +276,7 @@ def get_safe_pts(
     obj_pts_safe *= np.where(y_homo_vals < y_homo_max, True, False)
 
     # Return the list of is_safe booleans
-    return obj_pts_safe
+    return np.argwhere(obj_pts_safe==True).flatten()
 
 
 def incal_from_calibio(calibio_path):
@@ -336,6 +345,7 @@ def write_incal_from_calibio(calibio_path, camera_name, sensor_size, save_dir=No
     ----------
     calibio_path : str
         Path to the calib.io saved calibration json
+        (Calib.io: File > Save Calibration Project)
     camera_name : str
         Name of the camera
     sensor_size : np.ndarray, shape (2,) of floats
@@ -697,7 +707,7 @@ def alpha_shape_is_safe(pts, alpha):
     # Get the number of dimensions
     num_dims = tess.simplices.shape[1] - 1
 
-    # Get the radius of the circumsphere (circumcircle in 2D) for each of the tessellation
+    # Get radius of the circumsphere (circumcircle in 2D) for each of the tessellation
     # Equations for circumcircle and circumsphere radius from wolframalpha:
     #   https://mathworld.wolfram.com/Circumcircle.html
     #   https://mathworld.wolfram.com/Circumsphere.html

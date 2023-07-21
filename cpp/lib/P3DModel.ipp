@@ -5,6 +5,7 @@
  */
 #include "logging.h"
 #include "plot3d.h"
+#include "utils/pspError.h"
 
 namespace upsp {
 

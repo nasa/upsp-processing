@@ -2,12 +2,14 @@ import numpy as np
 import os
 import json
 
+from upsp.target_operations import target_detection
 from upsp.cam_cal_utils import (
     external_calibrate,
     photogrammetry,
     parsers,
     visualization,
 )
+from upsp.target_operations import target_detection
 
 debug_show_3D_targets = False
 debug_show_img_targets = False
@@ -129,13 +131,13 @@ def camera_to_tunnel_calibrate(
 
     if debug_show_3D_targets:
         import matplotlib.pyplot as plt
-        import target_bumping
+        from upsp.target_operations import target_bumping
 
         fig = plt.figure("3D Targets")
         ax = fig.add_subplot(projection="3d")
 
         tvecs, norms = vis_checker.get_tvecs_and_norms()
-        ax.scatter(tvecs[:, 0], tvecs[:, 1], tvecs[:, 2])
+        ax.scatter(tvecs[:, 0], tvecs[:, 1], tvecs[:, 2], c='b')
 
         internals = target_bumping.tgts_get_internals(tgts, vis_checker)
         internal_names = [internal[0] for internal in internals]
@@ -143,7 +145,7 @@ def camera_to_tunnel_calibrate(
         for tgt in tgts:
             if tgt["name"] not in internal_names:
                 external_tgts.append(tgt)
-        visualization.plot_pts_and_norms(external_tgts, ax)
+        visualization.plot_pts_and_norms(external_tgts, ax, scale=10, c='r')
 
         ax.view_init(elev=45, azim=-90)
         visualization.axisEqual3D(ax)
@@ -177,7 +179,7 @@ def camera_to_tunnel_calibrate(
                 img_targets.append(img_target)
 
         # Sub-pixel localize the manual img_targets
-        __, img_targets = external_calibrate.subpixel_localize(
+        __, img_targets = target_detection.subpixel_localize(
             img, img_targets, img_targets, test_config
         )
 
@@ -202,23 +204,27 @@ def camera_to_tunnel_calibrate(
         # If debug_show_matches is turned on, generate the debug image
         if debug_show_matches:
             visible_init_tgts = photogrammetry.get_visible_targets(
-                rmat_opt, tvec_opt, tgts, vis_checker
+                rmat_opt, tvec_opt, cameraMatrix, distCoeffs, tgts, vis_checker
             )
-            external_calibrate.match_targets(
-                rmat_opt,
-                tvec_opt,
-                cameraMatrix,
-                distCoeffs,
-                visible_init_tgts,
-                img_targets,
-                max_dist=test_config["max_dist"],
-                debug=[img, str(num), None],
+            dets = target_detection.template_detection(
+                img, rmat_opt, tvec_opt, cameraMatrix, distCoeffs, tgts, test_config
+            )
+            tgts_detected, img_targets, num_matches = dets
+            
+            proj_pts = photogrammetry.project_targets(
+                rmat_opt, tvec_opt, cameraMatrix, distCoeffs, tgts
+            )
+            
+            proj_pts = np.array([proj_pt['proj'] for proj_pt in proj_pts])
+            img_targets = np.array([img_target['center'] for img_target in img_targets])
+            visualization.show_projection_matching(
+                img, proj_pts, img_targets, num_matches, name='1_'
             )
 
         # Transform from camera to tgts to tunnel -> Get camera to tunnel transformation
         rmat_camera_tunnel = np.matmul(rmat_opt, rmat_tgts_tunnel)
         tvec_camera_tunnel = tvec_opt + np.matmul(rmat_opt, tvec_tgts_tunnel)
-
+        
         # Package the camera calibration data
         uPSP_cameraMatrix = parsers.convert_cv2_cm_to_uPSP_cm(cameraMatrix, img.shape)
         datum = {
@@ -331,7 +337,6 @@ def tf_camera_tgts_thru_tunnel(camera_tunnel_cal, wtd, test_config):
     tvec__camera_tgts : np.ndarray, shape (3, 1)
         Translation vector
     """
-
     # Turn the wind tunnel data into the transformation from tunnel to targets
     wtd_transform = tunnel_transform(
         wtd["ALPHA"],
@@ -347,17 +352,13 @@ def tf_camera_tgts_thru_tunnel(camera_tunnel_cal, wtd, test_config):
     tvec_tgts_tunnel = -np.matmul(rmat_tgts_tunnel, tvec_tunnel_tgts)
 
     # Decompose the camera calibration into its parts
-    (
-        rmat__camera_tunnel,
-        tvec__camera_tunnel,
-        cameraMatrix,
-        distCoeffs,
-    ) = camera_tunnel_cal
+    __, __, cameraMatrix, distCoeffs = camera_tunnel_cal
+    rmat__camera_tunnel, tvec__camera_tunnel, __, __ = camera_tunnel_cal
 
-    # Combine the transformations to get the transformation from `camera to tgts frame
+    # Combine the transformations to get the transformation from camera to tgts frame
     rmat__camera_tgts = np.matmul(rmat__camera_tunnel, np.linalg.inv(rmat_tgts_tunnel))
-    tvec__camera_tgts = tvec__camera_tunnel + np.matmul(
-        rmat__camera_tunnel, tvec_tunnel_tgts
-    )
+    
+    tvec_transform = np.matmul(rmat__camera_tunnel, tvec_tunnel_tgts)
+    tvec__camera_tgts = tvec__camera_tunnel + tvec_transform
 
     return rmat__camera_tgts, tvec__camera_tgts

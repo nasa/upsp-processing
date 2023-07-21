@@ -351,7 +351,7 @@ def read_internal_params(internal_cal_path, dims, read_sensor=False):
 
 
 def read_camera_tunnel_cal(cal_path, dims, read_sensor=False):
-    """ Returns the internal (intrinsic) and external (extrinsic) camera calibration parameters
+    """ Returns internal (intrinsic) and external (extrinsic) camera cal parameters
 
     Parameters
     ----------

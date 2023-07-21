@@ -53,13 +53,16 @@ struct RegisterImage : std::unary_function<cv::Mat, cv::Mat> {
  * @param[in] max_iters maximum number of iterations for ECC algorithm
  * @param[in] epsilon   threshold of the increment in correlation coefficient between
  *                      two iterations, criteria for ECC algorithm to stop
+ * @param[in] interpolation_flags pixel interpolation method for image warping
+ *                      two iterations, criteria for ECC algorithm to stop
  * @return              @a inp_img warped to align with @a ref_img
  *
  * @pre @a ref_img and @a inp_img are grayscale images
  * @pre @a ref_img is CV_32F
  */
 cv::Mat register_pixel(const cv::Mat& ref_img, const cv::Mat& inp_img, 
-        cv::Mat& warp_matrix, int max_iters=50, double epsilon=0.001);
+        cv::Mat& warp_matrix, int max_iters=50, double epsilon=0.001,
+        int interpolation_flags=cv::INTER_LINEAR);
 
 /** Remove match pairs where the distance between the points is significantly large
  *

@@ -1,12 +1,24 @@
 import numpy as np
 import cv2
 
-from upsp.cam_cal_utils import photogrammetry
+from upsp.cam_cal_utils import (
+    photogrammetry,
+    internal_calibration,
+)
 
 np.set_printoptions(linewidth=np.inf, precision=4, threshold=np.inf)
 
 
-def node_to_pixel_mapping_keyframe(rmat, tvec, cameraMatrix, distCoeffs, vis_checker, nodes, normals):
+def node_to_pixel_mapping_keyframe(
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    vis_checker,
+    nodes,
+    normals,
+    get_pts_inside_incal_inputs=None
+):
     """Returns data on the projected visible nodes for a keyframe
 
     Returns a numpy array of the pixel positions of the projected locations of the
@@ -14,6 +26,12 @@ def node_to_pixel_mapping_keyframe(rmat, tvec, cameraMatrix, distCoeffs, vis_che
     to the rotation vector and translation vector. Non-visible nodes are given a pixel
     position and gradient value of NAN. Additionally returns a sorted numpy array of the
     indices of the nodes that are visible.
+
+    Nodes are also checked for 'safety' with regards to the internal calibration. Points
+    outside the 'safe' region of the internal calibration are rejected. This is most
+    often the case for poorly-defined internal calibrations. But can happen to high
+    quality internal calibrations if the nodes given are very far outside the frame of
+    the image. See internal_calibration.get_pts_inside_incal for more information.
 
     Parameters
     ----------
@@ -33,7 +51,10 @@ def node_to_pixel_mapping_keyframe(rmat, tvec, cameraMatrix, distCoeffs, vis_che
     normals : np.ndarray, shape (N, 3), float
         A numpy array of the i, j, and k values of the node normals. ``normals[n]`` is
         associated with ``nodes[n]``
-
+    get_safe_pts_inputs : dict. Optional, default={}
+        *get_safe_pts_inputs is given to internal_calibration.get_safe_pts when finding
+        the nodes inside the safe region of the internal calibration. 
+    
     Returns
     -------
     projections : np.ndarray, shape (N, 2), float
@@ -50,30 +71,48 @@ def node_to_pixel_mapping_keyframe(rmat, tvec, cameraMatrix, distCoeffs, vis_che
     --------
     node_to_pixel_mapping_non_keyframe : use outputs to quickly map non-keyframes
     """
-
+    if get_pts_inside_incal_inputs is None:
+        get_pts_inside_incal_inputs = {'critical_pt':'first'}    
+    
     # Get the visible nodes
     rmat_model2camera, tvec_model2camera = photogrammetry.invTransform(rmat, tvec)
-    vis_idxs = vis_checker.is_visible(tvec_model2camera, nodes, normals)
-    vis_idxs = np.sort(vis_idxs)
-    vis_nodes = nodes[vis_idxs]
+
+    in_incal_and_vis_idxs = vis_checker.is_visible_and_inside_incal(
+        rmat,
+        tvec,
+        cameraMatrix,
+        distCoeffs,
+        nodes,
+        normals,
+        get_pts_inside_incal_inputs
+    )
+    in_incal_and_vis_idxs_nodes = nodes[in_incal_and_vis_idxs]
 
     # Project all visible nodes
-    projs, jacs = photogrammetry.project_3d_point(rmat, tvec, cameraMatrix, distCoeffs, vis_nodes, ret_jac=True)
-
-    jacs_swapped = np.swapaxes(jacs, 0, 1)
+    projs, jacs = photogrammetry.project_3d_point(
+        rmat, tvec, cameraMatrix, distCoeffs, in_incal_and_vis_idxs_nodes, ret_jac=True
+    )
 
     # Initialize an output of all NANs
     projs_fin = np.full((len(nodes), 2), np.NAN)
     jacs_fin  = np.full((len(nodes), 2, 6), np.NAN)
 
     # For visible nodes, replace the NANs with data
-    projs_fin[vis_idxs] = projs
-    jacs_fin[vis_idxs] = jacs
+    projs_fin[in_incal_and_vis_idxs] = projs
+    jacs_fin[in_incal_and_vis_idxs] = jacs
 
-    return projs_fin, jacs_fin, vis_idxs
+    return projs_fin, jacs_fin, in_incal_and_vis_idxs
 
 
-def node_to_pixel_mapping_non_keyframe(rmat_key, tvec_key, rmat_curr, tvec_curr, projs, jacs, vis_idxs):
+def node_to_pixel_mapping_non_keyframe(
+    rmat_key,
+    tvec_key,
+    rmat_curr,
+    tvec_curr,
+    projs,
+    jacs,
+    vis_idxs
+):
     """Returns data on the projected visible nodes for a non-keyframe
 
     Returns a numpy array of the pixel positions of the projected locations of the
@@ -130,7 +169,14 @@ def node_to_pixel_mapping_non_keyframe(rmat_key, tvec_key, rmat_curr, tvec_curr,
     return projs_fin
 
 
-def node_to_pixel_mapping_non_keyframe_full(rmat, tvec, cameraMatrix, distCoeffs, nodes, vis_idxs):
+def node_to_pixel_mapping_non_keyframe_full(
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    nodes,
+    vis_idxs
+):
     """Returns data on the projected visible nodes for a non-keyframe
 
     Returns a numpy array of the pixel positions of the projected locations of the
@@ -168,7 +214,9 @@ def node_to_pixel_mapping_non_keyframe_full(rmat, tvec, cameraMatrix, distCoeffs
     vis_nodes = nodes[vis_idxs]
 
     # Project all visible nodes
-    projs = photogrammetry.project_3d_point(rmat, tvec, cameraMatrix, distCoeffs, vis_nodes, ret_jac=False)
+    projs = photogrammetry.project_3d_point(
+        rmat, tvec, cameraMatrix, distCoeffs, vis_nodes, ret_jac=False
+    )
 
     # Initialize an output of all NANs
     projs_fin = np.full((len(nodes), 2), np.NAN)

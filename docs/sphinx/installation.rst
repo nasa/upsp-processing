@@ -2,34 +2,53 @@
 Installation
 ============
 
-The project does not currently provide pre-built binary releases. Users must
-build the project from source on their local system. The project is built as
-a Python package with native applications and extension modules written in C/C++.
+There are two components of the uPSP software:
+- A C/C++ code base including several utility applications and the
+  main processing application ``psp-process``
+- A Python code base including batch processing tooling, camera calibration
+  routines, and data analysis tools. This also includes some limited integration
+  of C/C++ functionality via ``pybind11`` for 2D-3D raycasting routines.
 
-The following instructions will help the user build and install the package into
-their local Python environment as a ``pip`` package. The package build system
-leverages ``scikit-build`` and CMake to compile native C/C++ elements and deploy
-them alongside pure Python modules in the final package.
+To install the C/C++ code base, the user must build from source (instructions
+are below).
+
+To install the Python code base, the user can install from source OR (simpler
+solution) they can pull from the binary package distribution on PyPI by running
+``pip install upsp``. The Python library is compatible solely with Python 3.9
+(this may be updated soon in an upcoming release).
+
+Our current strategy at NASA is to build from source for our supercomputing cluster,
+and then install from PyPI for local development and data analysis.
 
 Prerequisites
 =============
 
-- The project is currently tested for use on Linux x86-64 target systems.
-- See :ref:`dependencies:Third-Party Dependencies` for a list of third-party libraries that must be installed
-  on the local system in order to build the project. They can be managed using the
-  system package manager (``apt`` on Ubuntu, ``yum`` on CentOS, etc.) or with a C/C++
-  package management framework---the package maintainers at NASA develop and test using
-  `vcpkg <https://vcpkg.io/en/index.html>`_. If using ``vcpkg``, the dependencies will likely not be in a default system folder and
-  so the following environment variables should be set to point the build system at the
-  CMake toolchain file provided by your ``vcpkg`` install:
-  
-  .. code:: bash
-
-     #!/bin/bash
-     export SKBUILD_CONFIGURE_OPTIONS=" -DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-
-- Python must be installed on the local system (3.7+), ideally inside a virtual environment.
+- The C/C++ project is currently tested for use on Linux x86-64 target systems.
+- Python 3.9 must be installed on the local system, ideally inside a virtual environment.
 - We require ``pip>=22.3.1``. To upgrade, you can run ``pip install --upgrade pip``.
+- Several CMake options can be used to control what is built.
+  - ``UPSP_BUILD_APPLICATIONS``: build core applications
+  - ``UPSP_BUILD_PYBIND11``: build Python C/C++ extensions (requires ``pybind11``)
+  - ``UPSP_BUILD_TESTING``: build C/C++ unit tests (requires ``gtest``)
+- See :ref:`dependencies:Third-Party Dependencies` for a list of third-party libraries that must be installed
+  on the local system in order to build the project.
+  - If building only the Python bindings, then only ``imath`` is required.
+  - At NASA, we develop and test using `vcpkg <https://vcpkg.io/en/index.html>`_. If using
+    ``vcpkg``, the dependencies will likely not be in a default system folder and
+    so the following environment variables should be set to point the build system at the
+    CMake toolchain file provided by your ``vcpkg`` install:
+
+    .. code:: bash
+
+      #!/bin/bash
+      CMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CMAKE_OPTS=()
+      CMAKE_OPTS+=("-DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE")
+      CMAKE_OPTS+=("-DUPSP_BUILD_APPLICATIONS=ON")
+      CMAKE_OPTS+=("-DUPSP_BUILD_PYBIND11=ON")
+      CMAKE_OPTS+=("-DUPSP_BUILD_TESTING=ON")
+      export SKBUILD_CONFIGURE_OPTIONS="${CMAKE_OPTS[@]}"
+
 
 Obtaining source code
 =====================

@@ -1,5 +1,4 @@
-# Run the uPSP project build system and unit tests.
-# Artifacts are installed into the runner's system Python 3 environment.
+# Run the uPSP C++ build system and unit tests.
 #
 # Notes:
 #
@@ -26,10 +25,9 @@
 # - On NAS HECC systems, we build the C/C++ code with dynamic linkage due
 #   to the available system dependencies. This is *not* a default
 #   target supported by vcpkg, but it has a lot of community interest and
-#   "unofficial" testing support. Ref: https://github.com/microsoft/vcpkg/issues/15006
-#   We patch up some of the RPATH quirks using 'patchelf'.
+#   "unofficial" testing support.
 #   
-name: unit-tests
+name: C/C++ unit tests
 on: 
   push: 
   workflow_dispatch:
@@ -51,6 +49,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: lukka/get-cmake@latest
       - name: Install dependencies (Linux)
         run: |
@@ -82,33 +82,22 @@ jobs:
           runVcpkgInstall: true
           # Release 2023.04.15
           vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
-      - name: Patch vcpkg library headers with patchelf
+      - name: Run CMake build
         run: |
-          cd vcpkg
-          ${{ github.workspace }}/.github/workflows/vcpkg-fix-rpaths
-          cd ..
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - name: Upgrade pip to v23+
-        run: |
-          pip install --upgrade pip
-          pip --version
-          python --version
-      - name: Run build+install with pip
-        run: |
-          SKBUILD_CONFIGURE_OPTIONS=\
-          " -DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"\
-          " -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic" pip install -v .
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET="x64-linux-dynamic" \
+            -DUPSP_BUILD_TESTING=ON \
+            -DUPSP_BUILD_APPLICATIONS=ON \
+            -DUPSP_BUILD_PYBIND11=ON \
+            ..
+          make -j
       # - name: Setup upterm session
       #   uses: lhotari/action-upterm@v1
       - name: Run C/C++ unit tests
-        # TODO this should be made cross-platform. Currently works only for ubuntu-latest
-        # TODO fix RUNPATH of built executables to avoid use of LD_LIBRARY_PATH
         run: |
-          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${{ env.VCPKG_INSTALLED_DIR }}/${{ env.VCPKG_DEFAULT_TRIPLET }}/lib"
-          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
           cd cpp/test
-          ../../_skbuild/linux-x86_64-3.9/cmake-build/run_tests
+          ../../build/cpp/test/run_tests
 
