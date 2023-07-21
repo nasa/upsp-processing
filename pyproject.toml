@@ -1,6 +1,7 @@
 [project]
 name = "upsp"
 description = "NASA uPSP data processing applications and utilities"
+readme = { file = "README.md", content-type = "text/markdown" }
 authors = [{name = "NASA uPSP developers"}]
 license = {file = "LICENSE.txt"}
 dynamic = ["version"]
