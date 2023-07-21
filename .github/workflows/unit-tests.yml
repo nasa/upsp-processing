@@ -27,7 +27,7 @@
 #   target supported by vcpkg, but it has a lot of community interest and
 #   "unofficial" testing support.
 #   
-name: Build and run all C/C++ unit tests
+name: C/C++ unit tests
 on: 
   push: 
   workflow_dispatch:
