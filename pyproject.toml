@@ -5,7 +5,7 @@ readme = { file = "README.md", content-type = "text/markdown" }
 authors = [{name = "NASA uPSP developers"}]
 license = {file = "LICENSE.txt"}
 dynamic = ["version"]
-requires-python = ">=3.9"
+requires-python = "=3.9"
 dependencies = [
     "matplotlib",
     "numpy",
