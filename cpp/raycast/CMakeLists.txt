@@ -18,4 +18,8 @@ add_library(
 )
 target_link_libraries(upsp_kdtree PUBLIC IlmBase::Imath)
 
-install(TARGETS upsp_kdtree)
+install(
+    TARGETS upsp_kdtree
+    LIBRARY DESTINATION ${UPSP_INSTALL_LIB_DIR}
+    RUNTIME DESTINATION ${UPSP_INSTALL_LIB_DIR}
+)

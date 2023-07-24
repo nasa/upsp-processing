@@ -38,8 +38,14 @@ if (DEFINED SKBUILD)
   elseif (LINUX)
     set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../../")
   endif()
+
+  set(UPSP_INSTALL_BIN_DIR ${SKBUILD_SCRIPTS_DIR})
+  set(UPSP_INSTALL_LIB_DIR ${SKBUILD_PROJECT_NAME})
+else()
+  set(UPSP_INSTALL_BIN_DIR "bin")
+  set(UPSP_INSTALL_LIB_DIR "lib")
 endif()
- 
+
 add_subdirectory(cpp)
 
 install(
@@ -49,6 +55,5 @@ install(
     scripts/upsp-kulite-comparison
     scripts/upsp-plotting
     scripts/upsp-qsub-args
-    DESTINATION
-    ${SKBUILD_SCRIPTS_DIR}
+    DESTINATION ${UPSP_INSTALL_BIN_DIR}
 )
