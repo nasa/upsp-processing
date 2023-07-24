@@ -27,6 +27,7 @@ if __name__ == "__main__":
     ap.add_argument("--proc", help="upsp processing parameters json file")
     ap.add_argument("--plot", help="upsp plotting parameters json file")
     args = ap.parse_args()
+    outdir = os.path.realpath(args.outdir)
     upsp.processing.tree.create(
-        args.outdir, args.data, args.user, args.proc, args.plot
+        outdir, args.data, args.user, args.proc, args.plot
     )

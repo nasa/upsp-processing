@@ -27,7 +27,6 @@ def rot(angle, axis):
         Rotation matrix of an identity matrix rotated about the given axis by the given
         amount
     """
-
     assert_error_msg = "Error in photogrammetry.rot. Axis must be 'x', 'y', or 'z'."
     assert axis in ['x', 'y', 'z'], assert_error_msg
 
@@ -66,7 +65,6 @@ def invTransform(R, t):
     tvec_i : np.ndarray, shape (3, 1), float
         Inverse translation vector
     """
-
     R_transpose = R.transpose()
     return (R_transpose, -np.matmul(R_transpose, t))
 
@@ -84,7 +82,6 @@ def isRotationMatrix(R):
     bool
         True if R is a valid rotation matrix, and False if it is not
     """
-
     Rt = np.transpose(R)
     shouldBeIdentity = np.dot(Rt, R)
     n = np.linalg.norm(np.identity(3, dtype=R.dtype) - shouldBeIdentity)
@@ -157,11 +154,23 @@ def transform_3d_point(rmat, tvec, obj_pts):
     np.ndarray (n, 3) of floats
         Array of transformed points. return[i] is the transformed obj_pts[i]
     """
-    obj_pts_tf = np.squeeze(np.array([np.matmul(rmat, np.expand_dims(pt, 1)) + tvec for pt in obj_pts]), axis=2)
+    if not len(obj_pts):
+        return np.array([])
+    
+    obj_pts_tf = [np.matmul(rmat, np.expand_dims(pt, 1)) + tvec for pt in obj_pts]
+    obj_pts_tf = np.squeeze(np.array(obj_pts_tf), axis=2)
     return obj_pts_tf
 
 
-def project_3d_point(rmat, tvec, cameraMatrix, distCoeffs, obj_pts, ret_jac=False, ret_full_jac=False):
+def project_3d_point(
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    obj_pts,
+    ret_jac=False,
+    ret_full_jac=False
+):
     """Projects targets into an image.
 
     Parameters
@@ -254,7 +263,6 @@ def transform_targets(rmat, tvec, tgts):
         List of targets. Each target has the attributes of the input targets, except
         the transformed targets are transformed to be relative to the camera
     """
-
     tgts_tf = []
     for tgt in tgts:
         # Transform the target tvec and norm to be relative to the camera
@@ -377,13 +385,23 @@ def get_occlusions_targets(rmat, tvec, tgts, vis_checker):
         origin = node + vis_checker.epsilon * normal
 
         # If it is occluded, mark it occluded and move on to the next node
-        occlusions.append(vis_checker.does_intersect(origin, direction, return_pos=True))
+        occlusions.append(vis_checker.does_intersect(
+            origin, direction, return_pos=True)
+        )
 
     return occlusions
 
 
-def get_visible_targets(rmat, tvec, tgts, vis_checker):
-    """Wrapper around :meth:`~upsp.cam_cal_utils.visibility.VisibilityChecker.is_visible`
+def get_visible_targets(
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    tgts,
+    vis_checker,
+    incal_inputs=None
+):
+    """Wrapper of :meth:`~upsp.cam_cal_utils.visibility.VisibilityChecker.is_visible`
 
     Parameters
     ----------
@@ -405,9 +423,12 @@ def get_visible_targets(rmat, tvec, tgts, vis_checker):
         List of visible targets. Returned targets are references to input targets.
         Returned list is the subset of the input targets that are visible to the camera
     """
-
-    # Get the position and orientation of the camera in the tgts frame
-    rmat_model2camera, tvec_model2camera = invTransform(rmat, tvec)
+    if (len(tgts) == 0):
+        return []
+    
+    # Populate incal_inputs if it was not given
+    if incal_inputs is None:
+        incal_inputs = {'critical_pt':'first'}
 
     # Package the tvecs and normals of the targets
     tvecs = []
@@ -419,7 +440,9 @@ def get_visible_targets(rmat, tvec, tgts, vis_checker):
     norms = np.squeeze(np.array(norms), 2)
 
     # Get the visible targets and return
-    visible_indices = vis_checker.is_visible(tvec_model2camera, tvecs, norms)
+    visible_indices = vis_checker.is_visible_and_inside_incal(
+        rmat, tvec, cameraMatrix, distCoeffs, tvecs, norms, incal_inputs
+    )
     tgts_visibles = [tgts[x] for x in visible_indices]
     return tgts_visibles
 
@@ -452,7 +475,6 @@ def reprojection_error(rmat, tvec, cameraMatrix, distCoeffs, tgts, img_targets):
     rms, max_dist : float
         RMS distance and maximum distance
     """
-
     if len(tgts) == 0:
         return np.inf, np.inf
 

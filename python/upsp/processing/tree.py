@@ -294,7 +294,6 @@ def _launcher_env_sh(cfg: dict):
 
     - Load any required system libraries that aren't available
       by default... for example, system-provided MPI libraries.
-    
     - Prefix the PATH with the directory of our current python
       interpreter. Ensures any scripts keying off "/usr/bin/env python"
       resolve the correct interpreter at runtime.
@@ -302,7 +301,7 @@ def _launcher_env_sh(cfg: dict):
     env_sh_lines = [
         "source /usr/local/lib/global.profile",
         "module purge",
-        "module load mpi-hpe/mpt.2.25",
+        "module load mpi-hpe/mpt",
         "export PATH=%s:$PATH" % (os.path.dirname(shutil.which("python")))
     ]
     return "\n".join(env_sh_lines)
@@ -548,10 +547,11 @@ def _configuration_name(cfg: dict):
     # - The alias for the uPSP processing software parameter values
     alias_input_files = cfg["__meta__"]["datapoints"]["config_name"]
     alias_processing_params = cfg["__meta__"]["processing"]["name"]
-    if alias_input_files == alias_processing_params:
-        return alias_input_files
-    else:
-        return "+".join([alias_input_files, alias_processing_params])
+    toks = [alias_input_files, alias_processing_params]
+    filtered_toks = [t for t in toks if t != "default"]
+    if not filtered_toks:
+        filtered_toks = ["default"]
+    return "+".join(filtered_toks)
 
 
 def _version_configuration_name(cfg: dict):

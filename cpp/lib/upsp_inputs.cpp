@@ -27,6 +27,7 @@ FileInputs::FileInputs() :
         run(0), sequence(0), tunnel(""), cameras(0), sds(""), 
         grid(""), active_comps(""), out_name(""), normals(""), out_dir(""), 
         grid_type(GridType::None), target_patcher(TargetPatchType::None), 
+        pixel_interpolation(PixelInterpolationType::Linear),
         registration(RegistrationType::None), filter(FilterType::None), 
         overlap(OverlapType::AverageViews), filter_size(0), 
         oblique_angle(70), number_frames(0), grid_units("-") {}
@@ -323,6 +324,7 @@ void FileInputs::write_file(std::string filename) const {
     ofs << "@options" << std::endl;
     ofs << "\ttarget_patcher = " << target_patcher << std::endl;
     ofs << "\tregistration = " << registration << std::endl;
+    ofs << "\tpixel_interpolation = " << pixel_interpolation << std::endl;
     ofs << "\tfilter = " << filter << std::endl;
     ofs << "\toverlap = " << overlap << std::endl;
     ofs << "\tfilter_size = " << filter_size << std::endl;
@@ -568,6 +570,20 @@ bool FileInputs::load_options(std::ifstream& fs) {
                     fs.close();
                     return false;
                 }
+            } else if (tokens[0] == "pixel_interpolation") {
+                if (tokens[1] == "linear") {
+                    pixel_interpolation = PixelInterpolationType::Linear;
+                } else if (tokens[1] == "nearest") {
+                    pixel_interpolation = PixelInterpolationType::Nearest;
+                } else {
+                    LOG_ERROR(
+                        "Error: Could not parse @options:pixel_interpolation."
+                        " Options are 'linear' or 'nearest."
+                    );
+                    fs.close();
+                    return false;
+                }
+
             } else if (tokens[0] == "filter") {
                 if (tokens[1] == "gaussian") {
                     filter = FilterType::Gaussian;
@@ -772,6 +788,7 @@ std::ostream& operator<<(std::ostream& os, const FileInputs& fi) {
     os << "Options:" << std::endl;
     os << "  Target Patcher   = " << fi.target_patcher << std::endl;
     os << "  Registration     = " << fi.registration << std::endl;
+    os << "  Pixel Interp     = " << fi.pixel_interpolation << std::endl;
     os << "  Filter           = " << fi.filter << " (" << fi.filter_size << "x";
     os << fi.filter_size << ")" << std::endl;
     os << "  Overlap          = " << fi.overlap << std::endl;
@@ -811,6 +828,22 @@ std::ostream& operator<<(std::ostream& os, const RegistrationType& rt) {
             break;
         default :
             os << "undefined registration type";
+            break;
+    }
+    return os;
+}
+
+/*****************************************************************************/
+std::ostream& operator<<(std::ostream& os, const PixelInterpolationType& pt) {
+    switch (pt) {
+        case (PixelInterpolationType::Linear) :
+            os << "linear";
+            break;
+        case (PixelInterpolationType::Nearest) :
+            os << "nearest";
+            break;
+        default :
+            os << "undefined interpolation type";
             break;
     }
     return os;

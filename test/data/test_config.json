@@ -1,0 +1,12 @@
+{"oblique_angle" : 70,
+"tunnel-cor_to_tgts_tvec" : [0.0, 0.0, 0.0],
+"tunnel-cor_to_tgts_rmat": [[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]],
+"tunnel-cor_to_tunnel-origin_tvec": [0.0, 0.0, 0.0],
+"tunnel-cor_to_tunnel-origin_rmat": [[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]],
+"crosscorr_coeff" : 0.75,
+"dot_pad" : 4,
+"kulite_pad" : 3,
+"max_dist" : 6,
+"min_dist" : 8,
+"Updated" : "03/13/2023"
+}

@@ -1,4 +1,4 @@
-name: Build
+name: Build 🐍 📦 + Publish to PyPI
 
 on:
   push:
@@ -92,9 +92,11 @@ jobs:
             -DUPSP_BUILD_TESTING=OFF -DUPSP_BUILD_APPLICATIONS=OFF -DUPSP_BUILD_PYBIND11=ON'
           CIBW_BEFORE_ALL_LINUX: "yum install -y perl-IPC-Cmd zip ninja-build"
           CIBW_BEFORE_BUILD_WINDOWS: "pip install cmake"
-          CIBW_BUILD: "cp39-win_amd64 cp39-macosx_x86_64 cp39-manylinux_x86_64"
+          CIBW_BUILD: "cp*-win_amd64 cp*-macosx_x86_64 cp*-manylinux_x86_64"
           CIBW_SKIP: "*-win32 *-manylinux_i686"
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "pytest {project}/test/python"
         with:
           package-dir: .
           output-dir: wheelhouse
@@ -118,3 +120,24 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         path: dist/*.tar.gz
+
+  pypi_publish:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    # Upload for any push of tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          # unpacks default artifact into dist/
+          # if `name: artifact` is omitted, the action will create extra parent dir
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        # For testing
+        # with:
+        #   repository_url: https://test.pypi.org/legacy/

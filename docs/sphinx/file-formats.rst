@@ -437,7 +437,14 @@ the variables included in the input deck are included in :numref:`input-deck`
         - no
         - decide what type of image registration to perform, supports either ``pixel`` or
           ``none``; default is ``none``
-   
+    
+      * - 
+        - pixel_interpolation
+        - pixel-based image registration interpolation method
+        - no
+        - for image registration type ``pixel``, decide what type of interpolation method is
+          used, supports either ``linear`` or ``nearest``; default is ``linear``
+
       * - 
         - overlap
         - multi-view handling

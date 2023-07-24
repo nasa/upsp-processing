@@ -26,7 +26,6 @@ target_link_libraries(upsp-extract-frames opencv_videoio)
 target_include_directories(upsp-extract-frames SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 
 add_executable(add_field add_field.cpp)
-target_link_libraries(add_field upsp_video)
 target_link_libraries(add_field upsp_utils)
 target_link_libraries(add_field hdf5::hdf5_cpp-shared hdf5::hdf5_hl_cpp-shared)
 

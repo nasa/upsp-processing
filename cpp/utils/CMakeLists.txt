@@ -12,6 +12,7 @@ add_library(
     general_utils.cpp
 )
 target_link_libraries(upsp_utils PUBLIC opencv_core opencv_imgproc)
+target_link_libraries(upsp_utils PUBLIC upsp_video)
 target_link_libraries(upsp_utils PUBLIC ${LIBRT})
 
 install(TARGETS upsp_utils LIBRARY DESTINATION lib)

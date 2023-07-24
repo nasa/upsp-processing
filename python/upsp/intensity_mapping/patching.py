@@ -11,13 +11,15 @@ np.set_printoptions(linewidth=180, precision=4, threshold=np.inf)
 degree = 3
 
 # TODO: Another potential method to look into is a 2D taylor expansion
-#   F(t_0 + delta_t) = sum n from 0 to inf: 1/n! (n-th derivative of F w.r.t. t) * delta_t^n
+#   F(t_0 + delta_t) = sum n from 0 to inf:
+#       1/n! (n-th derivative of F w.r.t. t) * delta_t^n
 #   Where F(t) = f(x_o + t * delta_x, y_o + t * delta_y)
 #   (f is the function we want, F(t) is easy to take a taylor series of)
 #   n-th derivative of F(t):
 #       sum m from 0 to n:
 #           (n choose m) * (m-th partial derivative w.r.t. x and (n-m)-th partial
-#           derivative w.r.t. y of f) evaluated at (x_o, y_o) * delta_x^m * delta_y^(n-m)
+#           derivative w.r.t. y of f) evaluated at
+#           (x_o, y_o) * delta_x^m * delta_y^(n-m)
 
 # TODO: Another thing to try (with the current method or Taylor expansion) is weighting
 #   Each pixel gets exponentially less weight on the current patch based on distance
@@ -75,7 +77,9 @@ def get_target_node_idxs(nodes, tgts, buffer_thickness_in):
     #   flagged as potential invalid nodes
     heuristic_invalid_nodes = set()
     for tgt in tgts:
-        manhattan_dist = np.linalg.norm(np.absolute(nodes - tgt['tvec'].T), ord=1, axis=1)
+        manhattan_dist = np.linalg.norm(
+            np.absolute(nodes - tgt['tvec'].T), ord=1, axis=1
+        )
         heuristic_invalid_nodes.update(np.squeeze(np.argwhere(manhattan_dist < (np.sqrt(3) * (tgt['size'] / 2 + buffer_thickness_in))), axis=1).tolist())
     heuristic_invalid_nodes = list(heuristic_invalid_nodes)
 
@@ -88,7 +92,16 @@ def get_target_node_idxs(nodes, tgts, buffer_thickness_in):
     return np.array(sorted(invalid_nodes), dtype=np.int32)
 
 
-def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
+def patchFiducials(
+    fiduals_visible,
+    inp_img,
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    boundary_thickness,
+    buffer_thickness_in
+):
     """Patches clusters in the `inp_img`
 
     Parameters
@@ -131,18 +144,49 @@ def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeff
     out_img = copy.deepcopy(inp_img).astype(np.float32)
 
     # Cluster the fiducials
-    clusters = clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+    clusters = clusterFiducials(
+        fiduals_visible,
+        rmat,
+        tvec,
+        cameraMatrix,
+        distCoeffs,
+        boundary_thickness,
+        buffer_thickness_in
+    )
 
     # Patch every cluster in the output image
-    for cluster in clusters:
+    for i, cluster in enumerate(clusters):
         # Get the internal and boundary points of the cluster
         if (len(cluster) == 1):
-            internals, bounds = get_fiducial_internal_and_boundary(cluster[0], rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+            internals, bounds = get_fiducial_internal_and_boundary(
+                cluster[0],
+                rmat,
+                tvec,
+                cameraMatrix,
+                distCoeffs,
+                boundary_thickness,
+                buffer_thickness_in)
         else:
-            internals, bounds = get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+            internals, bounds = get_cluster_internal_and_boundary(
+                cluster,
+                rmat,
+                tvec,
+                cameraMatrix,
+                distCoeffs,
+                boundary_thickness,
+                buffer_thickness_in
+            )
 
         # Skip if there are too few points to perform patching
         if (len(bounds) < ((degree+2)*(degree+1)/2)):
+            continue
+
+        # Skip if the fiducial is outside the image
+        if min(bounds[:, 0]) < 0 or min(bounds[:, 1]) < 0:
+            continue
+        
+        # Skip if the fiducial is outside the image (continued)
+        if max(bounds[:, 0]) > inp_img.shape[1] or max(bounds[:, 1]) > inp_img.shape[0]:
             continue
 
         # Convert the positions to local positions
@@ -166,7 +210,15 @@ def patchFiducials(fiduals_visible, inp_img, rmat, tvec, cameraMatrix, distCoeff
     return out_img
 
 
-def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
+def clusterFiducials(
+    fiduals_visible,
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    boundary_thickness,
+    buffer_thickness_in
+):
     """Clusters input fiducials based on image location and image size
 
     A cluster is made of all fiducials with a path of overlap between them, i.e. A is
@@ -204,17 +256,22 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
         `fiducials_visible`.
     """
     # Represent fiducials as circles with center and radius
-    unclustered_fiducial_sets = [] #deleteme?
+    unclustered_fiducial_sets = []
     # unclustered_image_fiducials = [] #deleteme?
     for fiducial in fiduals_visible:
-        internals, bounds = get_fiducial_internal_and_boundary(fiducial, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+        internals, bounds = get_fiducial_internal_and_boundary(
+            fiducial,
+            rmat,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            boundary_thickness,
+            buffer_thickness_in
+        )
         internal_set = set(tuple(internal) for internal in internals)
-        internal_and_boundary_set = set(set(tuple(boundary) for boundary in bounds)).union(internal_set)
+        boundary_set = set(tuple(boundary) for boundary in bounds)
+        internal_and_boundary_set = boundary_set.union(internal_set)
         unclustered_fiducial_sets.append([internal_set, internal_and_boundary_set])
-
-        # tgt_proj, targ_size_px, __, __ = get_fiducial_pixel_properties(fiducial, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
-        # # tgt_proj['proj'] is center, targ_size_px is diameter
-        # unclustered_image_fiducials.append((tgt_proj['proj'], targ_size_px / 2))
 
     # unclustered_image_fiducials_orig = copy.deepcopy(unclustered_image_fiducials)
     unclustered_fiducial_sets_orig = copy.deepcopy(unclustered_fiducial_sets)
@@ -282,7 +339,15 @@ def clusterFiducials(fiduals_visible, rmat, tvec, cameraMatrix, distCoeffs, boun
 
 
 # TODO: automatically find fiducials that are close together to group into clusters
-def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
+def get_cluster_internal_and_boundary(
+    cluster,
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    boundary_thickness,
+    buffer_thickness_in
+):
     """Returns a list of internal and boundary pixels for the input cluster
 
     An internal pixel is either directly a part of the fiducials or in between
@@ -326,13 +391,21 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
     # First stage: Get the minimum, axis aligned rectangle that contains all fiducials
     #   of this cluster
     t_min = np.array([np.iinfo(np.int32).max, np.iinfo(np.int32).max], dtype=np.int32)
-    t_max = np.array([0, 0], dtype=np.int32)
+    t_max = np.array([np.iinfo(np.int32).min, np.iinfo(np.int32).min], dtype=np.int32)
 
     # Iterate over every fiducial, and take the leftmost, topmost, rightmost, and
     #   bottommost fiducial point. Save them in t_min and t_max respectively
     for tgt in cluster:
         # Get the minimum, axis-aligned bounding box for this fiducial
-        tgt_proj, targ_size_px, t_min_temp, t_max_temp = get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+        tgt_proj, targ_size_px, t_min_temp, t_max_temp = get_fiducial_pixel_properties(
+            tgt,
+            rmat,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            boundary_thickness,
+            buffer_thickness_in
+        )
 
         # Update t_min and t_max
         t_min = np.minimum(t_min, t_min_temp)
@@ -340,15 +413,23 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
 
     # Second Stage: make a mini images the size of that minimum axis aligned rectangle
     #   and mark internal and boundary pixels. An internal pixel is either directly a
-    #   part of the fiducials or in between fiducials. A boundary pixel is any pixel within
-    #   buffer pixels of an internal pixel and is not an internal itself
+    #   part of the fiducials or in between fiducials. A boundary pixel is any pixel
+    #   within buffer pixels of an internal pixel and is not an internal itself
 
     # Mini image to contain the internal points
     internal_map = np.zeros((t_max[1] - t_min[1], t_max[0] - t_min[0]))
 
     # Mark all points that are directly a part of the fiducials as internal
     for tgt in cluster:
-        internal_points, __ = get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+        internal_points, __ = get_fiducial_internal_and_boundary(
+            tgt,
+            rmat,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            boundary_thickness,
+            buffer_thickness_in
+        )
 
         # Mark every internal point as internal
         for x, y in internal_points:
@@ -365,18 +446,18 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
 
     # For each column, find the topmost and bottommost internal pixel. Fill in
     #   everything between them
-    for x in range(t_max[0] - t_min[0]):
-        min_y = t_max[1] - 1
+    for x in range(internal_map.shape[1]):
+        min_y = internal_map.shape[0] - 1
         max_y = 0
 
         # Find the topmost internal pixel of this row
-        for y in range(t_max[1] - t_min[1]):
+        for y in range(internal_map.shape[0]):
             if internal_map[y][x]:
                 min_y = y
                 break
 
         # Find the bottommost internal pixel of this row
-        for y in reversed(range(t_max[1] - t_min[1])):
+        for y in reversed(range(internal_map.shape[0])):
             if internal_map[y][x]:
                 max_y = y
                 break
@@ -387,18 +468,18 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
 
     # For each row, find the leftmost and rightmost internal pixel. Fill in everything
     #   between them
-    for y in range(t_max[1] - t_min[1]):
-        min_x = t_max[0] - 1
+    for y in range(internal_map.shape[0]):
+        min_x = internal_map.shape[1] - 1
         max_x = 0
 
         # Find the topmost internal pixel of this row
-        for x in range(t_max[0] - t_min[0]):
+        for x in range(internal_map.shape[1]):
             if internal_map[y][x]:
                 min_x = x
                 break
 
         # Find the bottommost internal pixel of this row
-        for x in reversed(range(t_max[0] - t_min[0])):
+        for x in reversed(range(internal_map.shape[1])):
             if internal_map[y][x]:
                 max_x = x
                 break
@@ -407,8 +488,11 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
         for x in range(min_x, max_x):
             internal_map[y][x] = 1
 
-    # Get all pixels that are not internal and are within boundary_thickness of an internal
-    boundary_map = get_fiducial_boundary_map_from_internal_map(internal_map, boundary_thickness)
+    # Get all pixels that are not internal and are within boundary_thickness of an
+    #   internal
+    boundary_map = get_fiducial_boundary_map_from_internal_map(
+        internal_map, boundary_thickness
+    )
 
     # Third Stage: Turn those maps into a list of points
 
@@ -423,7 +507,15 @@ def get_cluster_internal_and_boundary(cluster, rmat, tvec, cameraMatrix, distCoe
     return internals, bounds
 
 
-def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
+def get_fiducial_internal_and_boundary(
+    tgt,
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    boundary_thickness,
+    buffer_thickness_in
+):
     """Return internal and boundary pixel positions for the input fiducial
 
     An internal pixel a part of the fiducials (minimum axis aligned bounding rectangle).
@@ -467,7 +559,15 @@ def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs
     assert type(boundary_thickness) is int # delteme
 
     # Get the tgt_proj and the minimum, axis-aligned bounding box for this fiducial
-    tgt_proj, targ_size_px, t_min, t_max = get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in)
+    tgt_proj, targ_size_px, t_min, t_max = get_fiducial_pixel_properties(
+        tgt,
+        rmat,
+        tvec,
+        cameraMatrix,
+        distCoeffs,
+        boundary_thickness,
+        buffer_thickness_in
+    )
 
     # Make a mini image the size of the region covered by the fiducial
     # In this image, 0 is safe and 1 is internals
@@ -496,13 +596,18 @@ def get_fiducial_internal_and_boundary(tgt, rmat, tvec, cameraMatrix, distCoeffs
 
     # For each of the closest points, if it is within the radius of the center it is
     #   internal and needs to be marked as such in the internal_map
-    closest_distances = np.linalg.norm([Xns - tgt_proj_local[0], Yns - tgt_proj_local[1]], axis=0)
+    closest_distances = np.linalg.norm(
+        [Xns - tgt_proj_local[0], Yns - tgt_proj_local[1]], axis=0
+    )
     internals_idxs = np.argwhere(closest_distances < (targ_size_px / 2))[:, 0]
     internals = np.stack((ys[internals_idxs], xs[internals_idxs]), axis=1)
     internal_map[tuple(internals.T)] = 1
 
-    # Get all pixels that are not internal and are within boundary_thickness of an internal
-    boundary_map = get_fiducial_boundary_map_from_internal_map(internal_map, boundary_thickness)
+    # Get all pixels that are not internal and are within boundary_thickness of an
+    #   internal
+    boundary_map = get_fiducial_boundary_map_from_internal_map(
+        internal_map, boundary_thickness
+    )
 
     # Get all internal and boundary points
     internals = np.argwhere(internal_map == 1)[:, [1,0]]
@@ -558,7 +663,15 @@ def get_fiducial_boundary_map_from_internal_map(internal_map, boundary_thickness
     return boundary_map
 
 
-def get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, boundary_thickness, buffer_thickness_in):
+def get_fiducial_pixel_properties(
+    tgt,
+    rmat,
+    tvec,
+    cameraMatrix,
+    distCoeffs,
+    boundary_thickness,
+    buffer_thickness_in
+):
     """Returns the pixel properties of the input fiducial
 
     Pixel properties refers to projected location, pixel size (adjusted for focal
@@ -617,7 +730,10 @@ def get_fiducial_pixel_properties(tgt, rmat, tvec, cameraMatrix, distCoeffs, bou
     targ_size_px = cameraMatrix[1][1] * targ_size_in / cam2tgt_dist
 
     # Get the tgt projection
-    tgt_proj = photogrammetry.project_targets(rmat, tvec, cameraMatrix, distCoeffs, [tgt])[0]
+    tgt_projs = photogrammetry.project_targets(
+        rmat, tvec, cameraMatrix, distCoeffs, [tgt]
+    )
+    tgt_proj = tgt_projs[0]
 
     # Get the an axis aligned minimum rectangle for this fiducial (plus buffer)
     t_min = [tgt_proj['proj'][0] - 0.5 * targ_size_px - boundary_thickness - 1,
@@ -661,8 +777,10 @@ def polyfit2D(bounds, Is):
     # Equivalent to 1 + 2 + ... + degree + (degree+1) = (degree+2)*(degree+1)/2
     num_coeffs = int((degree + 2) * (degree + 1) / 2)
 
-    # Number of boundary terms must be greater than or equal to the number of coefficients
-    assert(len(bounds) >= num_coeffs), "Not enough boundary terms, please increase boundary_thickness or decrease degree"
+    # Number of boundary terms must be greater than or equal to the number of
+    #   coefficients
+    assert(len(bounds) >= num_coeffs), ("Not enough boundary terms, please increase " + 
+        "boundary_thickness or decrease degree")
 
     # Initialize the least squares input matrix
     #   Ax ~= b where ~= is least squares solution

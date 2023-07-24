@@ -1,0 +1,7 @@
+../data,"['camera-tunnel-calibration', 'detection', 'images', 'internal-calibration', 'output']","['data.csv', 'fml_tc3_volume.grid', 'fml_tc3_volume.tgts', 'test_config.json', 'wtd_test.wtd']"
+../data/camera-tunnel-calibration,[],"['camera01_35_6.json', 'camera05_35_6.json']"
+../data/detection,['Annotations'],[]
+../data/detection/Annotations,[],"['CAM1_RUN8_CINE02_Y20000209H11294501.00001.xml', 'CAM5_RUN8_CINE02_Y20220209H11291505.00001.xml']"
+../data/images,[],"['CAM1_RUN8_CINE02_Y20000209H11294501.00001.png', 'CAM5_RUN8_CINE02_Y20220209H11291505.00001.png']"
+../data/internal-calibration,[],"['calibio_incal_test.json', 'camera01_35_6.json', 'camera05_35_6.json']"
+../data/output,[],['output.placeholder']
