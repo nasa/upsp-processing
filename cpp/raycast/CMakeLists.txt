@@ -18,14 +18,11 @@ add_library(
 )
 target_link_libraries(upsp_kdtree PUBLIC IlmBase::Imath)
 
-install(
+# raycast extension module handles installation to site-packages
+if(UPSP_BUILD_APPLICATIONS)
+  install(
     TARGETS upsp_kdtree
-    LIBRARY DESTINATION ${UPSP_INSTALL_LIB_DIR}
-    RUNTIME DESTINATION ${UPSP_INSTALL_LIB_DIR}
-)
-
-install(
-    TARGETS upsp_kdtree
-    LIBRARY DESTINATION ${UPSP_CPP_INSTALL_LIB_DIR}
-    RUNTIME DESTINATION ${UPSP_CPP_INSTALL_BIN_DIR}
-)
+    LIBRARY DESTINATION ${UPSP_INSTALL_APP_LIB_DIR}
+    RUNTIME DESTINATION ${UPSP_INSTALL_BIN_DIR}
+  )
+endif()
