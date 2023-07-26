@@ -14,17 +14,10 @@ set_target_properties(
 )
 target_compile_definitions(raycast PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
-# TODO I think this works in a fairly brittle fashion right now.
-# It just so happens that the cmake_install_dir staging directory
-# created by scikit-build has a "python/upsp" folder mimicking the
-# source tree layout... so these extensions are just "dropped" into the
-# right spot. There's probably a more robust way to specify their
-# install location, probably some CMAKE_ variable I'm ignorant of.
 install(
     TARGETS
-    # cine
     raycast
     upsp_kdtree
-    LIBRARY DESTINATION python/upsp
-    RUNTIME DESTINATION python/upsp
+    LIBRARY DESTINATION ${UPSP_INSTALL_EXT_LIB_DIR}
+    RUNTIME DESTINATION ${UPSP_INSTALL_EXT_LIB_DIR}
 )

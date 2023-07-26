@@ -39,6 +39,6 @@ install(
     psp_process
     upsp-extract-frames
     xyz_scalar_to_tbl
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION ${UPSP_INSTALL_APP_LIB_DIR}
+    RUNTIME DESTINATION ${UPSP_INSTALL_BIN_DIR}
 )

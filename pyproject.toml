@@ -15,15 +15,25 @@ dependencies = [
     "shapely"
 ]
 
+[project.optional-dependencies]
+test = ["pytest"]
+docs = ["sphinx", "sphinxcontrib-bibtex"]
+
 [build-system]
 requires = [
-    "setuptools>=61",
+    "scikit-build-core",
     "setuptools_scm[toml]>=6.2",
     "pybind11",
-    "cmake>=3.22",
-    "scikit-build>=0.15.0",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.verbose = true
+logging.level = "INFO"
+wheel.packages = ["python/upsp"]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.include = ["python/upsp/_version.py"]
+build-dir = "_skbuild/{wheel_tag}"
 
 [tool.isort]
 profile = "black"

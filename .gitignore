@@ -6,3 +6,5 @@ __pycache__
 _skbuild/
 python/upsp/_version.py
 
+.venv*/
+build/
