@@ -1,0 +1,55 @@
+name: Build docs + publish to GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Sphinx docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[docs]
+
+      - name: Build documentation
+        run: |
+          cd docs/sphinx
+          make html
+
+      - name: Upload built docs artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docs
+          path: docs/sphinx/_build/html
+
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # Upload for any push of tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download built docs artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docs
+
+      - name: Deploy to gh pages
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
+        with:
+          branch: gh-pages
+          folder: .
